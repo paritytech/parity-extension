@@ -1,0 +1,22 @@
+{
+  "extends": ["semistandard", "standard-react"],
+  "parser": "babel-eslint",
+  "env": {
+    "browser": true,
+    "mocha": true,
+    "node": true
+  },
+  "globals": {
+    "expect": true,
+    "FileReader": true
+  },
+  "rules": {
+    "curly": ["error", "all"],
+    "jsx-quotes": ["error", "prefer-single"],
+    "no-alert": "error",
+    "no-debugger": "error",
+    "object-curly-spacing": ["error", "always"],
+    "object-property-newline": 0,
+    "react/jsx-curly-spacing": ["error", "always"]
+  }
+}

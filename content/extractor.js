@@ -4,7 +4,6 @@ export function extractPossibleMatches ($dom) {
   const matches = [];
 
   if (href) {
-    console.log('Checking: ', href);
     push(matches, findMailto(href));
   }
 

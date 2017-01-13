@@ -7,9 +7,9 @@
       "js": ["content/index.js"]
     }
   ],
-  "background": [{
+  "background": {
     "scripts": ["background/index.js"]
-  }],
+  },
   "permissions": [
   ],
   "icons": {

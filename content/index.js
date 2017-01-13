@@ -1,8 +1,25 @@
+// Copyright 2015, 2016 Parity Technologies (UK) Ltd.
+// This file is part of Parity.
+
+// Parity is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// Parity is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with Parity.  If not, see <http://www.gnu.org/licenses/>.
+
 /* global chrome,NodeFilter,MutationObserver */
 
 import { uniq } from 'lodash';
 import uuid from 'uuid/v4';
 
+import { PROCESS_MATCHES } from '../background/processor';
 import { extractPossibleMatches, findEmail } from './extractor';
 
 const port = chrome.runtime.connect({ name: 'id' });
@@ -66,35 +83,63 @@ port.onMessage.addListener((msg) => {
 // 1. First we look for most likely matches <a href="mailto:..> and <a href="{user_profile}">
 // 2. Then we process all text nodes
 
-function extractFromAttributes (root = document.body) {
+function extractFromAttributes (root = document.body, resolved = null) {
   const treeWalker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT);
   let matches = [];
 
   while (treeWalker.nextNode()) {
     const node = treeWalker.currentNode;
+
+  	if (node.getAttribute('data-parity-touched') === 'true') {
+  		continue;
+  	}
+
     const extractions = extractPossibleMatches(node);
 
     if (extractions.length > 0) {
       matches = matches.concat(extractions);
+
+      if (resolved && extractions.includes((match) => resolved[match])) {
+      	console.log('found a MATCH', node);
+      	const { address } = extractions.find((match) => resolved[match]);
+      	node.innerText += `(eth: ${address})`;
+      }
     }
   }
 
   return matches;
 }
 
-function extractFromText (root = document.body) {
+function extractFromText (root = document.body, resolved = null) {
   const treeWalker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
   let matches = [];
 
   while (treeWalker.nextNode()) {
-    const email = findEmail(treeWalker.currentNode.textContent);
+  	const node = treeWalker.currentNode;
+
+  	if (node.parentElement.getAttribute('data-parity-touched') === 'true') {
+  		continue;
+  	}
+
+    const email = findEmail(node.textContent);
 
     if (email) {
       matches = matches.concat(email);
+
+      if (resolved && resolved[email]) {
+      	const { address } = resolved[email];
+      	node.parentElement.outerHTML += `<p data-parity-ignore="true">(eth: ${address})</p>`;
+      	node.parentElement.setAttribute('data-parity-touched', true);
+      }
     }
   }
 
   return matches;
+}
+
+function augment (root = document.body, resolved = {}) {
+	extractFromAttributes(root, resolved);
+	extractFromText(root, resolved);
 }
 
 function extract (root = document.body) {
@@ -109,11 +154,17 @@ function extract (root = document.body) {
     console.log('got matches', uniqMatches);
 
     process({
-      type: 'processText',
+      type: PROCESS_MATCHES,
       data: uniqMatches
     })
-    .then((result) => {
-      console.log('result', result);
+    .then((resolved) => {
+    	console.log('received resolved', resolved);
+
+    	if (Object.keys(resolved).length > 0) {
+    		return augment(root, resolved);
+    	}
+
+    	console.log('no matches found...');
     })
     .catch((error) => {
       console.error(error);
@@ -128,6 +179,14 @@ const observer = new MutationObserver((mutations) => {
 
     if (!addedNodes || addedNodes.length === 0) {
       return;
+    }
+
+    const ignoreNode = Array.prototype.slice.apply(addedNodes).find((node) => {
+    	return node.getAttribute('data-parity-ignore') === 'true';
+    });
+
+    if (ignoreNode) {
+    	return;
     }
 
     addedNodes.forEach((node) => {

@@ -21,7 +21,7 @@ import uuid from 'uuid/v4';
 
 import { PROCESS_MATCHES } from '../background/processor';
 import Extractor, { TAGS_BLACKLIST } from './extractor';
-
+import Augmenter from './augmenter';
 
 // Setup a Promise-based communication with the background process
 const port = chrome.runtime.connect({ name: 'id' });
@@ -85,68 +85,8 @@ port.onMessage.addListener((msg) => {
 // 1. First we look for most likely matches <a href="mailto:..> and <a href="{user_profile}">
 // 2. Then we process all text nodes
 
-function augmentNode (email, node, resolved = {}) {
-  if (!node || node.getAttribute('data-parity-touched') === 'true') {
-    return;
-  }
-
-  node.setAttribute('data-parity-touched', true);
-
-  if (!resolved[email]) {
-    return;
-  }
-
-  const { address } = resolved[email];
-
-  node.setAttribute('data-parity-touched', true);
-  node.outerHTML += `<span data-parity-touched="true"> (${address})</span>`;
-}
-
-function augment (matches, resolved = {}) {
-  // Use the attributes matcher first
-  const attributesMatches = matches.filter((match) => match.from === 'attributes');
-  const textMatches = matches.filter((match) => match.from === 'text');
-
-  attributesMatches
-    .forEach((match) => {
-      const { email, node } = match;
-      augmentNode(email, node, resolved);
-    });
-
-  textMatches
-    .forEach((match) => {
-      const { email, node } = match;
-
-      // Safe Node is if the node which inner text is only the email address
-      let safeNode = node.innerText.trim() === email
-        ? node
-        : null;
-
-      // If it has more text, try to separate in SPANs
-      if (!safeNode) {
-        const emailIndex = node.innerText.indexOf(email);
-
-        if (emailIndex === -1) {
-          return;
-        }
-
-        const beforeText = node.innerText.slice(0, emailIndex);
-        const afterText = node.innerText.slice(emailIndex + email.length);
-
-        node.innerHTML = `${beforeText}<span>${email}</span>${afterText}`;
-        safeNode = node.querySelector('span');
-      }
-
-      if (!safeNode) {
-        return;
-      }
-
-      augmentNode(email, safeNode, resolved);
-    })
-}
-
 function extract (root = document.body) {
-  const matches  = Extractor.run(root);
+  const matches = Extractor.run(root);
 
   if (matches.length > 0) {
     console.log('got matches', matches);
@@ -158,7 +98,7 @@ function extract (root = document.body) {
     })
     .then((resolved) => {
       console.log('received resolved', resolved);
-      return augment(matches, resolved);
+      return Augmenter.run(matches, resolved);
     })
     .catch((error) => {
       console.error(error);
@@ -172,14 +112,6 @@ const observer = new MutationObserver((mutations) => {
     const { addedNodes } = mutation;
 
     if (!addedNodes || addedNodes.length === 0) {
-      return;
-    }
-
-    const ignoreNode = Array.prototype.slice.apply(addedNodes).find((node) => {
-      return typeof node.getAttribute === 'function' && node.getAttribute('data-parity-ignore') === 'true';
-    });
-
-    if (ignoreNode) {
       return;
     }
 

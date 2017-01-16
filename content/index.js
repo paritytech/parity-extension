@@ -20,7 +20,7 @@ import { uniq } from 'lodash';
 import uuid from 'uuid/v4';
 
 import { PROCESS_MATCHES } from '../background/processor';
-import Extractor, { TAGS_BLACKLIST } from './extractor';
+import Extractor from './extractor';
 import Augmenter from './augmenter';
 
 // Setup a Promise-based communication with the background process

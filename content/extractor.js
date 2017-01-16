@@ -142,7 +142,7 @@ function findMailto (val) {
   return null;
 }
 
-function  findEmail (val) {
+function findEmail (val) {
   const match = val.match(EMAIL_PATTERN);
 
   if (match && match[1]) {

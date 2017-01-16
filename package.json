@@ -7,7 +7,8 @@
     "start": "chrome-extension run ./manifest.json -o ./build",
     "lint": "eslint --cache --ignore-path .gitignore .",
     "build": "chrome-extension build ./manifest.json -o ./build",
-    "prepush": "npm run lint"
+    "prepush": "npm run lint",
+    "test": "npm run lint"
   },
   "author": "Parity Technologies <info@ethcore.io>",
   "license": "GPL3",

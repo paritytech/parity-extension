@@ -11,6 +11,7 @@
   "author": "Parity Technologies <info@ethcore.io>",
   "license": "GPL3",
   "devDependencies": {
+    "babel-eslint": "^7.1.1",
     "chrome-extension-scripts": "^0.9.5",
     "eslint": "3.11.1",
     "eslint-config-semistandard": "7.0.0",
@@ -23,7 +24,6 @@
     "snazzy": "^6.0.0"
   },
   "dependencies": {
-    "babel-eslint": "^7.1.1",
     "js-sha3": "^0.5.7",
     "lodash": "^4.17.4",
     "uuid": "^3.0.1"

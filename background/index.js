@@ -40,7 +40,7 @@ chrome.runtime.onConnect.addListener((port) => {
     processor
       .process(data)
       .then((result) => {
-      	console.log('got results', result);
+        console.log('got results', result);
 
         port.postMessage({
           id, result

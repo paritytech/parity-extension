@@ -22,6 +22,8 @@ import uuid from 'uuid/v4';
 import { PROCESS_MATCHES } from '../background/processor';
 import Extractor, { TAGS_BLACKLIST } from './extractor';
 
+
+// Setup a Promise-based communication with the background process
 const port = chrome.runtime.connect({ name: 'id' });
 const messages = {};
 
@@ -82,66 +84,6 @@ port.onMessage.addListener((msg) => {
 // 0. We listen for possible changes
 // 1. First we look for most likely matches <a href="mailto:..> and <a href="{user_profile}">
 // 2. Then we process all text nodes
-
-function extractFromAttributes (root = document.body) {
-  const treeWalker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT);
-  let matches = [];
-
-  while (treeWalker.nextNode()) {
-    const node = treeWalker.currentNode;
-
-    if (node.getAttribute('data-parity-touched') === 'true') {
-      continue;
-    }
-
-    const extractions = Extractor.fromAttributes(node);
-
-    if (extractions.length === 0) {
-      continue;
-    }
-
-    const newMatches = extractions.map((email) => ({
-      email, node, from: 'attributes'
-    }));
-
-    matches = matches.concat(newMatches);
-  }
-
-  return matches;
-}
-
-function extractFromText (root = document.body) {
-  const treeWalker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
-  let matches = [];
-
-  while (treeWalker.nextNode()) {
-    const node = treeWalker.currentNode;
-    const parentNode = node.parentElement;
-
-    if (parentNode.getAttribute('data-parity-touched') === 'true') {
-      continue;
-    }
-
-    // Don't extract from blacklisted DOM Tags
-    if (TAGS_BLACKLIST.includes(parentNode.tagName.toLowerCase())) {
-      continue;
-    }
-
-    const extractions = Extractor.fromText(node.textContent);
-
-    if (extractions.length === 0) {
-      continue;
-    }
-
-    const newMatches = extractions.map((email) => ({
-      email, node: parentNode, from: 'text'
-    }));
-
-    matches = matches.concat(newMatches);
-  }
-
-  return matches;
-}
 
 function augmentNode (email, node, resolved = {}) {
   if (!node || node.getAttribute('data-parity-touched') === 'true') {
@@ -204,10 +146,7 @@ function augment (matches, resolved = {}) {
 }
 
 function extract (root = document.body) {
-  const attrMatches = extractFromAttributes(root);
-  const textMatches = extractFromText(root);
-
-  const matches = [].concat(attrMatches, textMatches).filter((m) => m);
+  const matches  = Extractor.run(root);
 
   if (matches.length > 0) {
     console.log('got matches', matches);

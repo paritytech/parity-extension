@@ -16,12 +16,85 @@
 
 // Given DOM element returns array of possible id-links to resolve.
 
+import { flatten } from 'lodash';
+
 export const TAGS_BLACKLIST = [ 'script' ];
 
 const EMAIL_PATTERN = /([^\s@]+@[^\s@]+\.[a-z]+)/i;
 const MAILTO_PATTERN = new RegExp(`mailto:${EMAIL_PATTERN.source}`, 'i');
 
 export default class Extractor {
+
+  static run (root = document.body) {
+    const nodes = [].concat(
+      Extractor.getAttributeNodes(root),
+      Extractor.getTextNodes(root)
+    );
+
+    const matches = Extractor.extract(nodes);
+    return matches;
+  }
+
+  static extract (nodes) {
+    const matches = nodes.map((data) => {
+      const { node, text } = data;
+
+      if (node.getAttribute('data-parity-touched') === 'true') {
+        return null;
+      }
+
+      const type = text === undefined
+        ? 'attributes'
+        : 'text';
+
+      const extractions = type === 'attributes'
+        ? Extractor.fromAttributes(node)
+        : Extractor.fromText(text);
+
+      if (extractions.length === 0) {
+        return null;
+      }
+
+      const newMatches = extractions.map((email) => ({
+        email, node, from: type
+      }));
+
+      return newMatches;
+    });
+
+    return flatten(matches).filter((match) => match);
+  }
+
+  static getAttributeNodes (root = document.body) {
+    const treeWalker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT);
+    let nodes = [];
+
+    while (treeWalker.nextNode()) {
+      const node = treeWalker.currentNode;
+      nodes.push({ node });
+    }
+
+    return nodes;
+  }
+
+  static getTextNodes (root = document.body) {
+    const treeWalker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    let nodes = [];
+
+    while (treeWalker.nextNode()) {
+      const node = treeWalker.currentNode;
+      const parentNode = node.parentElement;
+
+      // Don't extract from blacklisted DOM Tags
+      if (TAGS_BLACKLIST.includes(parentNode.tagName.toLowerCase())) {
+        continue;
+      }
+
+      nodes.push({ node: parentNode, text: node.textContent });
+    }
+
+    return nodes;
+  }
 
   static fromAttributes ($dom) {
     const tag = $dom.tagName.toLowerCase();

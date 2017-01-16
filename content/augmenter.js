@@ -82,17 +82,25 @@ export default class Augmenter {
           .join('');
 
         const blockieHTML = Augmenter.getBadge({ src: icon, title: address }, height);
+        const iconsElement = document.createElement('span');
 
-        node.className += ` ${styles.container}`;
-        node.innerHTML += `
-          <span data-parity-touched="true" class="${styles.icons}">
-            ${blockieHTML}
-            <span class="${styles.badges}">
-              ${badgesHTML}
-              ${badgesHTML}
-            </span>
+        iconsElement.setAttribute('data-parity-touched', true);
+        iconsElement.className = styles.icons;
+        iconsElement.innerHTML = `
+          ${blockieHTML}
+          <span class="${styles.badges}">
+            ${badgesHTML}
+            ${badgesHTML}
           </span>
         `;
+
+        iconsElement.addEventListener('click', (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+        });
+
+        node.className += ` ${styles.container}`;
+        node.appendChild(iconsElement);
       });
   }
 

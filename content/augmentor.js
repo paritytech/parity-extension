@@ -96,7 +96,8 @@ export default class Augmentor {
 
         iconsElement.addEventListener('click', (event) => {
           event.preventDefault();
-          event.stopPropagation();        });
+          event.stopPropagation();
+        });
 
         node.className += ` ${styles.container}`;
         node.appendChild(iconsElement);

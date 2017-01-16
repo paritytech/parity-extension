@@ -20,7 +20,7 @@ const SVG_MATCH = /.svg(\?.+)?$/i;
 
 import styles from './styles.css';
 
-export default class Augmenter {
+export default class Augmentor {
 
   static getBadge (badge, height) {
     const { data, src, title } = badge;
@@ -78,10 +78,10 @@ export default class Augmenter {
       .all(badgesPromises)
       .then((badgesData) => {
         const badgesHTML = badgesData
-          .map((badge) => Augmenter.getBadge(badge, height))
+          .map((badge) => Augmentor.getBadge(badge, height))
           .join('');
 
-        const blockieHTML = Augmenter.getBadge({ src: icon, title: address }, height);
+        const blockieHTML = Augmentor.getBadge({ src: icon, title: address }, height);
         const iconsElement = document.createElement('span');
 
         iconsElement.setAttribute('data-parity-touched', true);
@@ -96,8 +96,7 @@ export default class Augmenter {
 
         iconsElement.addEventListener('click', (event) => {
           event.preventDefault();
-          event.stopPropagation();
-        });
+          event.stopPropagation();        });
 
         node.className += ` ${styles.container}`;
         node.appendChild(iconsElement);
@@ -112,7 +111,7 @@ export default class Augmenter {
     attributesMatches
       .forEach((match) => {
         const { email, node } = match;
-        Augmenter.augmentNode(email, node, resolved);
+        Augmentor.augmentNode(email, node, resolved);
       });
 
     textMatches
@@ -143,7 +142,7 @@ export default class Augmenter {
           return;
         }
 
-        Augmenter.augmentNode(email, safeNode, resolved);
+        Augmentor.augmentNode(email, safeNode, resolved);
       });
   }
 

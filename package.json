@@ -5,17 +5,25 @@
   "main": "index.js",
   "scripts": {
     "start": "chrome-extension run ./manifest.json -o ./build",
-    "lint": "semistandard --verbose | snazzy",
+    "lint": "eslint --cache --ignore-path .gitignore .",
     "build": "chrome-extension build ./manifest.json -o ./build"
   },
   "author": "Parity Technologies <info@ethcore.io>",
   "license": "GPL3",
   "devDependencies": {
     "chrome-extension-scripts": "^0.9.5",
+    "eslint": "3.11.1",
+    "eslint-config-semistandard": "7.0.0",
+    "eslint-config-standard": "6.2.1",
+    "eslint-config-standard-react": "4.2.0",
+    "eslint-plugin-promise": "3.4.0",
+    "eslint-plugin-react": "6.8.0",
+    "eslint-plugin-standard": "2.0.1",
     "semistandard": "^9.2.1",
     "snazzy": "^6.0.0"
   },
   "dependencies": {
+    "babel-eslint": "^7.1.1",
     "js-sha3": "^0.5.7",
     "lodash": "^4.17.4",
     "uuid": "^3.0.1"

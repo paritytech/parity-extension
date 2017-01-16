@@ -83,7 +83,7 @@ port.onMessage.addListener((msg) => {
 // 1. First we look for most likely matches <a href="mailto:..> and <a href="{user_profile}">
 // 2. Then we process all text nodes
 
-function extractFromAttributes (root = document.body, resolved = null) {
+function extractFromAttributes (root = document.body) {
   const treeWalker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT);
   let matches = [];
 
@@ -96,25 +96,21 @@ function extractFromAttributes (root = document.body, resolved = null) {
 
     const extractions = extractPossibleMatches(node);
 
-    if (extractions.length > 0) {
-      const newMatches = extractions.map((email) => ({
-        email, node
-      }));
-
-      matches = matches.concat(newMatches);
-
-      if (resolved && extractions.includes((match) => resolved[match])) {
-        console.log('found a MATCH', node);
-        const { address } = extractions.find((match) => resolved[match]);
-        node.innerText += `(eth: ${address})`;
-      }
+    if (extractions.length === 0) {
+      continue;
     }
+
+    const newMatches = extractions.map((email) => ({
+      email, node, from: 'attributes'
+    }));
+
+    matches = matches.concat(newMatches);
   }
 
   return matches;
 }
 
-function extractFromText (root = document.body, resolved = null) {
+function extractFromText (root = document.body) {
   const treeWalker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
   let matches = [];
 
@@ -134,27 +130,74 @@ function extractFromText (root = document.body, resolved = null) {
     const email = findEmail(node.textContent);
 
     if (email) {
-      matches = matches.concat({ email, node });
-
-      if (resolved && resolved[email]) {
-        const { address } = resolved[email];
-        node.parentElement.outerHTML += `<p data-parity-ignore="true">(eth: ${address})</p>`;
-        node.parentElement.setAttribute('data-parity-touched', true);
-      }
+      matches = matches.concat({ email, node: parentNode, from: 'text' });
     }
   }
 
   return matches;
 }
 
-function augment (root = document.body, resolved = {}) {
-  extractFromAttributes(root, resolved);
-  extractFromText(root, resolved);
+function augmentNode (email, node, resolved = {}) {
+  if (!node || node.getAttribute('data-parity-touched') === 'true') {
+    return;
+  }
+
+  node.setAttribute('data-parity-touched', true);
+
+  if (!resolved[email]) {
+    return;
+  }
+
+  const { address } = resolved[email];
+
+  node.setAttribute('data-parity-touched', true);
+  node.outerHTML += `<span data-parity-touched="true"> (${address})</span>`;
+}
+
+function augment (matches, resolved = {}) {
+  // Use the attributes matcher first
+  const attributesMatches = matches.filter((match) => match.from === 'attributes');
+  const textMatches = matches.filter((match) => match.from === 'text');
+
+  attributesMatches
+    .forEach((match) => {
+      const { email, node } = match;
+      augmentNode(email, node, resolved);
+    });
+
+  textMatches
+    .forEach((match) => {
+      const { email, node } = match;
+
+      // Safe Node is if the node which inner text is only the email address
+      let safeNode = node.innerText.trim() === email
+        ? node
+        : null;
+
+      // If it has more text, try to separate in SPANs
+      if (!safeNode) {
+        const emailIndex = node.innerText.indexOf(email);
+
+        if (emailIndex === -1) {
+          return;
+        }
+
+        const beforeText = node.innerText.slice(0, emailIndex);
+        const afterText = node.innerText.slice(emailIndex + email.length);
+
+        node.innerHTML = `${beforeText}<span>${email}</span>${afterText}`;
+        safeNode = node.querySelector('span');
+      }
+
+      if (!safeNode) {
+        return;
+      }
+
+      augmentNode(email, safeNode, resolved);
+    })
 }
 
 function extract (root = document.body) {
-  console.log('extracting from', root);
-
   const attrMatches = extractFromAttributes(root);
   const textMatches = extractFromText(root);
 
@@ -170,12 +213,7 @@ function extract (root = document.body) {
     })
     .then((resolved) => {
       console.log('received resolved', resolved);
-
-      if (Object.keys(resolved).length > 0) {
-        return augment(root, resolved);
-      }
-
-      console.log('no matches found...');
+      return augment(matches, resolved);
     })
     .catch((error) => {
       console.error(error);

@@ -16,7 +16,6 @@
     "snazzy": "^6.0.0"
   },
   "dependencies": {
-    "@parity/parity.js": "^0.2.192",
     "lodash": "^4.17.4",
     "uuid": "^3.0.1"
   }

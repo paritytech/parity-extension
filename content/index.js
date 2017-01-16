@@ -20,7 +20,7 @@ import { uniq } from 'lodash';
 import uuid from 'uuid/v4';
 
 import { PROCESS_MATCHES } from '../background/processor';
-import { extractPossibleMatches, findEmail } from './extractor';
+import { TAGS_BLACKLIST, extractPossibleMatches, findEmail } from './extractor';
 
 const port = chrome.runtime.connect({ name: 'id' });
 const messages = {};
@@ -33,7 +33,7 @@ function process (data) {
     const timeout = setTimeout(() => {
       reject(`the request #${id} timed out (no response from background)\n${JSON.stringify(data, null, 2)}`);
       delete messages[id];
-    }, 5000);
+    }, 10 * 1000);
 
     const message = {
       id, data,
@@ -90,19 +90,23 @@ function extractFromAttributes (root = document.body, resolved = null) {
   while (treeWalker.nextNode()) {
     const node = treeWalker.currentNode;
 
-  	if (node.getAttribute('data-parity-touched') === 'true') {
-  		continue;
-  	}
+    if (node.getAttribute('data-parity-touched') === 'true') {
+      continue;
+    }
 
     const extractions = extractPossibleMatches(node);
 
     if (extractions.length > 0) {
-      matches = matches.concat(extractions);
+      const newMatches = extractions.map((email) => ({
+        email, node
+      }));
+
+      matches = matches.concat(newMatches);
 
       if (resolved && extractions.includes((match) => resolved[match])) {
-      	console.log('found a MATCH', node);
-      	const { address } = extractions.find((match) => resolved[match]);
-      	node.innerText += `(eth: ${address})`;
+        console.log('found a MATCH', node);
+        const { address } = extractions.find((match) => resolved[match]);
+        node.innerText += `(eth: ${address})`;
       }
     }
   }
@@ -115,21 +119,27 @@ function extractFromText (root = document.body, resolved = null) {
   let matches = [];
 
   while (treeWalker.nextNode()) {
-  	const node = treeWalker.currentNode;
+    const node = treeWalker.currentNode;
+    const parentNode = node.parentElement;
 
-  	if (node.parentElement.getAttribute('data-parity-touched') === 'true') {
-  		continue;
-  	}
+    if (parentNode.getAttribute('data-parity-touched') === 'true') {
+      continue;
+    }
+
+    // Don't extract from blacklisted DOM Tags
+    if (TAGS_BLACKLIST.includes(parentNode.tagName.toLowerCase())) {
+      continue;
+    }
 
     const email = findEmail(node.textContent);
 
     if (email) {
-      matches = matches.concat(email);
+      matches = matches.concat({ email, node });
 
       if (resolved && resolved[email]) {
-      	const { address } = resolved[email];
-      	node.parentElement.outerHTML += `<p data-parity-ignore="true">(eth: ${address})</p>`;
-      	node.parentElement.setAttribute('data-parity-touched', true);
+        const { address } = resolved[email];
+        node.parentElement.outerHTML += `<p data-parity-ignore="true">(eth: ${address})</p>`;
+        node.parentElement.setAttribute('data-parity-touched', true);
       }
     }
   }
@@ -138,8 +148,8 @@ function extractFromText (root = document.body, resolved = null) {
 }
 
 function augment (root = document.body, resolved = {}) {
-	extractFromAttributes(root, resolved);
-	extractFromText(root, resolved);
+  extractFromAttributes(root, resolved);
+  extractFromText(root, resolved);
 }
 
 function extract (root = document.body) {
@@ -147,24 +157,25 @@ function extract (root = document.body) {
 
   const attrMatches = extractFromAttributes(root);
   const textMatches = extractFromText(root);
-  const matches = [].concat(attrMatches, textMatches).filter((m) => m);
-  const uniqMatches = uniq(matches);
 
-  if (uniqMatches.length > 0) {
-    console.log('got matches', uniqMatches);
+  const matches = [].concat(attrMatches, textMatches).filter((m) => m);
+
+  if (matches.length > 0) {
+    console.log('got matches', matches);
+    const uniqMatches = uniq(matches.map((match) => match.email));
 
     process({
       type: PROCESS_MATCHES,
       data: uniqMatches
     })
     .then((resolved) => {
-    	console.log('received resolved', resolved);
+      console.log('received resolved', resolved);
 
-    	if (Object.keys(resolved).length > 0) {
-    		return augment(root, resolved);
-    	}
+      if (Object.keys(resolved).length > 0) {
+        return augment(root, resolved);
+      }
 
-    	console.log('no matches found...');
+      console.log('no matches found...');
     })
     .catch((error) => {
       console.error(error);
@@ -182,11 +193,11 @@ const observer = new MutationObserver((mutations) => {
     }
 
     const ignoreNode = Array.prototype.slice.apply(addedNodes).find((node) => {
-    	return node.getAttribute('data-parity-ignore') === 'true';
+      return typeof node.getAttribute === 'function' && node.getAttribute('data-parity-ignore') === 'true';
     });
 
     if (ignoreNode) {
-    	return;
+      return;
     }
 
     addedNodes.forEach((node) => {

@@ -16,6 +16,7 @@
     "snazzy": "^6.0.0"
   },
   "dependencies": {
+    "blockies": "0.0.2",
     "lodash": "^4.17.4",
     "uuid": "^3.0.1"
   }

@@ -14,12 +14,28 @@
 // You should have received a copy of the GNU General Public License
 // along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 
+import blockies from 'blockies';
+
 const SVG_MATCH = /.svg(\?.+)?$/i;
 
 import styles from './styles.css';
-console.warn(styles);
 
 export default class Augmenter {
+
+  static getBadge (badge, height) {
+    const { data, src, title } = badge;
+
+    const image = new Image();
+
+    const url = src || window.URL.createObjectURL(data);
+
+    image.src = url;
+    image.title = title;
+    image.className = styles.badge;
+    image.style = `height: ${height}px;`;
+
+    return image.outerHTML;
+  }
 
   static augmentNode (key, node, resolved = {}) {
     if (!node || node.getAttribute('data-parity-touched') === 'true') {
@@ -52,36 +68,29 @@ export default class Augmenter {
 
     const { height = 16 } = node.getBoundingClientRect();
 
+    const icon = blockies({
+      seed: (address || '').toLowerCase(),
+      size: 8,
+      scale: 8
+    }).toDataURL();
+
     Promise
       .all(badgesPromises)
       .then((badgesData) => {
-        const badgesHTML = badgesData.map((badge) => {
-          const { data, img, title } = badge;
+        const badgesHTML = badgesData
+          .map((badge) => Augmenter.getBadge(badge, height))
+          .join('');
 
-          const image = new Image();
-
-          const url = window.URL.createObjectURL(data);
-          image.src = url;
-          image.title = title;
-          image.className = styles.badge;
-          image.style = `height: ${height}px;`;
-
-          image.addEventListener('load', () => {
-            window.URL.revokeObjectURL(url);
-          });
-
-          image.addEventListener('error', (error) => {
-            console.error(`error loading ${img}`, error);
-            window.URL.revokeObjectURL(url);
-          });
-
-          return image.outerHTML;
-        }).join('');
+        const blockieHTML = Augmenter.getBadge({ src: icon, title: address }, height);
 
         node.className += ` ${styles.container}`;
         node.innerHTML += `
-          <span data-parity-touched="true" class="${styles.badges}">
-            ${badgesHTML}
+          <span data-parity-touched="true" class="${styles.icons}">
+            ${blockieHTML}
+            <span class="${styles.badges}">
+              ${badgesHTML}
+              ${badgesHTML}
+            </span>
           </span>
         `;
       });

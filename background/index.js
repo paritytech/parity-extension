@@ -17,41 +17,76 @@
 /* global chrome */
 
 import Processor from './processor';
-
-const processor = new Processor();
+import Ws from '../web3/ws';
 
 chrome.runtime.onConnect.addListener((port) => {
-  console.assert(port.name === 'id');
+	if (port.name = 'web3') {
+		port.onMessage.addListener(web3Message(port));
+		return;
+	}
 
-  port.onMessage.addListener((msg) => {
-    let message;
+	if (port.name === 'id') {
+		port.onMessage.addListener(processId(port));
+		return;
+	}
 
-    try {
-      message = typeof msg === 'string'
-        ? JSON.parse(msg)
-        : msg;
-    } catch (error) {
-      console.error('could not parse message', msg);
-      return;
-    }
-
-    const { id, data } = message;
-
-    processor
-      .process(data)
-      .then((result) => {
-      	console.log('got results', result);
-
-        port.postMessage({
-          id, result
-        });
-      })
-      .catch((error) => {
-        port.postMessage({
-          id, error: error.message
-        });
-
-        throw error;
-      });
-  });
+	throw new Error(`Unrecognized port: ${port.name}`);
 });
+
+const token = 'mEuxfXTsLa1xfPPy';
+const transport = new Ws('ws://127.0.0.1:8180', token, true);
+function web3Message (port) {
+	return (msg) => {
+		const {id, payload} = msg;
+		transport.executeRaw(payload)
+			.then((response) => {
+				port.postMessage({
+					id,
+					err: null,
+					payload: response
+				});
+			})
+			.catch((err) => {
+				port.postMessage({
+					id,
+					err,
+					payload: null
+				});
+			});
+	};
+}
+
+const processor = new Processor();
+function processId (port) {
+	return (msg) => {
+		let message;
+
+		try {
+			message = typeof msg === 'string'
+				? JSON.parse(msg)
+				: msg;
+		} catch (error) {
+			console.error('could not parse message', msg);
+			return;
+		}
+
+		const { id, data } = message;
+
+		processor
+			.process(data)
+			.then((result) => {
+				console.log('got results', result);
+
+				port.postMessage({
+					id, result
+				});
+			})
+			.catch((error) => {
+				port.postMessage({
+					id, error: error.message
+				});
+
+				throw error;
+			});
+	}
+}

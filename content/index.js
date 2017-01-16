@@ -174,32 +174,35 @@ function extract (root = document.body) {
 
 // Observe later changes
 const observer = new MutationObserver((mutations) => {
-  mutations.forEach((mutation) => {
-    const { addedNodes } = mutation;
+	mutations.forEach((mutation) => {
+		const { addedNodes } = mutation;
 
-    if (!addedNodes || addedNodes.length === 0) {
-      return;
-    }
+		if (!addedNodes || addedNodes.length === 0) {
+			return;
+		}
+		const nodes = [].slice.call(addedNodes);
 
-    const ignoreNode = Array.prototype.slice.apply(addedNodes).find((node) => {
-    	return node.getAttribute('data-parity-ignore') === 'true';
-    });
+		const ignoreNode = nodes.find((node) => {
+			if (node.getAttribute) {
+				return node.getAttribute('data-parity-ignore') === 'true';
+			}
+		});
 
-    if (ignoreNode) {
-    	return;
-    }
+		if (ignoreNode) {
+			return;
+		}
 
-    addedNodes.forEach((node) => {
-      extract(node);
-    });
-  });
+		nodes.forEach((node) => {
+			extract(node);
+		});
+	});
 });
 
 observer.observe(document.body, {
-  attributes: true,
-  childList: true,
-  characterData: true,
-  subtree: true
+	attributes: true,
+	childList: true,
+	characterData: true,
+	subtree: true
 });
 
 // Start processing

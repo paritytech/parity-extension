@@ -17,6 +17,8 @@
   },
   "dependencies": {
     "@parity/parity.js": "^0.2.192",
+    "eventemitter3": "^2.0.2",
+    "js-sha3": "^0.5.7",
     "lodash": "^4.17.4",
     "uuid": "^3.0.1"
   }

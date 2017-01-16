@@ -33,11 +33,46 @@ chrome.runtime.onConnect.addListener((port) => {
 	throw new Error(`Unrecognized port: ${port.name}`);
 });
 
-const token = 'mEuxfXTsLa1xfPPy';
-const transport = new Ws('ws://127.0.0.1:8180', token, true);
+const ui = '127.0.0.1:8180';
+let transport = null;
+
+chrome.runtime.onMessage.addListener((request, sender) => {
+	if (!(transport && transport.isConnected) && request.token) {
+		if (transport) {
+			// TODO [ToDr] kill old transport!
+		}
+		console.log('Extracted a token: ', request.token);
+		chrome.storage.local.set({
+			'authToken': request.token
+		}, () => {});
+		transport = new Ws(`ws://${ui}`, request.token, true);
+	}
+});
+
+chrome.storage.local.get('authToken', (token) => {
+	if (!token.authToken) {
+		// Open a UI to extract the token from it
+		chrome.tabs.create({
+			url: `http://${ui}`,
+			active: false
+		});
+		return;
+	}
+	transport = new Ws(`ws://${ui}`, token.authToken, true);
+});
+
 function web3Message (port) {
 	return (msg) => {
 		const {id, payload} = msg;
+		if (!transport) {
+			console.error('Transport uninitialized!');
+			port.postMessage({
+				id, err: 'Transport uninitialized',
+				payload: null
+			});
+			return;
+		}
+
 		transport.executeRaw(payload)
 			.then((response) => {
 				port.postMessage({

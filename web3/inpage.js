@@ -68,5 +68,12 @@ if (!window.chrome || !window.chrome.extension) {
 		currentProvider: new Web3FrameProvider(),
 	};
 
-	// TODO [ToDr] Extract token
+	// TODO [ToDr] Validate token?
+	const token = localStorage.getItem('sysuiToken');
+	if (token) {
+		window.postMessage({
+			type: 'parity.token',
+			token
+		}, '*');
+	}
 }

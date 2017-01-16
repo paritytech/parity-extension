@@ -9,10 +9,21 @@ window.addEventListener('message', (ev) => {
 	if (ev.source !== window) {
 		return;
 	}
-	if (!ev.data.type || ev.data.type !== 'parity.web3.request') {
+	if (!ev.data.type) {
 		return;
 	}
-	port.postMessage(ev.data);
+	const { type } = ev.data;
+
+	if (type === 'parity.web3.request') {
+		port.postMessage(ev.data);
+		return;
+	}
+	if (type === 'parity.token') {
+		console.log('Sending token', ev.data.token);
+		chrome.runtime.sendMessage({
+			token: ev.data.token
+		});
+	}
 });
 
 port.onMessage.addListener((msg) => {

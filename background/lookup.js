@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 
+import { keccak_256 } from 'js-sha3';
+
 let instance = null;
 
 export default class Lookup {
@@ -56,7 +58,9 @@ export default class Lookup {
 
   _reverseEmail (input) {
     if (!this._emails[input]) {
-      this._emails[input] = fetch(`https://id.parity.io:8443/?email=${input}`)
+      const hash = keccak_256(input);
+
+      this._emails[input] = fetch(`https://id.parity.io:8443/?emailHash=0x${hash}`)
         .then((response) => response.json())
         .then((data) => {
             if (!data || data.status === 'error') {

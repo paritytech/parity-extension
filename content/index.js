@@ -20,8 +20,7 @@ import { uniq } from 'lodash';
 import uuid from 'uuid/v4';
 
 import { PROCESS_MATCHES } from '../background/processor';
-import Extractor, { TAGS_BLACKLIST } from './extractor';
-
+import Extractor from './extractor';
 
 // Setup a Promise-based communication with the background process
 const port = chrome.runtime.connect({ name: 'id' });
@@ -98,7 +97,6 @@ function augmentNode (email, node, resolved = {}) {
 
   const { address } = resolved[email];
 
-  node.setAttribute('data-parity-touched', true);
   node.outerHTML += `<span data-parity-touched="true"> (${address})</span>`;
 }
 
@@ -142,11 +140,11 @@ function augment (matches, resolved = {}) {
       }
 
       augmentNode(email, safeNode, resolved);
-    })
+    });
 }
 
 function extract (root = document.body) {
-  const matches  = Extractor.run(root);
+  const matches = Extractor.run(root);
 
   if (matches.length > 0) {
     console.log('got matches', matches);

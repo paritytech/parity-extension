@@ -17,17 +17,56 @@
 import Lookup from './lookup';
 
 export const PROCESS_MATCHES = 'process_matches';
+export const FETCH_IMAGE = 'fetch_image';
+
+const SVG_MATCH = /.svg(\?.+)?$/i;
 
 export default class Processor {
+
+  _images = {};
 
   process (data = {}) {
     switch (data.type) {
       case PROCESS_MATCHES:
         return this.processMatches(data.data);
 
+      case FETCH_IMAGE:
+        return this.fetchImage(data.data);
+
       default:
         return Promise.reject(`no actions matching  ${data.type}`);
     }
+  }
+
+  fetchImage (url) {
+    if (!this._images[url]) {
+      this._images[url] = fetch(url)
+        .then((response) => {
+          if (SVG_MATCH.test(url)) {
+            return response.text().then((data) => {
+              return new window.Blob([ data ], {
+                type: 'image/svg+xml;charset=utf-8'
+              });
+            });
+          }
+
+          return response.blob();
+        })
+        .then((data) => {
+          return blobToBase64(data);
+        })
+        .then((data) => {
+          this._images[url] = data;
+          return data;
+        })
+        .catch((error) => {
+          // Remove cached promise on error
+          this._images[url] = null;
+          console.error(error);
+        });
+    }
+
+    return Promise.resolve(this._images[url]);
   }
 
   processMatches (matches) {
@@ -48,4 +87,20 @@ export default class Processor {
       });
   }
 
+}
+
+function blobToBase64 (blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(blob);
+
+    reader.onloadend = () => {
+      const base64data = reader.result;
+      resolve(base64data);
+    };
+
+    reader.onerror = (error) => {
+      reject(error);
+    };
+  });
 }

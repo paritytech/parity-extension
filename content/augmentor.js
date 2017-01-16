@@ -16,20 +16,19 @@
 
 import blockies from 'blockies';
 
-const SVG_MATCH = /.svg(\?.+)?$/i;
+import Runner from './runner';
+import { FETCH_IMAGE } from '../background/processor';
 
 import styles from './styles.css';
 
 export default class Augmentor {
 
   static getBadge (badge, height) {
-    const { data, src, title } = badge;
+    const { src, title } = badge;
 
     const image = new Image();
 
-    const url = src || window.URL.createObjectURL(data);
-
-    image.src = url;
+    image.src = src;
     image.title = title;
     image.className = styles.badge;
     image.style = `height: ${height}px;`;
@@ -51,19 +50,8 @@ export default class Augmentor {
     const { address, badges } = resolved[key];
 
     const badgesPromises = badges.map((badge) => {
-      return fetch(badge.img)
-        .then((response) => {
-          if (SVG_MATCH.test(badge.img)) {
-            return response.text().then((data) => {
-              return new window.Blob([ data ], {
-                type: 'image/svg+xml;charset=utf-8'
-              });
-            });
-          }
-
-          return response.blob();
-        })
-        .then((data) => ({ ...badge, data }));
+      return Runner.execute(FETCH_IMAGE, badge.img)
+        .then((src) => ({ ...badge, src }));
     });
 
     const { height = 16 } = node.getBoundingClientRect();

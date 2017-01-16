@@ -14,6 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 
+const SVG_MATCH = /.svg(\?.+)?$/i;
+
+import styles from './styles.css';
+console.warn(styles);
+
 export default class Augmenter {
 
   static augmentNode (key, node, resolved = {}) {
@@ -27,9 +32,59 @@ export default class Augmenter {
       return;
     }
 
-    const { address } = resolved[key];
+    const { address, badges } = resolved[key];
 
-    node.outerHTML += `<span data-parity-touched="true"> (${address})</span>`;
+    const badgesPromises = badges.map((badge) => {
+      return fetch(badge.img)
+        .then((response) => {
+          if (SVG_MATCH.test(badge.img)) {
+            return response.text().then((data) => {
+              return new window.Blob([ data ], {
+                type: 'image/svg+xml;charset=utf-8'
+              });
+            });
+          }
+
+          return response.blob();
+        })
+        .then((data) => ({ ...badge, data }));
+    });
+
+    const { height = 16 } = node.getBoundingClientRect();
+
+    Promise
+      .all(badgesPromises)
+      .then((badgesData) => {
+        const badgesHTML = badgesData.map((badge) => {
+          const { data, img, title } = badge;
+
+          const image = new Image();
+
+          const url = window.URL.createObjectURL(data);
+          image.src = url;
+          image.title = title;
+          image.className = styles.badge;
+          image.style = `height: ${height}px;`;
+
+          image.addEventListener('load', () => {
+            window.URL.revokeObjectURL(url);
+          });
+
+          image.addEventListener('error', (error) => {
+            console.error(`error loading ${img}`, error);
+            window.URL.revokeObjectURL(url);
+          });
+
+          return image.outerHTML;
+        }).join('');
+
+        node.className += ` ${styles.container}`;
+        node.innerHTML += `
+          <span data-parity-touched="true" class="${styles.badges}">
+            ${badgesHTML}
+          </span>
+        `;
+      });
   }
 
   static run (matches, resolved = {}) {

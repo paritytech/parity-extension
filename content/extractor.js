@@ -15,7 +15,16 @@
 // along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 
 // Given DOM element returns array of possible id-links to resolve.
+
+export const TAGS_BLACKLIST = [ 'script' ];
+
 export function extractPossibleMatches ($dom) {
+  const tag = $dom.tagName.toLowerCase();
+
+  if (!tag || TAGS_BLACKLIST.includes(tag)) {
+    return [];
+  }
+
   const { href, title, alt } = $dom;
   const matches = [];
 
@@ -34,8 +43,8 @@ export function extractPossibleMatches ($dom) {
   return matches;
 }
 
-const EMAIL_PATTERN = /([^\s@]+@[^\s@]+\.[^\s@]+)/;
-const MAILTO_PATTERN = new RegExp(`mailto:${EMAIL_PATTERN.source}`);
+const EMAIL_PATTERN = /([^\s@]+@[^\s@]+\.[a-z]+)/i;
+const MAILTO_PATTERN = new RegExp(`mailto:${EMAIL_PATTERN.source}`, 'i');
 
 function findMailto (val) {
   const match = val.match(MAILTO_PATTERN);

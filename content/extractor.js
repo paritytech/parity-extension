@@ -18,33 +18,46 @@
 
 export const TAGS_BLACKLIST = [ 'script' ];
 
-export function extractPossibleMatches ($dom) {
-  const tag = $dom.tagName.toLowerCase();
-
-  if (!tag || TAGS_BLACKLIST.includes(tag)) {
-    return [];
-  }
-
-  const { href, title, alt } = $dom;
-  const matches = [];
-
-  if (href) {
-    push(matches, findMailto(href));
-  }
-
-  if (title) {
-    push(matches, findEmail(title));
-  }
-
-  if (alt) {
-    push(matches, findEmail(title));
-  }
-
-  return matches;
-}
-
 const EMAIL_PATTERN = /([^\s@]+@[^\s@]+\.[a-z]+)/i;
 const MAILTO_PATTERN = new RegExp(`mailto:${EMAIL_PATTERN.source}`, 'i');
+
+export default class Extractor {
+
+  static fromAttributes ($dom) {
+    const tag = $dom.tagName.toLowerCase();
+
+    if (!tag || TAGS_BLACKLIST.includes(tag)) {
+      return [];
+    }
+
+    const { href, title, alt } = $dom;
+    const matches = [];
+
+    if (href) {
+      push(matches, findMailto(href));
+    }
+
+    if (title) {
+      push(matches, findEmail(title));
+    }
+
+    if (alt) {
+      push(matches, findEmail(title));
+    }
+
+    return matches;
+  }
+
+  static fromText (text) {
+    const matches = [];
+    const email = findEmail(text);
+
+    push(matches, email);
+
+    return matches;
+  }
+
+}
 
 function findMailto (val) {
   const match = val.match(MAILTO_PATTERN);
@@ -56,7 +69,7 @@ function findMailto (val) {
   return null;
 }
 
-export function findEmail (val) {
+function  findEmail (val) {
   const match = val.match(EMAIL_PATTERN);
 
   if (match && match[1]) {

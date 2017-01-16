@@ -20,12 +20,12 @@ import { uniq } from 'lodash';
 import uuid from 'uuid/v4';
 
 import { PROCESS_MATCHES } from '../background/processor';
-import { TAGS_BLACKLIST, extractPossibleMatches, findEmail } from './extractor';
+import Extractor, { TAGS_BLACKLIST } from './extractor';
 
 const port = chrome.runtime.connect({ name: 'id' });
 const messages = {};
 
-function process (data) {
+function run (data) {
   const id = uuid();
 
   return new Promise((resolve, reject) => {
@@ -94,7 +94,7 @@ function extractFromAttributes (root = document.body) {
       continue;
     }
 
-    const extractions = extractPossibleMatches(node);
+    const extractions = Extractor.fromAttributes(node);
 
     if (extractions.length === 0) {
       continue;
@@ -127,11 +127,17 @@ function extractFromText (root = document.body) {
       continue;
     }
 
-    const email = findEmail(node.textContent);
+    const extractions = Extractor.fromText(node.textContent);
 
-    if (email) {
-      matches = matches.concat({ email, node: parentNode, from: 'text' });
+    if (extractions.length === 0) {
+      continue;
     }
+
+    const newMatches = extractions.map((email) => ({
+      email, node: parentNode, from: 'text'
+    }));
+
+    matches = matches.concat(newMatches);
   }
 
   return matches;
@@ -207,7 +213,7 @@ function extract (root = document.body) {
     console.log('got matches', matches);
     const uniqMatches = uniq(matches.map((match) => match.email));
 
-    process({
+    run({
       type: PROCESS_MATCHES,
       data: uniqMatches
     })

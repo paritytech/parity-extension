@@ -231,13 +231,13 @@ export default class Augmentor {
         node.parentElement.insertBefore(container, node);
         node.parentElement.removeChild(node);
 
-        Augmentor.positionNode(badgesElement, { scale: 1.5 });
-        Augmentor.positionNode(cardElement, { scale: 4 });
+        Augmentor.positionNode(badgesElement, iconsElement, { scale: 1.5, forceBottom: true });
+        Augmentor.positionNode(cardElement, iconsElement, { scale: 4 });
       });
   }
 
-  static positionNode (node, options = {}) {
-    const { scale = 1.5, offset = 5 } = options;
+  static positionNode (node, container, options = {}) {
+    const { scale = 1.5, offset = 5, forceBottom = false } = options;
 
     const nodeRect = node.getBoundingClientRect();
 
@@ -279,8 +279,14 @@ export default class Augmentor {
 
     // If 5px of less of left border
     if (scaledClientRect.top <= offset) {
-      const nextTop = scaledClientRect.height / 2 + offset;
-      node.style.top = `${nextTop}px`;
+      if (forceBottom) {
+        const nextTop = scaledClientRect.height + 2 * offset + container.getBoundingClientRect().height;
+        node.style.top = `${nextTop}px`;
+        node.className += ` ${styles.fromBottom}`;
+      } else {
+        const nextTop = scaledClientRect.height / 2 + offset;
+        node.style.top = `${nextTop}px`;
+      }
     }
   }
 

@@ -37,7 +37,7 @@
     cursor: pointer;
 
     :local(.badges) {
-      transform: scale(1.5) translateY(-100%);
+      transform: scale(1.5) translateY(-75%);
       opacity: 1;
       z-index: 999;
     }
@@ -132,9 +132,9 @@
 }
 
 :local(.badges) {
-  position: fixed;
+  position: absolute;
   padding: 0 2px;
-  background-color: rgba(40, 40, 40, 0.75);
+  // background-color: rgba(40, 40, 40, 0.75);
   opacity: 0;
   transform: scale(1) translateY(-50%);
   z-index:-1;
@@ -144,6 +144,9 @@
     margin: 3px;
   }
 
+  &:local(.fromBottom) {
+    transform: scale(1) translateY(-200%);
+  }
 }
 
 :local(.badge) {

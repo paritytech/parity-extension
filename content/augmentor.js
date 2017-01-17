@@ -44,20 +44,20 @@ export default class Augmentor {
     const value = parseFloat(balance).toFixed(3);
 
     return `
-      <div title="${name}" class="${styles.token}">
+      <span title="${name}" class="${styles.token}">
         ${badge.outerHTML}
-        <div class="${styles.balance}">
+        <span class="${styles.balance}">
           <span class="${styles.value}">${value}</span>
           <span class="${styles.tla}">${TLA}</span>
-        </div>
-      </div>
+        </span>
+      </span>
     `;
   }
 
   static getAccountCard (data, icon, badgesData, tokensData) {
     const { address, name } = data;
 
-    const element = document.createElement('div');
+    const element = document.createElement('span');
     element.className = styles.card;
 
     // Get the account badges
@@ -66,12 +66,12 @@ export default class Augmentor {
       const badge = Augmentor.getBadge(badgeData, 24);
 
       return `
-        <div title="${title}" class="${styles.token}">
+        <span title="${title}" class="${styles.token}">
           ${badge.outerHTML}
-          <div class="${styles.balance} ${styles['no-value']}">
+          <span class="${styles.balance} ${styles['no-value']}">
             <span class="${styles.tla}">${title}</span>
-          </div>
-        </div>
+          </span>
+        </span>
       `;
     }).join('');
 
@@ -80,10 +80,10 @@ export default class Augmentor {
 
     const identityIcon = Augmentor.getBadge({ src: icon, title: address }, 48);
     const nameHTML = name
-      ? `<div class="${styles.name}">${name}</div>`
+      ? `<span class="${styles.name}">${name}</span>`
       : '';
 
-    const addressElement = document.createElement('div');
+    const addressElement = document.createElement('span');
     addressElement.className = styles.address;
     addressElement.title = address;
     addressElement.innerText = address;
@@ -118,24 +118,24 @@ export default class Augmentor {
         startedClick = false;
         doubleClicked = false;
         addressElement.parentElement.click();
-      }, 250);
+      }, 200);
 
       return false;
     });
 
-    const title = document.createElement('div');
+    const title = document.createElement('span');
     title.className = styles.title;
     title.innerHTML = nameHTML;
     title.appendChild(addressElement);
 
-    const header = document.createElement('div');
+    const header = document.createElement('span');
     header.className = styles.header;
     header.appendChild(identityIcon);
     header.appendChild(title);
 
     element.innerHTML = `
-      <div class="${styles.tokens}">${tokensHTML}</div>
-      <div class="${styles.tokens}">${badgesHTML}</div>
+      <span class="${styles.tokens}">${tokensHTML}</span>
+      <span class="${styles.tokens}">${badgesHTML}</span>
     `;
 
     element.prepend(header);
@@ -200,9 +200,11 @@ export default class Augmentor {
         iconsElement.appendChild(badgesElement);
         iconsElement.appendChild(cardElement);
 
-        iconsElement.addEventListener('click', (event) => {
+        iconsElement.onclick = (event) => {
           event.preventDefault();
           event.stopPropagation();
+
+          const { currentTarget } = event;
 
           const selectedText = window.getSelection().toString();
 
@@ -211,17 +213,23 @@ export default class Augmentor {
             return false;
           }
 
-          const classes = iconsElement.className.split(' ');
+          const classes = currentTarget.className.split(' ').map((className) => className.trim());
 
           if (classes.includes(styles.expanded)) {
-            iconsElement.className = classes.filter((className) => className !== styles.expanded).join(' ');
+            currentTarget.className = classes.filter((className) => className !== styles.expanded).join(' ');
           } else {
-            iconsElement.className = classes.concat(styles.expanded).join(' ');
+            currentTarget.className = classes.concat(styles.expanded).join(' ');
           }
-        });
+        };
 
-        node.className += ` ${styles.container}`;
-        node.appendChild(iconsElement);
+        const container = document.createElement('span');
+        container.className = styles.container;
+
+        container.appendChild(node.cloneNode(true));
+        container.appendChild(iconsElement);
+
+        node.parentElement.insertBefore(container, node);
+        node.parentElement.removeChild(node);
 
         const badgesRect = badgesElement.getBoundingClientRect();
         const pageWidth = window.innerWidth;

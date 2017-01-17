@@ -45,10 +45,15 @@ export default class Processor {
       .map((match) => match.name)
       .filter((name) => name);
 
+    const githubs = matches
+      .filter((match) => match.github)
+      .map((match) => match.name);
+
     const uniqEmails = uniq(emails);
     const uniqNames = uniq(names);
+    const uniqGithubs = uniq(githubs);
 
-    return Lookup.run({ emails: uniqEmails, names: uniqNames })
+    return Lookup.run({ emails: uniqEmails, names: uniqNames, githubs: uniqGithubs })
       .then((reversed) => reversed.filter((data) => data && data.address))
       .then((values) => {
         return values.reduce((object, data) => {

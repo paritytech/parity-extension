@@ -21,6 +21,7 @@ let instance = null;
 export default class Lookup {
 
   _badges = {};
+  _githubs = {};
   _emails = {};
   _names = {};
 
@@ -37,19 +38,64 @@ export default class Lookup {
   }
 
   static run (matches = {}) {
-    const { emails, names } = matches;
+    const { emails, names, githubs } = matches;
     const lookup = Lookup.get();
 
     const emailPromises = emails.map((email) => lookup.email(email));
     const namePromises = names.map((name) => lookup.name(name));
+    const githubPromises = githubs.map((handle) => lookup.github(handle));
 
     return Promise
       .all([
         Promise.all(emailPromises),
-        Promise.all(namePromises)
+        Promise.all(namePromises),
+        Promise.all(githubPromises)
       ])
-      .then(([ emailResults, nameResults ]) => {
-        return [].concat(emailResults, nameResults);
+      .then(([ emailResults, nameResults, githubResults ]) => {
+        return []
+          .concat(emailResults, nameResults, githubResults)
+          .filter((result) => result && result.address);
+      });
+  }
+
+  github (handle) {
+    if (!this._githubs[handle]) {
+      this._githubs[handle] = fetch(`https://api.github.com/users/${handle}`)
+        .then((response) => response.json())
+        .then((data) => data && data.email)
+        .then((email) => {
+          const date = Date.now();
+
+          if (!email) {
+            this._githubs[handle] = { date };
+            return;
+          }
+
+          this._githubs[handle] = { date, email };
+          return this._githubs[handle];
+        })
+        .catch((error) => {
+          const date = Date.now();
+
+          console.error('github', handle, error);
+          this._githubs[handle] = { date, error };
+        });
+    }
+
+    return Promise
+      .resolve(this._githubs[handle])
+      .then((data = {}) => {
+        const { email } = data;
+
+        if (!email) {
+          return { ...data };
+        }
+
+        return this.email(email)
+          .then((result = {}) => {
+            delete result.email;
+            return { ...result, name: handle };
+          });
       });
   }
 
@@ -90,13 +136,14 @@ export default class Lookup {
 
   _reverseEmail (input) {
     const hash = sha3(input);
-    const extra = { email: input };
+    const extra = { email: input, trusted: true };
 
     return this._reverse('_emails', 'emailHash', `0x${hash}`, extra);
   }
 
   _reverseName (name) {
-    return this._reverse('_names', 'name', name);
+    const extra = { trusted: false };
+    return this._reverse('_names', 'name', name, extra);
   }
 
   _reverse (cacheKey, method, input, extra = {}) {

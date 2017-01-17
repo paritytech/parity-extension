@@ -28,11 +28,29 @@ describe('content/socials', () => {
     });
 
     it('extracts the correct handle', () => {
-      expect(Socials.extract(rightInput)).to.deep.equal({ name: 'foobar' });
+      expect(Socials.extract(rightInput).name).to.equal('foobar');
+    });
+
+    it('contains extras', () => {
+      expect(Socials.extract(rightInput)).to.deep.equal({ name: 'foobar', github: true });
     });
 
     it('fails correctly', () => {
       expect(Socials.extract(wrongInput)).to.be.null;
+    });
+
+    it('does not extract default links', () => {
+      const links = [
+        'https://github.com/categories',
+        'https://github.com/blog',
+        'https://github.com/about',
+        'https://github.com/site',
+        'https://github.com/security'
+      ];
+
+      links.forEach((link) => {
+        expect(Socials.extract(link)).to.be.null;
+      });
     });
   });
 

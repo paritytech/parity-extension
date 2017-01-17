@@ -33,7 +33,9 @@ export default class Socials {
     }
 
     // Return the handle from the RegExp matcher
-    return { name: social.matcher.exec(input)[1] };
+    const match = social.matcher.exec(input)[1];
+    const extras = social.extras || {};
+    return { name: match, ...extras };
   }
 
   static get all () {
@@ -45,10 +47,11 @@ export default class Socials {
   }
 
   static get github () {
-    const matcher = /(?:https?:\/\/)?(?:www.)?github.(?:[a-z]+)\/([^/?]+)/i;
+    const matcher = /(?:https?:\/\/)?(?:www.)?github.(?:[a-z]+)\/(?!(?:about|blog|site|security|categories))([^/?]+)/i;
 
     return {
-      matcher
+      matcher,
+      extras: { github: true }
     };
   }
 

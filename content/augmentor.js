@@ -231,29 +231,58 @@ export default class Augmentor {
         node.parentElement.insertBefore(container, node);
         node.parentElement.removeChild(node);
 
-        const badgesRect = badgesElement.getBoundingClientRect();
-        const pageWidth = window.innerWidth;
-
-        // The badges element is scale times 1.5 in CSS transform
-        const badgesScale = 1.5;
-        const badgesCenter = badgesRect.left + badgesRect.width / 2;
-        const scaledBadgesRect = {
-          left: badgesCenter - badgesScale * (badgesRect.width / 2),
-          right: badgesCenter + badgesScale * (badgesRect.width / 2),
-          width: badgesScale * badgesRect.width
-        };
-
-        // If 5px or less of right border
-        if (scaledBadgesRect.right >= pageWidth - 5) {
-          const nextLeft = pageWidth - 5 - scaledBadgesRect.width;
-          badgesElement.style.left = `${nextLeft}px`;
-        }
-
-        // If 5px of less of left border
-        if (scaledBadgesRect.left <= 5) {
-          badgesElement.style.left = `5px`;
-        }
+        Augmentor.positionNode(badgesElement, { scale: 1.5 });
+        Augmentor.positionNode(cardElement, { scale: 4 });
       });
+  }
+
+  static positionNode (node, options = {}) {
+    const { scale = 1.5, offset = 5 } = options;
+
+    const clientRect = node.getBoundingClientRect();
+    const pageHeight = window.innerHeight;
+    const pageWidth = window.innerWidth;
+
+    const center = {
+      x: clientRect.left + clientRect.width / 2,
+      y: clientRect.top + clientRect.height / 2
+    };
+
+    const scaledClientRect = {
+      left: center.x - scale * (clientRect.width / 2),
+      right: center.x + scale * (clientRect.width / 2),
+      top: center.y - scale * (clientRect.height / 2),
+      bottom: center.y + scale * (clientRect.height / 2),
+
+      height: scale * clientRect.height,
+      width: scale * clientRect.width
+    };
+
+    // if (scale === 4) console.warn(clientRect, scaledClientRect);
+
+    // // If 5px or less of right border
+    // if (scaledClientRect.right >= pageWidth - offset) {
+    //   const nextLeft = pageWidth - offset - scaledClientRect.width;
+    //   node.style.left = `${nextLeft}px`;
+    // }
+
+    // // If 5px of less of left border
+    // if (scaledClientRect.left <= offset) {
+    //   const nextLeft = clientRect.width / 2 + offset;
+    //   node.style.left = `${nextLeft}px`;
+    // }
+
+    // // If 5px or less of right border
+    // if (scaledClientRect.bottom >= pageHeight - offset) {
+    //   const nextTop = pageHeight - offset - scaledClientRect.height;
+    //   node.style.top = `${nextTop}px`;
+    // }
+
+    // // If 5px of less of left border
+    // if (scaledClientRect.top <= offset) {
+    //   const nextTop = scaledClientRect.height / 2 + offset;
+    //   node.style.top = `${nextTop}px`;
+    // }
   }
 
   static run (matches, resolved = {}) {

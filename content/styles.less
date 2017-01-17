@@ -27,16 +27,11 @@
   transition-timing-function: cubic-bezier(0.7,0,0.3,1);
 }
 
-:local(.container), :local(.icons) {
-  position: relative;
-}
-
 :local(.icons) {
   flex-direction: column;
   margin-left: 5px;
   font-family: 'Roboto', sans-serif;
   font-weight: 300;
-  overflow: hidden;
 
   &:hover {
     cursor: pointer;
@@ -50,9 +45,10 @@
 }
 
 :local(.card) {
-  position: fixed;
+  position: absolute;
+
   opacity: 0;
-  transform: scale(0.25) translateY(-50%);
+  transform: scale(0.25) translateY(-200%);
   z-index: -1;
 
   flex-direction: column;

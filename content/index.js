@@ -20,12 +20,13 @@ import { uniq } from 'lodash';
 import uuid from 'uuid/v4';
 
 import { PROCESS_MATCHES } from '../background/processor';
-import { TAGS_BLACKLIST, extractPossibleMatches, findEmail } from './extractor';
+import Extractor from './extractor';
 
+// Setup a Promise-based communication with the background process
 const port = chrome.runtime.connect({ name: 'id' });
 const messages = {};
 
-function process (data) {
+function run (data) {
   const id = uuid();
 
   return new Promise((resolve, reject) => {
@@ -83,99 +84,79 @@ port.onMessage.addListener((msg) => {
 // 1. First we look for most likely matches <a href="mailto:..> and <a href="{user_profile}">
 // 2. Then we process all text nodes
 
-function extractFromAttributes (root = document.body, resolved = null) {
-  const treeWalker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT);
-  let matches = [];
-
-  while (treeWalker.nextNode()) {
-    const node = treeWalker.currentNode;
-
-    if (node.getAttribute('data-parity-touched') === 'true') {
-      continue;
-    }
-
-    const extractions = extractPossibleMatches(node);
-
-    if (extractions.length > 0) {
-      const newMatches = extractions.map((email) => ({
-        email, node
-      }));
-
-      matches = matches.concat(newMatches);
-
-      if (resolved && extractions.includes((match) => resolved[match])) {
-        console.log('found a MATCH', node);
-        const { address } = extractions.find((match) => resolved[match]);
-        node.innerText += `(eth: ${address})`;
-      }
-    }
+function augmentNode (email, node, resolved = {}) {
+  if (!node || node.getAttribute('data-parity-touched') === 'true') {
+    return;
   }
 
-  return matches;
-}
+  node.setAttribute('data-parity-touched', true);
 
-function extractFromText (root = document.body, resolved = null) {
-  const treeWalker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
-  let matches = [];
-
-  while (treeWalker.nextNode()) {
-    const node = treeWalker.currentNode;
-    const parentNode = node.parentElement;
-
-    if (parentNode.getAttribute('data-parity-touched') === 'true') {
-      continue;
-    }
-
-    // Don't extract from blacklisted DOM Tags
-    if (TAGS_BLACKLIST.includes(parentNode.tagName.toLowerCase())) {
-      continue;
-    }
-
-    const email = findEmail(node.textContent);
-
-    if (email) {
-      matches = matches.concat({ email, node });
-
-      if (resolved && resolved[email]) {
-        const { address } = resolved[email];
-        node.parentElement.outerHTML += `<p data-parity-ignore="true">(eth: ${address})</p>`;
-        node.parentElement.setAttribute('data-parity-touched', true);
-      }
-    }
+  if (!resolved[email]) {
+    return;
   }
 
-  return matches;
+  const { address } = resolved[email];
+
+  node.outerHTML += `<span data-parity-touched="true"> (${address})</span>`;
 }
 
-function augment (root = document.body, resolved = {}) {
-  extractFromAttributes(root, resolved);
-  extractFromText(root, resolved);
+function augment (matches, resolved = {}) {
+  // Use the attributes matcher first
+  const attributesMatches = matches.filter((match) => match.from === 'attributes');
+  const textMatches = matches.filter((match) => match.from === 'text');
+
+  attributesMatches
+    .forEach((match) => {
+      const { email, node } = match;
+      augmentNode(email, node, resolved);
+    });
+
+  textMatches
+    .forEach((match) => {
+      const { email, node } = match;
+
+      // Safe Node is if the node which inner text is only the email address
+      let safeNode = node.innerText.trim() === email
+        ? node
+        : null;
+
+      // If it has more text, try to separate in SPANs
+      if (!safeNode) {
+        const emailIndex = node.innerText.indexOf(email);
+
+        if (emailIndex === -1) {
+          return;
+        }
+
+        const beforeText = node.innerText.slice(0, emailIndex);
+        const afterText = node.innerText.slice(emailIndex + email.length);
+
+        node.innerHTML = `${beforeText}<span>${email}</span>${afterText}`;
+        safeNode = node.querySelector('span');
+      }
+
+      if (!safeNode) {
+        return;
+      }
+
+      augmentNode(email, safeNode, resolved);
+    });
 }
 
 function extract (root = document.body) {
-  console.log('extracting from', root);
-
-  const attrMatches = extractFromAttributes(root);
-  const textMatches = extractFromText(root);
-
-  const matches = [].concat(attrMatches, textMatches).filter((m) => m);
+  const matches = Extractor.run(root);
 
   if (matches.length > 0) {
     console.log('got matches', matches);
     const uniqMatches = uniq(matches.map((match) => match.email));
 
-    process({
+    run({
       type: PROCESS_MATCHES,
       data: uniqMatches
     })
     .then((resolved) => {
       console.log('received resolved', resolved);
-
-      if (Object.keys(resolved).length > 0) {
-        return augment(root, resolved);
-      }
-
-      console.log('no matches found...');
+      return augment(matches, resolved);
     })
     .catch((error) => {
       console.error(error);

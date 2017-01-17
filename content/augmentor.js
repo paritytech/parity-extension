@@ -93,16 +93,25 @@ export default class Augmentor {
         node.appendChild(iconsElement);
 
         const badgesRect = badgesElement.getBoundingClientRect();
-        const pageWidth = document.body.clientWidth;
+        const pageWidth = window.innerWidth;
+
+        // The badges element is scale times 1.5 in CSS transform
+        const badgesScale = 1.5;
+        const badgesCenter = badgesRect.left + badgesRect.width / 2;
+        const scaledBadgesRect = {
+          left: badgesCenter - badgesScale * (badgesRect.width / 2),
+          right: badgesCenter + badgesScale * (badgesRect.width / 2),
+          width: badgesScale * badgesRect.width
+        };
 
         // If 5px or less of right border
-        if (badgesRect.right >= pageWidth - 5) {
-          const nextLeft = pageWidth - 5 - badgesRect.width;
+        if (scaledBadgesRect.right >= pageWidth - 5) {
+          const nextLeft = pageWidth - 5 - scaledBadgesRect.width;
           badgesElement.style.left = `${nextLeft}px`;
         }
 
         // If 5px of less of left border
-        if (badgesRect.left <= 5) {
+        if (scaledBadgesRect.left <= 5) {
           badgesElement.style.left = `5px`;
         }
       });

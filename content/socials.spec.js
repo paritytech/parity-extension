@@ -45,7 +45,8 @@ describe('content/socials', () => {
         'https://github.com/blog',
         'https://github.com/about',
         'https://github.com/site',
-        'https://github.com/security'
+        'https://github.com/security',
+        'https://github.com/ '
       ];
 
       links.forEach((link) => {

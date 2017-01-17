@@ -33,7 +33,7 @@ export default class Augmentor {
     image.className = styles.badge;
     image.style = `height: ${height}px;`;
 
-    return image.outerHTML;
+    return image;
   }
 
   static augmentNode (key, node, resolved = {}) {
@@ -65,22 +65,24 @@ export default class Augmentor {
     Promise
       .all(badgesPromises)
       .then((badgesData) => {
-        const badgesHTML = badgesData
-          .map((badge) => Augmentor.getBadge(badge, height))
-          .join('');
+        const badgesElements = badgesData.map((badge) => Augmentor.getBadge(badge, height));
+        const badgesElements2 = badgesData.map((badge) => Augmentor.getBadge(badge, height));
 
-        const blockieHTML = Augmentor.getBadge({ src: icon, title: address }, height);
+        // The Ethereum Addres Identity Icon
+        const blockieElement = Augmentor.getBadge({ src: icon, title: address }, height);
+
+        // The Badges container
+        const badgesElement = document.createElement('span');
+        badgesElement.className = styles.badges;
+        badgesElements.forEach((elt) => badgesElement.appendChild(elt));
+        badgesElements2.forEach((elt) => badgesElement.appendChild(elt));
+
+        // The main Container
         const iconsElement = document.createElement('span');
-
         iconsElement.setAttribute('data-parity-touched', true);
         iconsElement.className = styles.icons;
-        iconsElement.innerHTML = `
-          ${blockieHTML}
-          <span class="${styles.badges}">
-            ${badgesHTML}
-            ${badgesHTML}
-          </span>
-        `;
+        iconsElement.appendChild(blockieElement);
+        iconsElement.appendChild(badgesElement);
 
         iconsElement.addEventListener('click', (event) => {
           event.preventDefault();
@@ -89,6 +91,20 @@ export default class Augmentor {
 
         node.className += ` ${styles.container}`;
         node.appendChild(iconsElement);
+
+        const badgesRect = badgesElement.getBoundingClientRect();
+        const pageWidth = document.body.clientWidth;
+
+        // If 5px or less of right border
+        if (badgesRect.right >= pageWidth - 5) {
+          const nextLeft = pageWidth - 5 - badgesRect.width;
+          badgesElement.style.left = `${nextLeft}px`;
+        }
+
+        // If 5px of less of left border
+        if (badgesRect.left <= 5) {
+          badgesElement.style.left = `5px`;
+        }
       });
   }
 

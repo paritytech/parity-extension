@@ -23,6 +23,7 @@ export default class Lookup {
   _badges = {};
   _emails = {};
   _names = {};
+  _tokens = {};
 
   constructor () {
     instance = this;
@@ -40,7 +41,7 @@ export default class Lookup {
     return this
       ._reverseEmail(input)
       .then((data) => {
-        const { address, badges, name } = data;
+        const { address, badges, name, tokens } = data;
 
         // Set in cache the data for the given address
         if (address && badges) {
@@ -50,6 +51,11 @@ export default class Lookup {
         // Set in cache the data for the given name
         if (address && name) {
           this._names[name] = { ...data };
+        }
+
+        // Set in cache the data for the given address
+        if (address && tokens) {
+          this._tokens[address] = { ...data };
         }
 
         return data;
@@ -67,14 +73,14 @@ export default class Lookup {
             return null;
           }
 
-          const { address, name, badges } = data;
+          const { address, name, badges, tokens } = data;
 
           if (!address || /^(0x)?0*$/.test(address)) {
             return null;
           }
 
           return {
-            address, badges, name, email: input
+            address, badges, name, tokens, email: input
           };
         })
         .then((data) => {

@@ -45,7 +45,7 @@ export default class Socials {
   }
 
   static get github () {
-    const matcher = /(?:https?:\/\/)?(?:www.)?github.(?:[a-z]+)\/([^\/]+)/i;
+    const matcher = /(?:https?:\/\/)?(?:www.)?github.(?:[a-z]+)\/([^/]+)/i;
 
     return {
       matcher
@@ -53,7 +53,7 @@ export default class Socials {
   }
 
   static get facebook () {
-    const matcher = /(?:https?:\/\/)?(?:www.)?facebook.(?:[a-z]+)\/([^\/]+)/i;
+    const matcher = /(?:https?:\/\/)?(?:www.)?facebook.(?:[a-z]+)\/([^/]+)/i;
 
     return {
       matcher

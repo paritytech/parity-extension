@@ -33,19 +33,19 @@ export default class Socials {
     }
 
     // Return the handle from the RegExp matcher
-    return social.matcher.exec(input)[1];
+    return { name: social.matcher.exec(input)[1] };
   }
 
   static get all () {
-    const { github, facebook } = Socials;
+    const { github, facebook, twitter, reddit } = Socials;
 
     return {
-      github, facebook
+      github, facebook, twitter, reddit
     };
   }
 
   static get github () {
-    const matcher = /(?:https?:\/\/)?(?:www.)?github.(?:[a-z]+)\/([^/]+)/i;
+    const matcher = /(?:https?:\/\/)?(?:www.)?github.(?:[a-z]+)\/([^/?]+)/i;
 
     return {
       matcher
@@ -53,7 +53,23 @@ export default class Socials {
   }
 
   static get facebook () {
-    const matcher = /(?:https?:\/\/)?(?:www.)?facebook.(?:[a-z]+)\/([^/]+)/i;
+    const matcher = /(?:https?:\/\/)?(?:www.)?facebook.(?:[a-z]+)\/([^/?]+)/i;
+
+    return {
+      matcher
+    };
+  }
+
+  static get twitter () {
+    const matcher = /(?:https?:\/\/)?(?:www.)?twitter.(?:[a-z]+)\/([^/?]+)/i;
+
+    return {
+      matcher
+    };
+  }
+
+  static get reddit () {
+    const matcher = /(?:https?:\/\/)?(?:www.)?reddit.(?:[a-z]+)\/u\/([^/?]+)/i;
 
     return {
       matcher

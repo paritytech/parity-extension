@@ -36,6 +36,38 @@ export default class Lookup {
     return instance;
   }
 
+  static run (matches = {}) {
+    const { emails, names } = matches;
+    const lookup = Lookup.get();
+
+    const emailPromises = emails.map((email) => lookup.email(email));
+    const namePromises = names.map((name) => lookup.name(name));
+
+    return Promise
+      .all([
+        Promise.all(emailPromises),
+        Promise.all(namePromises)
+      ])
+      .then(([ emailResults, nameResults ]) => {
+        return [].concat(emailResults, nameResults);
+      });
+  }
+
+  name (input) {
+    return this
+      ._reverseName(input)
+      .then((data) => {
+        const { address, badges } = data;
+
+        // Set in cache the data for the given address
+        if (address && badges) {
+          this._badges[address] = { ...data };
+        }
+
+        return data;
+      });
+  }
+
   email (input) {
     return this
       ._reverseEmail(input)
@@ -57,48 +89,57 @@ export default class Lookup {
   }
 
   _reverseEmail (input) {
-    if (!this._emails[input]) {
-      const hash = sha3(input);
+    const hash = sha3(input);
+    const extra = { email: input };
 
-      this._emails[input] = fetch(`https://id.parity.io:8443/?emailHash=0x${hash}`)
+    return this._reverse('_emails', 'emailHash', `0x${hash}`, extra);
+  }
+
+  _reverseName (name) {
+    return this._reverse('_names', 'name', name);
+  }
+
+  _reverse (cacheKey, method, input, extra = {}) {
+    if (!this[cacheKey][input]) {
+      this[cacheKey][input] = fetch(`https://id.parity.io:8443/?${method}=${input}`)
         .then((response) => response.json())
         .then((data) => {
           if (!data || data.status === 'error') {
             return null;
           }
 
-          const { address, name, badges } = data;
+          const { address, ...other } = data;
 
           if (!address || /^(0x)?0*$/.test(address)) {
             return null;
           }
 
           return {
-            address, badges, name, email: input
+            address, ...other, ...extra
           };
         })
         .then((data) => {
           const date = Date.now();
 
           if (data) {
-            this._emails[input] = { ...data, date };
+            this[cacheKey][input] = { ...data, date };
           } else {
-            this._emails[input] = { date, email: input };
+            this[cacheKey][input] = { date, ...extra };
           }
         })
         .catch((error) => {
           const date = Date.now();
 
-          console.error('email reverse', input, error);
+          console.error('reverse', input, error);
 
-          this._emails[input] = { date, error, email: input };
+          this[cacheKey][input] = { date, error, ...extra };
         })
         .then(() => {
-          return this._emails[input];
+          return this[cacheKey][input];
         });
     }
 
-    return Promise.resolve(this._emails[input]);
+    return Promise.resolve(this[cacheKey][input]);
   }
 
 }

@@ -17,57 +17,73 @@
 import Socials from './socials';
 
 describe('content/socials', () => {
-  describe('github', () => {
-    const { github } = Socials;
+  const { all } = Socials;
 
-    it('exports the matcher', () => {
-      expect(github).to.be.ok;
-      expect(github.matcher).to.be.ok;
+  describe('github', () => {
+    const rightInput = 'https://github.com/foobar';
+    const wrongInput = 'https://githubwe.com/foobar';
+
+    it('exists', () => {
+      expect(all.github).to.be.ok;
     });
 
-    it('extract links correctly', () => {
-      const input = 'https://github.com/foobar';
-      const result = github.matcher.exec(input)[1];
-
-      expect(github.matcher.test(input)).to.be.true;
-      expect(result).to.equal('foobar');
+    it('extracts the correct handle', () => {
+      expect(Socials.extract(rightInput)).to.deep.equal({ name: 'foobar' });
     });
 
     it('fails correctly', () => {
-      const input = 'https://gooks.com/foobar';
-      expect(github.matcher.test(input)).to.be.false;
+      expect(Socials.extract(wrongInput)).to.be.null;
     });
   });
 
   describe('facebook', () => {
-    const { facebook } = Socials;
+    const rightInput = 'https://facebook.com/foobar?id=123';
+    const wrongInput = 'https://facebooksad.com/foobar';
 
-    it('exports the matcher', () => {
-      expect(facebook).to.be.ok;
-      expect(facebook.matcher).to.be.ok;
+    it('exists', () => {
+      expect(all.facebook).to.be.ok;
     });
 
-    it('extract links correctly', () => {
-      const input = 'https://facebook.com/foobar';
-      const result = facebook.matcher.exec(input)[1];
-
-      expect(facebook.matcher.test(input)).to.be.true;
-      expect(result).to.equal('foobar');
+    it('extracts the correct handle', () => {
+      expect(Socials.extract(rightInput)).to.deep.equal({ name: 'foobar' });
     });
 
     it('fails correctly', () => {
-      const input = 'https://gooks.com/foobar';
-      expect(facebook.matcher.test(input)).to.be.false;
+      expect(Socials.extract(wrongInput)).to.be.null;
     });
   });
 
-  it('extracts links correctly', () => {
-    const input1 = 'http://asdasdas.com/foobar';
-    const input2 = 'http://facebook.com/foobar';
-    const result1 = Socials.extract(input1);
-    const result2 = Socials.extract(input2);
+  describe('twitter', () => {
+    const rightInput = 'https://twitter.com/foobar';
+    const wrongInput = 'https://twitterasfdasd.com/foobar';
 
-    expect(result1).to.be.null;
-    expect(result2).to.equal('foobar');
+    it('exists', () => {
+      expect(all.twitter).to.be.ok;
+    });
+
+    it('extracts the correct handle', () => {
+      expect(Socials.extract(rightInput)).to.deep.equal({ name: 'foobar' });
+    });
+
+    it('fails correctly', () => {
+      expect(Socials.extract(wrongInput)).to.be.null;
+    });
+  });
+
+  describe('reddit', () => {
+    const rightInput = 'https://reddit.com/u/foobar';
+    const wrongInput = 'https://asdasdasd.com/foobar';
+
+    it('exists', () => {
+      expect(all.reddit).to.be.ok;
+    });
+
+    it('extracts the correct handle', () => {
+      expect(Socials.extract(rightInput)).to.deep.equal({ name: 'foobar' });
+    });
+
+    it('fails correctly', () => {
+      expect(Socials.extract(wrongInput)).to.be.null;
+    });
   });
 });

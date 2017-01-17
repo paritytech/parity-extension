@@ -18,8 +18,9 @@
 import { uniq } from 'lodash';
 
 import { PROCESS_MATCHES } from '../background/processor';
-import Extractor from './extractor';
+
 import Augmentor from './augmentor';
+import Extractor from './extractor';
 import Runner from './runner';
 
 // Process the page in stages.

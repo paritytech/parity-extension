@@ -239,50 +239,49 @@ export default class Augmentor {
   static positionNode (node, options = {}) {
     const { scale = 1.5, offset = 5 } = options;
 
-    const clientRect = node.getBoundingClientRect();
+    const nodeRect = node.getBoundingClientRect();
+
     const pageHeight = window.innerHeight;
     const pageWidth = window.innerWidth;
 
     const center = {
-      x: clientRect.left + clientRect.width / 2,
-      y: clientRect.top + clientRect.height / 2
+      x: nodeRect.left + nodeRect.width / 2,
+      y: nodeRect.top + nodeRect.height / 2
     };
 
     const scaledClientRect = {
-      left: center.x - scale * (clientRect.width / 2),
-      right: center.x + scale * (clientRect.width / 2),
-      top: center.y - scale * (clientRect.height / 2),
-      bottom: center.y + scale * (clientRect.height / 2),
+      left: center.x - scale * (nodeRect.width / 2),
+      right: center.x + scale * (nodeRect.width / 2),
+      top: center.y - scale * (nodeRect.height / 2),
+      bottom: center.y + scale * (nodeRect.height / 2),
 
-      height: scale * clientRect.height,
-      width: scale * clientRect.width
+      height: scale * nodeRect.height,
+      width: scale * nodeRect.width
     };
 
-    // if (scale === 4) console.warn(clientRect, scaledClientRect);
+    // If 5px or less of right border
+    if (scaledClientRect.right >= pageWidth - offset) {
+      const nextLeft = pageWidth - offset - scaledClientRect.width;
+      node.style.left = `${nextLeft}px`;
+    }
 
-    // // If 5px or less of right border
-    // if (scaledClientRect.right >= pageWidth - offset) {
-    //   const nextLeft = pageWidth - offset - scaledClientRect.width;
-    //   node.style.left = `${nextLeft}px`;
-    // }
+    // If 5px of less of left border
+    if (scaledClientRect.left <= offset) {
+      const nextLeft = offset;
+      node.style.left = `${nextLeft}px`;
+    }
 
-    // // If 5px of less of left border
-    // if (scaledClientRect.left <= offset) {
-    //   const nextLeft = clientRect.width / 2 + offset;
-    //   node.style.left = `${nextLeft}px`;
-    // }
+    // If 5px or less of right border
+    if (scaledClientRect.bottom >= pageHeight - offset) {
+      const nextTop = pageHeight - offset - scaledClientRect.height;
+      node.style.top = `${nextTop}px`;
+    }
 
-    // // If 5px or less of right border
-    // if (scaledClientRect.bottom >= pageHeight - offset) {
-    //   const nextTop = pageHeight - offset - scaledClientRect.height;
-    //   node.style.top = `${nextTop}px`;
-    // }
-
-    // // If 5px of less of left border
-    // if (scaledClientRect.top <= offset) {
-    //   const nextTop = scaledClientRect.height / 2 + offset;
-    //   node.style.top = `${nextTop}px`;
-    // }
+    // If 5px of less of left border
+    if (scaledClientRect.top <= offset) {
+      const nextTop = scaledClientRect.height / 2 + offset;
+      node.style.top = `${nextTop}px`;
+    }
   }
 
   static run (matches, resolved = {}) {

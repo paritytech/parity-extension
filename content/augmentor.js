@@ -14,11 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 
-import blockies from 'blockies';
 import { h, render } from 'preact';
 /** @jsx h */
 
-import AccountCard from './components/account';
+import { AugmentedIcon } from './components';
 
 import Runner from './runner';
 import { FETCH_IMAGE } from '../background/processor';
@@ -28,57 +27,6 @@ import styles from './styles.less';
 export const AUGMENTED_NODE_ATTRIBUTE = 'data-parity-touched';
 
 export default class Augmentor {
-
-  static getBadge (badge, height) {
-    const { src, title = '' } = badge;
-
-    const image = new Image();
-
-    image.src = src;
-    image.title = title.toUpperCase();
-    image.className = styles.badge;
-    image.style = `height: ${height}px;`;
-
-    return image;
-  }
-
-  static getToken (token) {
-    const { TLA, balance, name } = token;
-
-    const badge = Augmentor.getBadge(token, 32);
-    // Display with 3 decimals
-    const value = parseFloat(balance).toFixed(3);
-
-    return `
-      <span title="${name}" class="${styles.token}">
-        ${badge.outerHTML}
-        <span class="${styles.balance}">
-          <span class="${styles.value}">${value}</span>
-          <span class="${styles.tla}">${TLA}</span>
-        </span>
-      </span>
-    `;
-  }
-
-  static getAccountCard (data, icon, badgesData, tokensData) {
-    const { address, name } = data;
-
-    const onClose = () => {
-    console.warn('close');
-    };
-
-    return render((
-      <AccountCard
-        address={ address }
-        badges={ badgesData }
-        icon={ icon }
-        name={ name }
-        tokens={ tokensData }
-
-        onClose={ onClose }
-      />
-    ));
-  }
 
   static augmentNode (key, node, resolved = {}) {
     if (!node || node.getAttribute(AUGMENTED_NODE_ATTRIBUTE) === 'true') {
@@ -107,69 +55,25 @@ export default class Augmentor {
 
     const { height = 16 } = node.getBoundingClientRect();
 
-    const icon = blockies({
-      seed: (address || '').toLowerCase(),
-      size: 8,
-      scale: 8
-    }).toDataURL();
-
     Promise
       .all([ Promise.all(badgesPromises), Promise.all(tokensPromises) ])
       .then(([ badgesData, tokensData ]) => {
-        const badgesElements = badgesData.map((badge) => Augmentor.getBadge(badge, height));
-
-        // The Ethereum Addres Identity Icon
-        const blockieElement = Augmentor.getBadge({ src: icon, title: address }, height);
-
-        // The Badges container
-        const badgesElement = document.createElement('span');
-        badgesElement.className = styles.badges;
-        badgesElements.forEach((elt) => badgesElement.appendChild(elt));
-
-        // The Account Card
-        const cardElement = Augmentor.getAccountCard(resolved[key], icon, badgesData, tokensData);
-
         // The main Container
-        const iconsElement = document.createElement('span');
-        iconsElement.setAttribute(AUGMENTED_NODE_ATTRIBUTE, true);
-        iconsElement.className = styles.icons;
-        iconsElement.appendChild(blockieElement);
-        iconsElement.appendChild(badgesElement);
-        iconsElement.appendChild(cardElement);
+        const container = render((
+          <AugmentedIcon
+            address={ address }
+            badges={ badgesData }
+            height={ height }
+            tokens={ tokensData }
+          />
+        ));
 
-        iconsElement.onclick = (event) => {
-          event.preventDefault();
-          event.stopPropagation();
-
-          const { currentTarget } = event;
-
-          const selectedText = window.getSelection().toString();
-
-          // Don't close if text is selected
-          if (selectedText) {
-            return false;
-          }
-
-          const classes = currentTarget.className.split(' ').map((className) => className.trim());
-
-          if (classes.includes(styles.expanded)) {
-            currentTarget.className = classes.filter((className) => className !== styles.expanded).join(' ');
-          } else {
-            currentTarget.className = classes.concat(styles.expanded).join(' ');
-          }
-        };
-
-        const container = document.createElement('span');
-        container.className = styles.container;
-
-        container.appendChild(node.cloneNode(true));
-        container.appendChild(iconsElement);
-
-        node.parentElement.insertBefore(container, node);
+        container.insertAdjacentElement('afterbegin', node.cloneNode(true));
+        node.insertAdjacentElement('afterend', container);
         node.parentElement.removeChild(node);
 
-        Augmentor.positionNode(badgesElement, iconsElement, { scale: 1.5, forceBottom: true });
-        Augmentor.positionNode(cardElement, iconsElement, { scale: 4 });
+        // Augmentor.positionNode(badgesElement, iconsElement, { scale: 1.5, forceBottom: true });
+        // Augmentor.positionNode(cardElement, iconsElement, { scale: 4 });
       });
   }
 

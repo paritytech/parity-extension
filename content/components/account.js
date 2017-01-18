@@ -18,21 +18,23 @@ import { noop } from 'lodash';
 import { h, Component } from 'preact';
 /** @jsx h */
 
+import Badge from './badge';
+import IdentityIcon from './identityIcon';
+
 import styles from '../styles.less';
 
 export default class AccountCard extends Component {
   clickTimeout = null;
 
   render () {
-    const { address, badges, icon, name, tokens } = this.props;
+    const { address, badges, name, tokens } = this.props;
 
     return (
       <span className={ styles.card }>
         <span className={ styles.header }>
-          <Badge
+          <IdentityIcon
+            address={ address }
             height={ 48 }
-            src={ icon }
-            title={ address }
           />
 
           <span className={ styles.title }>
@@ -168,21 +170,6 @@ class Token extends Component {
       <span className={ styles.value }>
         { value }
       </span>
-    );
-  }
-}
-
-class Badge extends Component {
-  render () {
-    const { height, src, title } = this.props;
-
-    return (
-      <img
-        className={ styles.badge }
-        src={ src }
-        style={ { height } }
-        title={ title }
-      />
     );
   }
 }

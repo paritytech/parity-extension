@@ -15,8 +15,6 @@
 // along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 
 /* global chrome,NodeFilter,MutationObserver */
-
-import { uniq } from 'lodash';
 import uuid from 'uuid/v4';
 
 import { PROCESS_MATCHES } from '../background/processor';
@@ -84,18 +82,18 @@ port.onMessage.addListener((msg) => {
 // 1. First we look for most likely matches <a href="mailto:..> and <a href="{user_profile}">
 // 2. Then we process all text nodes
 
-function augmentNode (email, node, resolved = {}) {
+function augmentNode (resolved, node) {
   if (!node || node.getAttribute('data-parity-touched') === 'true') {
     return;
   }
 
   node.setAttribute('data-parity-touched', true);
 
-  if (!resolved[email]) {
+  if (!resolved) {
     return;
   }
 
-  const { address } = resolved[email];
+  const { address } = resolved;
 
   node.outerHTML += `<span data-parity-touched="true"> (${address})</span>`;
 }
@@ -107,31 +105,35 @@ function augment (matches, resolved = {}) {
 
   attributesMatches
     .forEach((match) => {
-      const { email, node } = match;
-      augmentNode(email, node, resolved);
+      const { email, name, node } = match;
+      const resolvedMatch = resolved[email] || resolved[name] || null;
+      augmentNode(resolvedMatch, node);
     });
 
   textMatches
     .forEach((match) => {
-      const { email, node } = match;
+      const { email, name, node } = match;
+
+      const matchedText = email || name;
+      const resolvedMatch = resolved[email] || resolved[name] || null;
 
       // Safe Node is if the node which inner text is only the email address
-      let safeNode = node.innerText.trim() === email
+      let safeNode = node.innerText.trim() === matchedText
         ? node
         : null;
 
       // If it has more text, try to separate in SPANs
       if (!safeNode) {
-        const emailIndex = node.innerText.indexOf(email);
+        const valueIndex = node.innerText.indexOf(matchedText);
 
-        if (emailIndex === -1) {
+        if (valueIndex === -1) {
           return;
         }
 
-        const beforeText = node.innerText.slice(0, emailIndex);
-        const afterText = node.innerText.slice(emailIndex + email.length);
+        const beforeText = node.innerText.slice(0, valueIndex);
+        const afterText = node.innerText.slice(valueIndex + matchedText.length);
 
-        node.innerHTML = `${beforeText}<span>${email}</span>${afterText}`;
+        node.innerHTML = `${beforeText}<span>${matchedText}</span>${afterText}`;
         safeNode = node.querySelector('span');
       }
 
@@ -139,7 +141,7 @@ function augment (matches, resolved = {}) {
         return;
       }
 
-      augmentNode(email, safeNode, resolved);
+      augmentNode(resolvedMatch, safeNode);
     });
 }
 
@@ -148,11 +150,10 @@ function extract (root = document.body) {
 
   if (matches.length > 0) {
     console.log('got matches', matches);
-    const uniqMatches = uniq(matches.map((match) => match.email));
 
     run({
       type: PROCESS_MATCHES,
-      data: uniqMatches
+      data: matches
     })
     .then((resolved) => {
       console.log('received resolved', resolved);

@@ -33,7 +33,7 @@ export default class Augmentor {
     image.src = src;
     image.title = title.toUpperCase();
     image.className = styles.badge;
-    image.style.height = `${height}px;`;
+    image.style = `height: ${height}px;`;
 
     return image;
   }
@@ -90,35 +90,19 @@ export default class Augmentor {
     addressElement.title = address;
     addressElement.innerText = address;
 
-    let startedClick = false;
-    let doubleClicked = false;
     let clickTimeout = null;
 
     // Prevent closing on double-click on address (to select it's value)
+    addressElement.addEventListener('dblclick', (event) => {
+      window.clearTimeout(clickTimeout);
+      return event;
+    });
+
     addressElement.addEventListener('click', (event) => {
       event.preventDefault();
       event.stopPropagation();
 
-      const selectedText = window.getSelection().toString();
-
-      doubleClicked = selectedText.length > 0;
-
-      if (startedClick) {
-        startedClick = false;
-        window.clearTimeout(clickTimeout);
-        return false;
-      }
-
-      if (doubleClicked) {
-        doubleClicked = false;
-        return false;
-      }
-
-      startedClick = true;
-
       clickTimeout = window.setTimeout(() => {
-        startedClick = false;
-        doubleClicked = false;
         addressElement.parentElement.click();
       }, 200);
 

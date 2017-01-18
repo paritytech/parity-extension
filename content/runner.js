@@ -73,7 +73,7 @@ export default class Runner {
     const message = this.messages[id];
 
     if (!message) {
-      console.warn('got unexpected response', msg);
+      console.warn('got unexpected response', data);
       return;
     }
 

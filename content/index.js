@@ -15,8 +15,6 @@
 // along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 
 /* global NodeFilter,MutationObserver */
-import { uniq } from 'lodash';
-
 import { PROCESS_MATCHES } from '../background/processor';
 
 import Augmentor from './augmentor';

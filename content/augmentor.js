@@ -29,7 +29,6 @@ export const AUGMENTED_NODE_ATTRIBUTE = 'data-parity-touched';
 export default class Augmentor {
 
   static run (matches, resolved = {}) {
-    console.warn(resolved);
     // Use the attributes matcher first
     const attributesMatches = matches.filter((match) => match.from === 'attributes');
     const textMatches = matches.filter((match) => match.from === 'text');

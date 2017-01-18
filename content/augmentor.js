@@ -21,6 +21,8 @@ import { FETCH_IMAGE } from '../background/processor';
 
 import styles from './styles.less';
 
+export const AUGMENTED_NODE_ATTRIBUTE = 'data-parity-touched';
+
 export default class Augmentor {
 
   static getBadge (badge, height) {
@@ -31,7 +33,7 @@ export default class Augmentor {
     image.src = src;
     image.title = title.toUpperCase();
     image.className = styles.badge;
-    image.style = `height: ${height}px;`;
+    image.style.height = `${height}px;`;
 
     return image;
   }
@@ -144,11 +146,11 @@ export default class Augmentor {
   }
 
   static augmentNode (key, node, resolved = {}) {
-    if (!node || node.getAttribute('data-parity-touched') === 'true') {
+    if (!node || node.getAttribute(AUGMENTED_NODE_ATTRIBUTE) === 'true') {
       return;
     }
 
-    node.setAttribute('data-parity-touched', true);
+    node.setAttribute(AUGMENTED_NODE_ATTRIBUTE, true);
 
     if (!resolved[key]) {
       return;
@@ -194,7 +196,7 @@ export default class Augmentor {
 
         // The main Container
         const iconsElement = document.createElement('span');
-        iconsElement.setAttribute('data-parity-touched', true);
+        iconsElement.setAttribute(AUGMENTED_NODE_ATTRIBUTE, true);
         iconsElement.className = styles.icons;
         iconsElement.appendChild(blockieElement);
         iconsElement.appendChild(badgesElement);
@@ -323,10 +325,6 @@ export default class Augmentor {
 
           node.innerHTML = `${beforeText}<span>${email}</span>${afterText}`;
           safeNode = node.querySelector('span');
-        }
-
-        if (!safeNode) {
-          return;
         }
 
         Augmentor.augmentNode(email, safeNode, resolved);

@@ -18,6 +18,8 @@
 
 import { flatten } from 'lodash';
 
+import { AUGMENTED_NODE_ATTRIBUTE } from './augmentor';
+
 export const TAGS_BLACKLIST = [ 'script' ];
 
 const EMAIL_PATTERN = /([^\s@]+@[^\s@]+\.[a-z]+)/i;
@@ -39,7 +41,7 @@ export default class Extractor {
     const matches = nodes.map((data) => {
       const { node, text } = data;
 
-      if (node.getAttribute('data-parity-touched') === 'true') {
+      if (node.getAttribute(AUGMENTED_NODE_ATTRIBUTE) === 'true') {
         return null;
       }
 

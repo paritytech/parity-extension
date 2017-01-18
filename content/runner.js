@@ -53,17 +53,11 @@ export default class Runner {
     const id = currentID++;
 
     return new Promise((resolve, reject) => {
-      // Reject after no answer in 5s
-      const timeout = setTimeout(() => {
-        reject(`the request #${id} timed out (no response from background)\n${JSON.stringify(data, null, 2)}`);
-        delete this.messages[id];
-      }, 10 * 1000);
-
       const data = { type: task, data: input };
 
       const message = {
         id, data,
-        timeout, resolve, reject
+        resolve, reject
       };
 
       // Add message to the queue

@@ -23,17 +23,17 @@ export default class Socials {
   static extract (input) {
     const { all } = Socials;
 
+    let match = null;
     const social = Object.values(all).find((social) => {
-      const { matcher } = social;
-      return matcher.test(input);
+      match = social.match(input);
+      return match;
     });
 
-    if (!social) {
+    if (!match) {
       return null;
     }
 
     // Return the handle from the RegExp matcher
-    const match = social.matcher.exec(input)[1];
     const extras = social.extras || {};
     return { name: match, ...extras };
   }
@@ -55,10 +55,17 @@ export default class Socials {
     ];
 
     const blacklistRegexp = blacklist.join('|');
-    const matcher = new RegExp(`/(?:https?://)?(?:www.)?github.(?:[a-z]+)/(?!(?:${blacklistRegexp}))([^/?\\s]+)`, 'i');
+    const matcher = new RegExp(`/(?:https?://)?(?:www.)?github.(?:[a-z]+)/(?!(${blacklistRegexp}))([^/?\\s]+)`, 'i');
 
     return {
-      matcher,
+      match: (input) => {
+        if (!matcher.test(input)) {
+          return null;
+        }
+
+        const matches = matcher.exec(input);
+        return matches[2];
+      },
       extras: { github: true }
     };
   }
@@ -67,7 +74,14 @@ export default class Socials {
     const matcher = /(?:https?:\/\/)?(?:www.)?facebook.(?:[a-z]+)\/([^/?\s]+)/i;
 
     return {
-      matcher
+      match: (input) => {
+        if (!matcher.test(input)) {
+          return null;
+        }
+
+        const matches = matcher.exec(input);
+        return matches[1];
+      }
     };
   }
 
@@ -75,7 +89,14 @@ export default class Socials {
     const matcher = /(?:https?:\/\/)?(?:www.)?twitter.(?:[a-z]+)\/([^/?\s]+)/i;
 
     return {
-      matcher
+      match: (input) => {
+        if (!matcher.test(input)) {
+          return null;
+        }
+
+        const matches = matcher.exec(input);
+        return matches[1];
+      }
     };
   }
 
@@ -83,7 +104,14 @@ export default class Socials {
     const matcher = /(?:https?:\/\/)?(?:www.)?reddit.(?:[a-z]+)\/u\/([^/?\s]+)/i;
 
     return {
-      matcher
+      match: (input) => {
+        if (!matcher.test(input)) {
+          return null;
+        }
+
+        const matches = matcher.exec(input);
+        return matches[1];
+      }
     };
   }
 

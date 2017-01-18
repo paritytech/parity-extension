@@ -15,8 +15,7 @@
 // along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 
 /* global chrome */
-import uuid from 'uuid/v4';
-
+let currentID = 0;
 let instance = null;
 
 export default class Runner {
@@ -51,7 +50,7 @@ export default class Runner {
   }
 
   execute (task, input) {
-    const id = uuid();
+    const id = currentID++;
 
     return new Promise((resolve, reject) => {
       // Reject after no answer in 5s

@@ -14,35 +14,48 @@
 // You should have received a copy of the GNU General Public License
 // along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 
+import { uniq } from 'lodash';
+
 import Lookup from './lookup';
 
 export const PROCESS_MATCHES = 'process_matches';
 export const FETCH_IMAGE = 'fetch_image';
 
 const SVG_MATCH = /.svg(\?.+)?$/i;
+const UNKNOWN_TOKEN_URL = 'https://raw.githubusercontent.com/ethcore/parity/1e6a2cb3783e0d66cfa730f4cea109f60dc3a685/js/assets/images/contracts/unknown-64x64.png';
 
 export default class Processor {
 
   _images = {};
 
-  process (data = {}) {
-    switch (data.type) {
+  process (input = {}) {
+    const { data, type } = input;
+
+    switch (type) {
       case PROCESS_MATCHES:
-        return this.processMatches(data.data);
+        const result = this.processMatches(data);
+        console.log('got result', result);
+        return result;
 
       case FETCH_IMAGE:
-        return this.fetchImage(data.data);
+        return this.fetchImage(data);
 
       default:
-        return Promise.reject(`no actions matching  ${data.type}`);
+        return Promise.reject(`no actions matching  ${type}`);
     }
   }
 
   fetchImage (url) {
-    if (!this._images[url]) {
-      this._images[url] = fetch(url)
+    const validUrl = url && url !== 'null' && url !== 'undefined'
+      ? url
+      : UNKNOWN_TOKEN_URL;
+
+    console.log('fetching image', validUrl);
+
+    if (!this._images[validUrl]) {
+      this._images[validUrl] = fetch(validUrl)
         .then((response) => {
-          if (SVG_MATCH.test(url)) {
+          if (SVG_MATCH.test(validUrl)) {
             return response.text().then((data) => {
               return new window.Blob([ data ], {
                 type: 'image/svg+xml;charset=utf-8'
@@ -56,32 +69,50 @@ export default class Processor {
           return blobToBase64(data);
         })
         .then((data) => {
-          this._images[url] = data;
+          this._images[validUrl] = data;
           return data;
         })
         .catch((error) => {
           // Remove cached promise on error
-          this._images[url] = null;
+          this._images[validUrl] = null;
           console.error(error);
         });
     }
 
-    return Promise.resolve(this._images[url]);
+    return Promise.resolve(this._images[validUrl]);
   }
 
   processMatches (matches) {
     console.log('received matches', matches);
 
-    const promises = matches.map((email) => Lookup.get().email(email));
+    const emails = matches
+      .map((match) => match.email)
+      .filter((email) => email);
 
-    return Promise
-      .all(promises)
-      .then((reversed) => {
-        return reversed.filter((data) => data && data.address);
-      })
+    const names = matches
+      .map((match) => match.name)
+      .filter((name) => name);
+
+    const githubs = matches
+      .filter((match) => match.github)
+      .map((match) => match.name);
+
+    const uniqEmails = uniq(emails);
+    const uniqNames = uniq(names);
+    const uniqGithubs = uniq(githubs);
+
+    return Lookup.run({ emails: uniqEmails, names: uniqNames, githubs: uniqGithubs })
+      .then((reversed) => reversed.filter((data) => data && data.address))
       .then((values) => {
         return values.reduce((object, data) => {
-          object[data.email] = { ...data };
+          if (data.email) {
+            object[data.email] = { ...data };
+          }
+
+          if (data.name) {
+            object[data.name] = { ...data };
+          }
+
           return object;
         }, {});
       });

@@ -14,31 +14,4 @@
 // You should have received a copy of the GNU General Public License
 // along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 
-/* global chrome */
-
-import Processor from './processor';
-
-const processor = new Processor();
-
-chrome.runtime.onConnect.addListener((port) => {
-  console.assert(port.name === 'id');
-
-  port.onMessage.addListener((message = {}) => {
-    const { id, data } = message;
-
-    processor
-      .process(data)
-      .then((result) => {
-        port.postMessage({
-          id, result
-        });
-      })
-      .catch((error) => {
-        port.postMessage({
-          id, error: error.message
-        });
-
-        throw error;
-      });
-  });
-});
+require('babel-register')();

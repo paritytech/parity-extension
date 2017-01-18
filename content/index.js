@@ -33,9 +33,8 @@ function extract (root = document.body) {
 
   if (matches.length > 0) {
     console.log('got matches', matches);
-    const uniqMatches = uniq(matches.map((match) => match.email));
 
-    Runner.execute(PROCESS_MATCHES, uniqMatches)
+    Runner.execute(PROCESS_MATCHES, matches)
     .then((resolved) => {
       console.log('received resolved', resolved);
       return Augmentor.run(matches, resolved);

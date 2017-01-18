@@ -29,21 +29,26 @@ export const AUGMENTED_NODE_ATTRIBUTE = 'data-parity-touched';
 export default class Augmentor {
 
   static run (matches, resolved = {}) {
+    console.warn(resolved);
     // Use the attributes matcher first
     const attributesMatches = matches.filter((match) => match.from === 'attributes');
     const textMatches = matches.filter((match) => match.from === 'text');
 
     attributesMatches
       .forEach((match) => {
-        const { email, node } = match;
-        Augmentor.augmentNode(email, node, resolved);
+        const { email, name, node } = match;
+        const value = email || name;
+
+        Augmentor.augmentNode(value, node, resolved);
       });
 
     textMatches
       .forEach((match) => {
-        const { email } = match;
+        const { email, name } = match;
+        const value = email || name;
         const safeNode = Augmentor.getSafeNode(match);
-        Augmentor.augmentNode(email, safeNode, resolved);
+
+        Augmentor.augmentNode(value, safeNode, resolved);
       });
   }
 
@@ -113,6 +118,9 @@ export default class Augmentor {
 
         // Replace the given node with the new container (node + Augmented Icon)
         node.parentElement.replaceChild(container, node);
+      })
+      .catch((error) => {
+        console.error('augmenting node', key, error);
       });
   }
 

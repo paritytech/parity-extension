@@ -19,6 +19,7 @@
 import { flatten } from 'lodash';
 
 import { AUGMENTED_NODE_ATTRIBUTE } from './augmentor';
+import Socials from './socials';
 
 export const TAGS_BLACKLIST = [ 'script' ];
 
@@ -57,8 +58,8 @@ export default class Extractor {
         return null;
       }
 
-      const newMatches = extractions.map((email) => ({
-        email, node, from: type
+      const newMatches = extractions.map((data) => ({
+        ...data, node, from: type
       }));
 
       return newMatches;
@@ -110,6 +111,7 @@ export default class Extractor {
 
     if (href) {
       push(matches, findMailto(href));
+      push(matches, Socials.extract(href));
     }
 
     if (title) {
@@ -126,8 +128,10 @@ export default class Extractor {
   static fromText (text) {
     const matches = [];
     const email = findEmail(text);
+    const name = Socials.extract(text);
 
     push(matches, email);
+    push(matches, name);
 
     return matches;
   }
@@ -135,20 +139,18 @@ export default class Extractor {
 }
 
 function findMailto (val) {
-  const match = val.match(MAILTO_PATTERN);
-
-  if (match && match[1]) {
-    return match[1];
+  if (MAILTO_PATTERN.test(val)) {
+    const match = MAILTO_PATTERN.exec(val);
+    return { email: match[1] };
   }
 
   return null;
 }
 
 function findEmail (val) {
-  const match = val.match(EMAIL_PATTERN);
-
-  if (match && match[1]) {
-    return match[1];
+  if (EMAIL_PATTERN.test(val)) {
+    const match = EMAIL_PATTERN.exec(val);
+    return { email: match[1] };
   }
 
   return null;

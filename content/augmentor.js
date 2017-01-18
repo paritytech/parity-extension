@@ -28,18 +28,95 @@ export const AUGMENTED_NODE_ATTRIBUTE = 'data-parity-touched';
 
 export default class Augmentor {
 
+  static run (matches, resolved = {}) {
+    // Use the attributes matcher first
+    const attributesMatches = matches.filter((match) => match.from === 'attributes');
+    const textMatches = matches.filter((match) => match.from === 'text');
+
+    attributesMatches
+      .forEach((match) => {
+        const { email, node } = match;
+        Augmentor.augmentNode(email, node, resolved);
+      });
+
+    textMatches
+      .forEach((match) => {
+        const { email } = match;
+        const safeNode = Augmentor.getSafeNode(match);
+        Augmentor.augmentNode(email, safeNode, resolved);
+      });
+  }
+
+  static getSafeNode (match) {
+    const { email, node } = match;
+
+    // Safe Node is if the node which inner text is only the email address
+    if (node.innerText.trim() === email) {
+      return node;
+    }
+
+    const emailIndex = node.innerText.indexOf(email);
+
+    if (emailIndex === -1) {
+      return;
+    }
+
+    const beforeText = node.innerText.slice(0, emailIndex);
+    const afterText = node.innerText.slice(emailIndex + email.length);
+
+    const safeNode = document.createElement('span');
+    safeNode.innerText = email;
+
+    const nextNode = node.cloneNode(true);
+    nextNode.innerHTML = '';
+    nextNode.appendChild(safeNode);
+    safeNode.insertAdjacentText('beforebegin', beforeText);
+    safeNode.insertAdjacentText('afterend', afterText);
+
+    // Replace the node with the safe node
+    node.parentElement.replaceChild(nextNode, node);
+
+    return safeNode;
+  }
+
   static augmentNode (key, node, resolved = {}) {
     if (!node || node.getAttribute(AUGMENTED_NODE_ATTRIBUTE) === 'true') {
       return;
     }
 
+    const data = resolved[key];
     node.setAttribute(AUGMENTED_NODE_ATTRIBUTE, true);
 
-    if (!resolved[key]) {
+    if (!data) {
       return;
     }
 
-    const { address, badges = [], tokens = [] } = resolved[key];
+    return Augmentor.fetchImages(data)
+      .then(([ badges, tokens ]) => {
+        const { address } = data;
+        const { height = 16 } = node.getBoundingClientRect();
+
+        const augmentedIcon = render((
+          <AugmentedIcon
+            address={ address }
+            badges={ badges }
+            height={ height }
+            tokens={ tokens }
+          />
+        ));
+
+        const container = document.createElement('span');
+        container.className = styles.container;
+        container.appendChild(node.cloneNode(true));
+        container.appendChild(augmentedIcon);
+
+        // Replace the given node with the new container (node + Augmented Icon)
+        node.parentElement.replaceChild(container, node);
+      });
+  }
+
+  static fetchImages (data) {
+    const { badges = [], tokens = [] } = data;
 
     const badgesPromises = badges
       .map((badge) => {
@@ -53,28 +130,7 @@ export default class Augmentor {
           .then((src) => ({ ...token, src }));
       });
 
-    const { height = 16 } = node.getBoundingClientRect();
-
-    Promise
-      .all([ Promise.all(badgesPromises), Promise.all(tokensPromises) ])
-      .then(([ badgesData, tokensData ]) => {
-        // The main Container
-        const container = render((
-          <AugmentedIcon
-            address={ address }
-            badges={ badgesData }
-            height={ height }
-            tokens={ tokensData }
-          />
-        ));
-
-        container.insertAdjacentElement('afterbegin', node.cloneNode(true));
-        node.insertAdjacentElement('afterend', container);
-        node.parentElement.removeChild(node);
-
-        // Augmentor.positionNode(badgesElement, iconsElement, { scale: 1.5, forceBottom: true });
-        // Augmentor.positionNode(cardElement, iconsElement, { scale: 4 });
-      });
+    return Promise.all([ Promise.all(badgesPromises), Promise.all(tokensPromises) ]);
   }
 
   static positionNode (node, container, options = {}) {
@@ -129,45 +185,6 @@ export default class Augmentor {
         node.style.top = `${nextTop}px`;
       }
     }
-  }
-
-  static run (matches, resolved = {}) {
-    // Use the attributes matcher first
-    const attributesMatches = matches.filter((match) => match.from === 'attributes');
-    const textMatches = matches.filter((match) => match.from === 'text');
-
-    attributesMatches
-      .forEach((match) => {
-        const { email, node } = match;
-        Augmentor.augmentNode(email, node, resolved);
-      });
-
-    textMatches
-      .forEach((match) => {
-        const { email, node } = match;
-
-        // Safe Node is if the node which inner text is only the email address
-        let safeNode = node.innerText.trim() === email
-          ? node
-          : null;
-
-        // If it has more text, try to separate in SPANs
-        if (!safeNode) {
-          const emailIndex = node.innerText.indexOf(email);
-
-          if (emailIndex === -1) {
-            return;
-          }
-
-          const beforeText = node.innerText.slice(0, emailIndex);
-          const afterText = node.innerText.slice(emailIndex + email.length);
-
-          node.innerHTML = `${beforeText}<span>${email}</span>${afterText}`;
-          safeNode = node.querySelector('span');
-        }
-
-        Augmentor.augmentNode(email, safeNode, resolved);
-      });
   }
 
 }

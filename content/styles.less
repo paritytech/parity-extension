@@ -125,12 +125,12 @@
     opacity: 0;
     z-index: -1;
   }
+}
 
-  :local(.card) {
-    opacity: 1;
-    transform: scale(1) translateY(-50%);
-    z-index: 9999;
-  }
+:local(.card):local(.open) {
+  opacity: 1;
+  transform: scale(1) translateY(-50%);
+  z-index: 9999;
 }
 
 :local(.badges) {

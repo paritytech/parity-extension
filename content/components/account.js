@@ -27,10 +27,16 @@ export default class AccountCard extends Component {
   clickTimeout = null;
 
   render () {
-    const { address, badges, name, tokens } = this.props;
+    const { address, badges, name, open, tokens } = this.props;
+
+    const mainClasses = [ styles.card ];
+
+    if (open) {
+      mainClasses.push(styles.open);
+    }
 
     return (
-      <span className={ styles.card }>
+      <span className={ mainClasses.join(' ') }>
         <span className={ styles.header }>
           <IdentityIcon
             address={ address }

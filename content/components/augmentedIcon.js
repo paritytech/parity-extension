@@ -24,33 +24,37 @@ import IdentityIcon from './identityIcon';
 import styles from '../styles.less';
 
 export default class AugmentedIcon extends Component {
+  state = {
+    open: false
+  };
+
   render () {
     const { address, badges, height, tokens } = this.props;
+    const { open } = this.state;
 
     return (
-      <span className={ styles.container }>
-        <span
-          className={ styles.icons }
-          onClick={ this.handleClick }
-        >
-          <IdentityIcon
-            address={ address }
-            height={ height }
-          />
+      <span
+        className={ styles.icons }
+        onClick={ this.handleClick }
+      >
+        <IdentityIcon
+          address={ address }
+          height={ height }
+        />
 
-          <span className={ styles.badges }>
-            { this.renderBadges(badges, height) }
-          </span>
-
-          <AccountCard
-            address={ address }
-            badges={ badges }
-            name={ name }
-            tokens={ tokens }
-
-            onClose={ this.handleClose }
-          />
+        <span className={ styles.badges }>
+          { this.renderBadges(badges, height) }
         </span>
+
+        <AccountCard
+          address={ address }
+          badges={ badges }
+          name={ name }
+          open={ open }
+          tokens={ tokens }
+
+          onClose={ this.handleClose }
+        />
       </span>
     );
   }
@@ -71,11 +75,19 @@ export default class AugmentedIcon extends Component {
   }
 
   handleClick = (event) => {
+    const { open } = this.state;
+
     event.preventDefault();
     event.stopPropagation();
 
-    const { currentTarget } = event;
+    if (!open) {
+      return this.handleOpen();
+    }
 
+    return this.handleClose();
+  }
+
+  handleClose = () => {
     const selectedText = window.getSelection().toString();
 
     // Don't close if text is selected
@@ -83,20 +95,10 @@ export default class AugmentedIcon extends Component {
       return false;
     }
 
-    const classes = currentTarget.className.split(' ').map((className) => className.trim());
-
-    if (classes.includes(styles.expanded)) {
-      currentTarget.className = classes.filter((className) => className !== styles.expanded).join(' ');
-    } else {
-      currentTarget.className = classes.concat(styles.expanded).join(' ');
-    }
+    this.setState({ open: false });
   }
 
   handleOpen = () => {
-    console.log('open');
-  }
-
-  handleClose = () => {
-    console.log('close');
+    this.setState({ open: true });
   }
 }

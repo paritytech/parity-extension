@@ -15,6 +15,10 @@
 // along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 
 import blockies from 'blockies';
+import { h, render } from 'preact';
+/** @jsx h */
+
+import AccountCard from './components/account';
 
 import Runner from './runner';
 import { FETCH_IMAGE } from '../background/processor';
@@ -59,74 +63,21 @@ export default class Augmentor {
   static getAccountCard (data, icon, badgesData, tokensData) {
     const { address, name } = data;
 
-    const element = document.createElement('span');
-    element.className = styles.card;
+    const onClose = () => {
+    console.warn('close');
+    };
 
-    // Get the account badges
-    const badgesHTML = badgesData.map((badgeData) => {
-      const { title } = badgeData;
-      const badge = Augmentor.getBadge(badgeData, 24);
+    return render((
+      <AccountCard
+        address={ address }
+        badges={ badgesData }
+        icon={ icon }
+        name={ name }
+        tokens={ tokensData }
 
-      return `
-        <span title="${title}" class="${styles.token}">
-          ${badge.outerHTML}
-          <span class="${styles.balance} ${styles['no-value']}">
-            <span class="${styles.tla}">${title}</span>
-          </span>
-        </span>
-      `;
-    }).join('');
-
-    // Get the account tokens
-    const tokensHTML = tokensData.map((token) => Augmentor.getToken(token)).join('');
-
-    const identityIcon = Augmentor.getBadge({ src: icon, title: address }, 48);
-    const nameHTML = name
-      ? `<span class="${styles.name}">${name}</span>`
-      : '';
-
-    const addressElement = document.createElement('span');
-    addressElement.className = styles.address;
-    addressElement.title = address;
-    addressElement.innerText = address;
-
-    let clickTimeout = null;
-
-    // Prevent closing on double-click on address (to select it's value)
-    addressElement.addEventListener('dblclick', (event) => {
-      window.clearTimeout(clickTimeout);
-      return event;
-    });
-
-    addressElement.addEventListener('click', (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-
-      clickTimeout = window.setTimeout(() => {
-        addressElement.parentElement.click();
-      }, 200);
-
-      return false;
-    });
-
-    const title = document.createElement('span');
-    title.className = styles.title;
-    title.innerHTML = nameHTML;
-    title.appendChild(addressElement);
-
-    const header = document.createElement('span');
-    header.className = styles.header;
-    header.appendChild(identityIcon);
-    header.appendChild(title);
-
-    element.innerHTML = `
-      <span class="${styles.tokens}">${tokensHTML}</span>
-      <span class="${styles.tokens}">${badgesHTML}</span>
-    `;
-
-    element.prepend(header);
-
-    return element;
+        onClose={ onClose }
+      />
+    ));
   }
 
   static augmentNode (key, node, resolved = {}) {

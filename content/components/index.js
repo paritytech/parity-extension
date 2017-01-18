@@ -14,14 +14,16 @@
 // You should have received a copy of the GNU General Public License
 // along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 
-import AccountCard from './account';
+import AccountCard from './accountCard';
 import AugmentedIcon from './augmentedIcon';
 import Badge from './badge';
 import IdentityIcon from './identityIcon';
+import Token from './token';
 
 export {
   AccountCard,
   AugmentedIcon,
   Badge,
-  IdentityIcon
+  IdentityIcon,
+  Token
 };

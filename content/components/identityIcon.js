@@ -14,28 +14,38 @@
 // You should have received a copy of the GNU General Public License
 // along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 
+import { memoize } from 'decko';
 import blockies from 'blockies';
-import { h } from 'preact';
+import { h, Component } from 'preact';
 /** @jsx h */
 
 import Badge from './badge';
 
-const IdentityIcon = ({ children, ...props }) => {
-  const { address, height } = props;
+export default class IdentityIcon extends Component {
 
-  const src = blockies({
-    seed: (address || '').toLowerCase(),
-    size: 8,
-    scale: 8
-  }).toDataURL();
+  render () {
+    const { address, size = 8 } = this.props;
 
-  return (
-    <Badge
-      height={ height }
-      src={ src }
-      title={ address }
-    />
-  );
-};
+    const src = this.getBlockie(address, size);
 
-export default IdentityIcon;
+    return (
+      <Badge
+        size={ size }
+        src={ src }
+        title={ address }
+      />
+    );
+  }
+
+  @memoize
+  getBlockie (address, size = 8) {
+    const src = blockies({
+      seed: (address || '').toLowerCase(),
+      size: 8,
+      scale: size
+    }).toDataURL();
+
+    return src;
+  }
+
+}

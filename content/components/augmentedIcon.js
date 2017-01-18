@@ -14,22 +14,24 @@
 // You should have received a copy of the GNU General Public License
 // along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 
+import { bind } from 'decko';
 import { h, Component } from 'preact';
 /** @jsx h */
 
-import AccountCard from './account';
+import AccountCard from './accountCard';
 import Badge from './badge';
 import IdentityIcon from './identityIcon';
 
 import styles from '../styles.less';
 
 export default class AugmentedIcon extends Component {
+
   state = {
     open: false
   };
 
   render () {
-    const { address, badges, height, tokens } = this.props;
+    const { address, badges, height, name, tokens } = this.props;
     const { open } = this.state;
 
     return (
@@ -39,7 +41,7 @@ export default class AugmentedIcon extends Component {
       >
         <IdentityIcon
           address={ address }
-          height={ height }
+          size={ height }
         />
 
         <span className={ styles.badges }>
@@ -59,14 +61,14 @@ export default class AugmentedIcon extends Component {
     );
   }
 
-  renderBadges (badges, height) {
+  renderBadges (badges, size) {
     return badges.map((badge) => {
       const { address, title, src } = badge;
 
       return (
         <Badge
-          height={ height }
           key={ address }
+          size={ size }
           src={ src }
           title={ title }
         />
@@ -74,7 +76,8 @@ export default class AugmentedIcon extends Component {
     });
   }
 
-  handleClick = (event) => {
+  @bind
+  handleClick (event) {
     const { open } = this.state;
 
     event.preventDefault();
@@ -87,7 +90,8 @@ export default class AugmentedIcon extends Component {
     return this.handleClose();
   }
 
-  handleClose = () => {
+  @bind
+  handleClose () {
     const selectedText = window.getSelection().toString();
 
     // Don't close if text is selected
@@ -98,7 +102,9 @@ export default class AugmentedIcon extends Component {
     this.setState({ open: false });
   }
 
-  handleOpen = () => {
+  @bind
+  handleOpen () {
     this.setState({ open: true });
   }
+
 }

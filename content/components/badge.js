@@ -20,13 +20,13 @@ import { h } from 'preact';
 import styles from '../styles.less';
 
 const Badge = ({ children, ...props }) => {
-  const { height, src, title } = props;
+  const { size = 16, src, title } = props;
 
   return (
     <img
       className={ styles.badge }
       src={ src }
-      style={ { height, width: height } }
+      style={ { height: size, width: size } }
       title={ title }
     />
   );

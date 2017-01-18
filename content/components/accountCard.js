@@ -14,20 +14,33 @@
 // You should have received a copy of the GNU General Public License
 // along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 
+import { bind } from 'decko';
 import { noop } from 'lodash';
 import { h, Component } from 'preact';
 /** @jsx h */
 
-import Badge from './badge';
 import IdentityIcon from './identityIcon';
+import Token from './token';
 
 import styles from '../styles.less';
 
 export default class AccountCard extends Component {
+
   clickTimeout = null;
 
+  state = {
+    open: false
+  };
+
+  componentWillReceiveProps (nextProps) {
+    if (nextProps.open !== this.props.open) {
+      this.handleToggleOpen(nextProps.open);
+    }
+  }
+
   render () {
-    const { address, badges, name, open, tokens } = this.props;
+    const { address, badges, name, tokens } = this.props;
+    const { open } = this.state;
 
     const mainClasses = [ styles.card ];
 
@@ -40,11 +53,13 @@ export default class AccountCard extends Component {
         <span className={ styles.header }>
           <IdentityIcon
             address={ address }
-            height={ 48 }
+            size={ 48 }
           />
 
           <span className={ styles.title }>
-            <span className={ styles.name }>{ name }</span>
+            <span className={ styles.name }>
+              { name }
+            </span>
             { this.renderAddress(address) }
           </span>
         </span>
@@ -79,7 +94,7 @@ export default class AccountCard extends Component {
 
       return (
         <Token
-          badge={ { src, height: 32 } }
+          badge={ { src, size: 32 } }
           balance={ balance }
           key={ TLA }
           name={ TLA }
@@ -95,7 +110,7 @@ export default class AccountCard extends Component {
 
       return (
         <Token
-          badge={ { src, height: 24 } }
+          badge={ { src, size: 24 } }
           key={ address }
           name={ title }
           title={ title }
@@ -111,7 +126,8 @@ export default class AccountCard extends Component {
     }
   }
 
-  handleClick = (event) => {
+  @bind
+  handleClick (event) {
     const { onClose = noop } = this.props;
 
     this.clearClick();
@@ -125,57 +141,15 @@ export default class AccountCard extends Component {
     return false;
   }
 
-  handleDblclick = (event) => {
+  @bind
+  handleDblclick (event) {
     this.clearClick();
     return event;
   }
-}
 
-class Token extends Component {
-  render () {
-    const { badge, balance, name, title } = this.props;
-    const { height, src } = badge;
-
-    const nameClasses = [ styles.tla ];
-
-    if (!balance) {
-      nameClasses.push(styles['no-value']);
-    }
-
-    return (
-      <span
-        className={ styles.token }
-        title={ title }
-      >
-        <Badge
-          height={ height }
-          src={ src }
-          title={ title }
-        />
-
-        <span className={ styles.balance }>
-          { this.renderBalance(balance) }
-
-          <span className={ nameClasses.join(' ') }>
-            { name }
-          </span>
-        </span>
-      </span>
-    );
+  @bind
+  handleToggleOpen (open) {
+    this.setState({ open });
   }
 
-  renderBalance (balance) {
-    if (!balance) {
-      return null;
-    }
-
-    // Display with 3 decimals
-    const value = parseFloat(balance).toFixed(3);
-
-    return (
-      <span className={ styles.value }>
-        { value }
-      </span>
-    );
-  }
 }

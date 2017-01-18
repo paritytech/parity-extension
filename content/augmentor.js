@@ -93,7 +93,7 @@ export default class Augmentor {
 
     return Augmentor.fetchImages(data)
       .then(([ badges, tokens ]) => {
-        const { address } = data;
+        const { address, name } = data;
         const { height = 16 } = node.getBoundingClientRect();
 
         const augmentedIcon = render((
@@ -101,6 +101,7 @@ export default class Augmentor {
             address={ address }
             badges={ badges }
             height={ height }
+            name={ name }
             tokens={ tokens }
           />
         ));

@@ -16,13 +16,11 @@
 */
 
 :local(.card), :local(.tokens) {
+  composes: transition from '../styles.less';
+
   display: inline-flex;
   flex-direction: row;
   align-items: center;
-
-  transition-property: opacity, transform, z-index;
-  transition-duration: 0.25s;
-  transition-timing-function: cubic-bezier(0.7,0,0.3,1);
 }
 
 :local(.card) {

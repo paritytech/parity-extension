@@ -17,12 +17,17 @@
 
 @import url('https://fonts.googleapis.com/css?family=Roboto:300');
 
-:local(.container) {
-  display: inline-flex;
-  flex-direction: row;
-  align-items: center;
-
+:local(.transition) {
   transition-property: opacity, transform, z-index;
   transition-duration: 0.25s;
   transition-timing-function: cubic-bezier(0.7,0,0.3,1);
 }
+
+:local(.container) {
+  composes: transition;
+
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+}
+

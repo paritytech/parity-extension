@@ -60,8 +60,7 @@ export default class Token extends Component {
       return null;
     }
 
-    // Display with 3 decimals
-    const value = parseFloat(balance).toFixed(3);
+    const value = formatNumber(parseFloat(balance));
 
     return (
       <span className={ styles.value }>
@@ -70,4 +69,12 @@ export default class Token extends Component {
     );
   }
 
+}
+
+/**
+ * Format the given number with commas and
+ * 3 decimals
+ */
+function formatNumber (x) {
+  return x.toFixed(3).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }

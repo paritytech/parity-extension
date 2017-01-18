@@ -25,8 +25,6 @@ import IdentityIcon from './identityIcon';
 
 import styles from './augmentedIcon.less';
 
-const ICON_CONTAINER_SCALE = 4;
-
 export default class AugmentedIcon extends Component {
 
   state = {
@@ -119,7 +117,11 @@ export default class AugmentedIcon extends Component {
         document.body.addEventListener('mousemove', this.handleMousemove);
         return this.setHover(true);
       }
-    } else if (this.state.hover) {
+
+      return;
+    }
+
+    if (this.state.hover) {
       document.body.removeEventListener('mousemove', this.handleMousemove);
       return this.setHover(false);
     }

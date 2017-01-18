@@ -22,7 +22,7 @@ import AccountCard from './accountCard';
 import Badge from './badge';
 import IdentityIcon from './identityIcon';
 
-import styles from '../styles.less';
+import styles from './augmentedIcon.less';
 
 export default class AugmentedIcon extends Component {
 

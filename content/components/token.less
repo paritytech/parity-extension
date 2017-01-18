@@ -15,14 +15,35 @@
 /* along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-@import url('https://fonts.googleapis.com/css?family=Roboto:300');
+:local(.token) {
+  background-color: rgba(0, 0, 0, 0.25);
+  border-radius: 16px;
+  height: 24px;
+  padding: 0 0.75em 0 0;
+  margin: 8px 0.75em 8px 0;
 
-:local(.container) {
-  display: inline-flex;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+:local(.balance) {
+  margin-left: 0.5em;
+  display: flex;
   flex-direction: row;
   align-items: center;
 
-  transition-property: opacity, transform, z-index;
-  transition-duration: 0.25s;
-  transition-timing-function: cubic-bezier(0.7,0,0.3,1);
+  &:local(.no-value) :local(.tla) {
+    margin-bottom: 0;
+  }
+
+  :local(.value) {
+    margin-right: 0.5em;
+  }
+
+  :local(.tla) {
+    font-size: 0.75em;
+    text-transform: uppercase;
+    margin-bottom: -0.1em;
+  }
 }

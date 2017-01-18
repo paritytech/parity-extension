@@ -22,7 +22,7 @@ import { h, Component } from 'preact';
 import IdentityIcon from './identityIcon';
 import Token from './token';
 
-import styles from '../styles.less';
+import styles from './accountCard.less';
 
 export default class AccountCard extends Component {
 

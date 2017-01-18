@@ -17,7 +17,7 @@
 import { h } from 'preact';
 /** @jsx h */
 
-import styles from '../styles.less';
+import styles from './badge.less';
 
 const Badge = ({ children, ...props }) => {
   const { size = 16, src, title } = props;

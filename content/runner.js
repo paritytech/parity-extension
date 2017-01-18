@@ -68,18 +68,7 @@ export default class Runner {
     });
   }
 
-  handleIncomingMessage (msg) {
-    let data;
-
-    try {
-      data = typeof msg === 'string'
-        ? JSON.parse(msg)
-        : msg;
-    } catch (error) {
-      console.error('could not parse message', msg);
-      return;
-    }
-
+  handleIncomingMessage (data = {}) {
     const { id, result, error } = data;
     const message = this.messages[id];
 

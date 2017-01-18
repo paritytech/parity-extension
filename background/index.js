@@ -23,18 +23,7 @@ const processor = new Processor();
 chrome.runtime.onConnect.addListener((port) => {
   console.assert(port.name === 'id');
 
-  port.onMessage.addListener((msg) => {
-    let message;
-
-    try {
-      message = typeof msg === 'string'
-        ? JSON.parse(msg)
-        : msg;
-    } catch (error) {
-      console.error('could not parse message', msg);
-      return;
-    }
-
+  port.onMessage.addListener((message = {}) => {
     const { id, data } = message;
 
     processor

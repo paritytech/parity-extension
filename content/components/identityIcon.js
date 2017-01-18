@@ -24,7 +24,7 @@ import Badge from './badge';
 export default class IdentityIcon extends Component {
 
   render () {
-    const { address, size = 8 } = this.props;
+    const { address, size = 8, style = {} } = this.props;
 
     const src = this.getBlockie(address, size);
 
@@ -32,6 +32,7 @@ export default class IdentityIcon extends Component {
       <Badge
         size={ size }
         src={ src }
+        style={ style }
         title={ address }
       />
     );

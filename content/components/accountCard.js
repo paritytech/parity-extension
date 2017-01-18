@@ -29,7 +29,7 @@ export default class AccountCard extends Component {
   clickTimeout = null;
 
   state = {
-    open: false
+    open: this.props.open
   };
 
   componentWillReceiveProps (nextProps) {

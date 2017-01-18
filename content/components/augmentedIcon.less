@@ -31,21 +31,11 @@
 
   &:hover {
     cursor: pointer;
-
-    :local(.badges) {
-      transform: scale(1.5) translateY(-75%);
-      opacity: 1;
-      z-index: 999;
-    }
   }
 }
 
-:local(.icons):local(.expanded) {
-  &:hover :local(.badges) {
-    transform: scale(1) translateY(-50%);
-    opacity: 0;
-    z-index: -1;
-  }
+:local(.iconContainer) {
+  display: inline-block;
 }
 
 :local(.badges) {
@@ -54,8 +44,8 @@
   position: absolute;
 
   opacity: 0;
-  transform: scale(1) translateY(-50%);
   z-index:-1;
+  transform: scale(1) translateY(-50%);
 
   > * {
     margin: 3px;
@@ -63,5 +53,11 @@
 
   &:local(.fromBottom) {
     transform: scale(1) translateY(-200%);
+  }
+
+  &:local(.hover) {
+    transform: scale(1.5) translateY(-75%);
+    opacity: 1;
+    z-index: 999;
   }
 }

@@ -70,11 +70,12 @@ chrome.storage.local.get('authToken', (token) => {
 function web3Message (port) {
 	return (msg) => {
 		const {id, payload} = msg;
-		if (!transport) {
+		if (!transport || !transport.isConnected) {
 			console.error('Transport uninitialized!');
 			port.postMessage({
 				id, err: 'Transport uninitialized',
-				payload: null
+        payload: null,
+        connected: false
 			});
 			return;
 		}
@@ -84,7 +85,8 @@ function web3Message (port) {
 				port.postMessage({
 					id,
 					err: null,
-					payload: response
+					payload: response,
+          connected: true
 				});
 			})
 			.catch((err) => {

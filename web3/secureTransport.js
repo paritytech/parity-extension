@@ -49,3 +49,14 @@ export function createSecureTransport() {
 	};
 }
 
+export function handleResizeEvents() {
+  document.body.addEventListener('parity.bar.visibility', (ev) => {
+    console.log(ev);
+    ev.target.childNodes[0].style.maxHeight = '100vh';
+    // TODO [ToDr] Use cross-frame communication to alter the frame
+    window.parent.postMessage({
+      type: 'parity.signer.bar',
+      opened: ev.detail.opened
+    }, '*');
+  });
+}

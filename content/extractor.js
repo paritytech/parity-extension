@@ -42,7 +42,7 @@ export default class Extractor {
     const matches = nodes.map((data) => {
       const { node, text } = data;
 
-      if (node.getAttribute(AUGMENTED_NODE_ATTRIBUTE) === 'true') {
+      if (node.hasAttribute(AUGMENTED_NODE_ATTRIBUTE)) {
         return null;
       }
 

@@ -53,20 +53,22 @@ export default class Augmentor {
 
   static getSafeNode (match) {
     const { email, node } = match;
+    const rawText = node.textContent;
+    const text = (rawText || '').trim();
 
     // Safe Node is if the node which inner text is only the email address
-    if (node.innerText.trim() === email) {
+    if (text === email) {
       return node;
     }
 
-    const emailIndex = node.innerText.indexOf(email);
+    const emailIndex = text.indexOf(email);
 
     if (emailIndex === -1) {
       return;
     }
 
-    const beforeText = node.innerText.slice(0, emailIndex);
-    const afterText = node.innerText.slice(emailIndex + email.length);
+    const beforeText = text.slice(0, emailIndex);
+    const afterText = text.slice(emailIndex + email.length);
 
     const safeNode = document.createElement('span');
     safeNode.innerText = email;
@@ -84,7 +86,7 @@ export default class Augmentor {
   }
 
   static augmentNode (key, node, resolved = {}) {
-    if (!node || node.getAttribute(AUGMENTED_NODE_ATTRIBUTE) === 'true') {
+    if (!node || node.hasAttribute(AUGMENTED_NODE_ATTRIBUTE)) {
       return;
     }
 
@@ -110,13 +112,15 @@ export default class Augmentor {
           />
         ));
 
-        const container = document.createElement('span');
-        container.className = styles.container;
-        container.appendChild(node.cloneNode(true));
-        container.appendChild(augmentedIcon);
+        // Add the right classe(s)
+        styles.container
+          .split(' ')
+          .forEach((className) => {
+            node.classList.add(className);
+          });
 
-        // Replace the given node with the new container (node + Augmented Icon)
-        node.parentElement.replaceChild(container, node);
+        // Add the augmented icon
+        node.appendChild(augmentedIcon);
       })
       .catch((error) => {
         console.error('augmenting node', key, error);

@@ -20,6 +20,12 @@ import Processor from './processor';
 import Ws from '../web3/ws';
 
 chrome.runtime.onConnect.addListener((port) => {
+	if (port.name = 'secureApi') {
+		port.onMessage.addListener(web3Message(port));
+		return;
+	}
+
+	// TODO [ToDr] Use connection without elevated privileges here!
 	if (port.name = 'web3') {
 		port.onMessage.addListener(web3Message(port));
 		return;

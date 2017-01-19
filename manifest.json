@@ -13,11 +13,18 @@
 	}
   ],
   "web_accessible_resources": [
-	  "web3/inpage.js"
+	  "web3/inpage.js",
+	  "web3/embed.html",
+	  "./web3/embed.33bf169c42.js",
+	  "./web3/embed.33bf169c42.js.map",
+	  "./web3/commons.33bf169c42.js",
+	  "./web3/commons.33bf169c42.js.map",
+	  "./web3/vendor.js"
   ],
   "background": {
     "scripts": ["background/index.js"]
   },
+  "__content_security_policy": "script-src http://localhost:3000;style-src 'self' 'unsafe-inline';default-src 'self'",
   "permissions": [
 	  "storage",
 	  "tabs"

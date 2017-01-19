@@ -1,0 +1,1 @@
+/home/tomusdrw/workspace/eth/parity/js/.build/embed.33bf169c42.js

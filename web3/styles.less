@@ -1,0 +1,15 @@
+:local(.iframe__main) {
+	position: fixed;
+	bottom: 0;
+	right: 0;
+	background: none;
+	border: none;
+	opacity: 0;
+	animation: .4s ease-out 2s fadeIn;
+	animation-fill-mode: forwards;
+}
+
+@keyframes fadeIn {
+	from { opacity: 0 }
+	to { opacity: 1 }
+}

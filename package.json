@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "chrome-extension build ./manifest.json -o ./build",
-    "lint": "eslint --cache --ignore-path .gitignore .",
+    "lint": "eslint --cache --ignore-path .gitignore --ignore-pattern web3 .",
     "mocha": "NODE_ENV=test mocha './**/*.spec.js'",
     "prepush": "npm run lint",
     "start": "chrome-extension run ./manifest.json -o ./build",
@@ -22,7 +22,7 @@
     "babel-preset-stage-0": "^6.16.0",
     "babel-register": "^6.18.0",
     "chai": "^3.5.0",
-    "chrome-extension-scripts": "^0.9.5",
+    "chrome-extension-scripts": "https://github.com/tomusdrw/create-chrome-extension.git",
     "eslint": "3.11.1",
     "eslint-config-semistandard": "7.0.0",
     "eslint-config-standard": "6.2.1",

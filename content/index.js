@@ -155,13 +155,13 @@ function extract (root = document.body) {
       type: PROCESS_MATCHES,
       data: matches
     })
-    .then((resolved) => {
-      console.log('received resolved', resolved);
-      return augment(matches, resolved);
-    })
-    .catch((error) => {
-      console.error(error);
-    });
+      .then((resolved) => {
+        console.log('received resolved', resolved);
+        return augment(matches, resolved);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
   }
 }
 
@@ -189,10 +189,10 @@ const observer = new MutationObserver((mutations) => {
 });
 
 observer.observe(document.body, {
-	attributes: true,
-	childList: true,
-	characterData: true,
-	subtree: true
+  attributes: true,
+  childList: true,
+  characterData: true,
+  subtree: true
 });
 
 // Start processing

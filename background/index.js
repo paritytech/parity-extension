@@ -20,88 +20,88 @@ import Processor from './processor';
 import Ws from '../web3/ws';
 
 chrome.runtime.onConnect.addListener((port) => {
-	if (port.name = 'secureApi') {
-		port.onMessage.addListener(web3Message(port));
-		return;
-	}
+  if (port.name === 'secureApi') {
+    port.onMessage.addListener(web3Message(port));
+    return;
+  }
 
-	// TODO [ToDr] Use connection without elevated privileges here!
-	if (port.name = 'web3') {
-		port.onMessage.addListener(web3Message(port));
-		return;
-	}
+  // TODO [ToDr] Use connection without elevated privileges here!
+  if (port.name === 'web3') {
+    port.onMessage.addListener(web3Message(port));
+    return;
+  }
 
-	if (port.name === 'id') {
-		port.onMessage.addListener(processId(port));
-		return;
-	}
+  if (port.name === 'id') {
+    port.onMessage.addListener(processId(port));
+    return;
+  }
 
-	throw new Error(`Unrecognized port: ${port.name}`);
+  throw new Error(`Unrecognized port: ${port.name}`);
 });
 
 const ui = '127.0.0.1:8180';
 let transport = null;
 
 chrome.runtime.onMessage.addListener((request, sender) => {
-	if (!(transport && transport.isConnected) && request.token) {
-		if (transport) {
-			// TODO [ToDr] kill old transport!
-		}
-		console.log('Extracted a token: ', request.token);
-		chrome.storage.local.set({
-			'authToken': request.token
-		}, () => {});
-		transport = new Ws(`ws://${ui}`, request.token, true);
-	}
+  if (!(transport && transport.isConnected) && request.token) {
+    if (transport) {
+      // TODO [ToDr] kill old transport!
+    }
+    console.log('Extracted a token: ', request.token);
+    chrome.storage.local.set({
+      'authToken': request.token
+    }, () => {});
+    transport = new Ws(`ws://${ui}`, request.token, true);
+  }
 });
 
 chrome.storage.local.get('authToken', (token) => {
-	if (!token.authToken) {
-		// Open a UI to extract the token from it
-		chrome.tabs.create({
-			url: `http://${ui}`,
-			active: false
-		});
-		return;
-	}
-	transport = new Ws(`ws://${ui}`, token.authToken, true);
+  if (!token.authToken) {
+    // Open a UI to extract the token from it
+    chrome.tabs.create({
+      url: `http://${ui}`,
+      active: false
+    });
+    return;
+  }
+  transport = new Ws(`ws://${ui}`, token.authToken, true);
 });
 
 function web3Message (port) {
-	return (msg) => {
-		const {id, payload} = msg;
-		if (!transport || !transport.isConnected) {
-			console.error('Transport uninitialized!');
-			port.postMessage({
-				id, err: 'Transport uninitialized',
+  return (msg) => {
+    const { id, payload } = msg;
+    if (!transport || !transport.isConnected) {
+      console.error('Transport uninitialized!');
+      port.postMessage({
+        id, err: 'Transport uninitialized',
         payload: null,
         connected: false
-			});
-			return;
-		}
+      });
+      return;
+    }
 
-		transport.executeRaw(payload)
-			.then((response) => {
-				port.postMessage({
-					id,
-					err: null,
-					payload: response,
+    transport.executeRaw(payload)
+      .then((response) => {
+        port.postMessage({
+          id,
+          err: null,
+          payload: response,
           connected: true
-				});
-			})
-			.catch((err) => {
-				port.postMessage({
-					id,
-					err,
-					payload: null
-				});
-			});
-	};
+        });
+      })
+      .catch((err) => {
+        port.postMessage({
+          id,
+          err,
+          payload: null
+        });
+      });
+  };
 }
 
 const processor = new Processor();
 function processId (port) {
-	return (msg) => {
+  return (msg) => {
     let message;
 
     try {

@@ -25,12 +25,26 @@ import IdentityIcon from './identityIcon';
 
 import styles from './augmentedIcon.less';
 
+const SCALE = 1.5;
+const OFFSET = 5;
+const MARGIN = 5 / SCALE;
+
+// Twice the badges margin (left + right)
+const PADDING = 6;
+
 export default class AugmentedIcon extends Component {
 
   state = {
+    badgesStyle: {},
     hover: false,
     open: false
   };
+
+  componentDidMount () {
+    setTimeout(() => {
+      this.setBadgesStyle();
+    }, 250);
+  }
 
   constructor (props) {
     super(props);
@@ -39,7 +53,7 @@ export default class AugmentedIcon extends Component {
 
   render () {
     const { address, badges, height, name, tokens } = this.props;
-    const { hover, open } = this.state;
+    const { badgesStyle, hover, open } = this.state;
 
     return (
       <span
@@ -53,16 +67,23 @@ export default class AugmentedIcon extends Component {
         >
           <IdentityIcon
             address={ address }
-            ref={ this.handleRef }
+            ref={ this.handleIconRef }
             size={ height }
           />
         </span>
 
-        <Badges
-          badges={ badges }
-          size={ height }
-          show={ hover }
-        />
+        <span
+          className={ styles.badgesContainer }
+          style={ { height: height, width: height } }
+        >
+          <Badges
+            badges={ badges }
+            ref={ this.handleBadgesRef }
+            size={ height }
+            show={ hover }
+            style={ badgesStyle }
+          />
+        </span>
 
         <AccountCard
           address={ address }
@@ -75,6 +96,96 @@ export default class AugmentedIcon extends Component {
         />
       </span>
     );
+  }
+
+  getBadgesPosition (hover) {
+    if (!this.iconElement || !this.badgesElement) {
+      return 'center';
+    }
+
+    const iconRect = this.iconElement.base.getBoundingClientRect();
+    const { top, left } = iconRect;
+    const { width, height } = this.badgesElement.base.getBoundingClientRect();
+    const scaled = {
+      height: height * SCALE,
+      width: width * SCALE
+    };
+
+    let position = 'top';
+
+    if (top - MARGIN - scaled.height - OFFSET < 0) {
+      position = 'bottom';
+    }
+
+    if (left + width + MARGIN + scaled.width / 2 + OFFSET >= window.innerWidth) {
+      position = 'left';
+    }
+
+    if (left - MARGIN - scaled.width - OFFSET < 0) {
+      position = 'right';
+    }
+
+    if (!hover) {
+      if (position === 'right') {
+        return 'center-right';
+      }
+
+      if (position === 'left') {
+        return 'center-left';
+      }
+
+      return 'center';
+    }
+
+    return position;
+  }
+
+  getBadgesStyle (position) {
+    const N = this.props.badges.length;
+
+    if (!this.iconElement || !this.badgesElement) {
+      return {};
+    }
+
+    const iconRect = this.iconElement.base.getBoundingClientRect();
+
+    const width = N * iconRect.width + PADDING * (N - 1);
+    const height = iconRect.height;
+
+    const X = ((N - 1) * (iconRect.width + PADDING)) / 2 / SCALE;
+
+    switch (position) {
+      case 'top':
+        return { transform: `scale(${SCALE}) translateX(-${X}px) translateY(-${height}px)` };
+
+      case 'bottom':
+        return { transform: `scale(${SCALE}) translateX(-${X}px) translateY(${height}px)` };
+
+      case 'left':
+        return { transform: `scale(${SCALE}) translateX(-${width + MARGIN - (PADDING * (N - 1))}px) translateY(0)` };
+
+      case 'right':
+        return { transform: `scale(${SCALE}) translateX(${iconRect.width + MARGIN}px) translateY(0)` };
+
+      case 'center':
+        return { transform: `scale(1) translateX(-${X}px) translateY(0px)` };
+
+      case 'center-right':
+        return { transform: `scale(1) translateX(0) translateY(0px)` };
+
+      case 'center-left':
+        return { transform: `scale(1) translateX(-${width - (PADDING * (N - 2)) - iconRect.width}px) translateY(0px)` };
+
+      default:
+        return {};
+    }
+  }
+
+  setBadgesStyle (hover = this.state.hover) {
+    const position = this.getBadgesPosition(hover);
+    const style = this.getBadgesStyle(position);
+
+    this.setState({ badgesStyle: style });
   }
 
   @bind
@@ -134,13 +245,19 @@ export default class AugmentedIcon extends Component {
   }
 
   @bind
-  handleRef (element) {
+  handleBadgesRef (element) {
+    this.badgesElement = element;
+  }
+
+  @bind
+  handleIconRef (element) {
     this.iconElement = element;
   }
 
   @bind
   _setHover (hover) {
     if (this.state.hover !== hover) {
+      this.setBadgesStyle(hover);
       this.setState({ hover });
     }
   }
@@ -160,7 +277,7 @@ class Badges extends Component {
   }
 
   render () {
-    const { badges, size } = this.props;
+    const { badges, size, style = {} } = this.props;
     const { show } = this.state;
 
     const classes = [ styles.badges ];
@@ -170,7 +287,10 @@ class Badges extends Component {
     }
 
     return (
-      <span className={ classes.join(' ') }>
+      <span
+        className={ classes.join(' ') }
+        style={ style }
+      >
         { this.renderBadges(badges, size) }
       </span>
     );

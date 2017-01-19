@@ -34,29 +34,35 @@
   }
 }
 
+:local(.badgesContainer) {
+  position: absolute;
+}
+
 :local(.iconContainer) {
   display: inline-block;
+  z-index: 10;
 }
 
 :local(.badges) {
   box-sizing: content-box;
-  padding: 0 2px;
   position: absolute;
 
   opacity: 0;
   z-index:-1;
-  transform: scale(1) translateY(-50%);
 
   > * {
-    margin: 3px;
-  }
+    margin: 0 3px;
 
-  &:local(.fromBottom) {
-    transform: scale(1) translateY(-200%);
+    &:first-child {
+      margin-left: 0;
+    }
+
+    &:last-child {
+      margin-right: 0;
+    }
   }
 
   &:local(.hover) {
-    transform: scale(1.5) translateY(-75%);
     opacity: 1;
     z-index: 999;
   }

@@ -75,7 +75,7 @@ export default class Processor {
         .catch((error) => {
           // Remove cached promise on error
           this._images[validUrl] = null;
-          console.error(error);
+          throw error;
         });
     }
 

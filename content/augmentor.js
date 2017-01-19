@@ -28,59 +28,52 @@ export const AUGMENTED_NODE_ATTRIBUTE = 'data-parity-touched';
 
 export default class Augmentor {
 
-  static run (matches, resolved = {}) {
-    // Use the attributes matcher first
-    const attributesMatches = matches.filter((match) => match.from === 'attributes');
-    const textMatches = matches.filter((match) => match.from === 'text');
+  static getSafeNode (value, node) {
+    const text = node.textContent || '';
 
-    attributesMatches
-      .forEach((match) => {
-        const { email, name, node } = match;
-        const value = email || name;
-
-        Augmentor.augmentNode(value, node, resolved);
-      });
-
-    textMatches
-      .forEach((match) => {
-        const { email, name } = match;
-        const value = email || name;
-        const safeNode = Augmentor.getSafeNode(match);
-
-        Augmentor.augmentNode(value, safeNode, resolved);
-      });
-  }
-
-  static getSafeNode (match) {
-    const { email, node } = match;
-    const rawText = node.textContent;
-    const text = (rawText || '').trim();
-
-    // Safe Node is if the node which inner text is only the email address
-    if (text === email) {
+    // Safe Node is if the node which inner text is only the value
+    if (text.trim() === value) {
       return node;
     }
 
-    const emailIndex = text.indexOf(email);
+    const valueIndex = text.indexOf(value);
 
-    if (emailIndex === -1) {
+    if (valueIndex === -1) {
       return;
     }
 
-    const beforeText = text.slice(0, emailIndex);
-    const afterText = text.slice(emailIndex + email.length);
+    // If there are children, not yet at the base text node
+    if (node.childElementCount) {
+      const textNode = Array.prototype.slice
+        .apply(node.childNodes)
+        .find((node) => node.textContent.includes(value));
+
+      return Augmentor.getSafeNode(value, textNode);
+    }
+
+    const beforeText = text.slice(0, valueIndex);
+    const afterText = text.slice(valueIndex + value.length);
+
+    const beforeNode = document.createTextNode(beforeText);
+    const afterNode = document.createTextNode(afterText);
 
     const safeNode = document.createElement('span');
-    safeNode.innerText = email;
+    safeNode.innerText = value;
 
-    const nextNode = node.cloneNode(true);
-    nextNode.innerHTML = '';
-    nextNode.appendChild(safeNode);
-    safeNode.insertAdjacentText('beforebegin', beforeText);
-    safeNode.insertAdjacentText('afterend', afterText);
-
-    // Replace the node with the safe node
-    node.parentElement.replaceChild(nextNode, node);
+    if (node.nodeName === '#text') {
+      const nextNode = document.createElement('span');
+      nextNode.appendChild(beforeNode);
+      nextNode.appendChild(safeNode);
+      nextNode.appendChild(afterNode);
+      node.parentElement.replaceChild(nextNode, node);
+    } else {
+      // Don't replace the node if it's not a text node
+      // in order to keep bindings
+      node.innerHTML = '';
+      node.appendChild(beforeNode);
+      node.appendChild(safeNode);
+      node.appendChild(afterNode);
+    }
 
     return safeNode;
   }

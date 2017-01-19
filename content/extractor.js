@@ -16,9 +16,9 @@
 
 // Given DOM element returns array of possible id-links to resolve.
 
-import { flatten } from 'lodash';
-
-import { AUGMENTED_NODE_ATTRIBUTE } from './augmentor';
+import Augmentor, { AUGMENTED_NODE_ATTRIBUTE } from './augmentor';
+import { PROCESS_MATCHES } from '../background/processor';
+import Runner from './runner';
 import Socials from './socials';
 
 export const TAGS_BLACKLIST = [ 'script' ];
@@ -29,74 +29,95 @@ const MAILTO_PATTERN = new RegExp(`mailto:${EMAIL_PATTERN.source}`, 'i');
 export default class Extractor {
 
   static run (root = document.body) {
-    const nodes = [].concat(
-      Extractor.getAttributeNodes(root),
-      Extractor.getTextNodes(root)
-    );
-
-    const matches = Extractor.extract(nodes);
-    return matches;
-  }
-
-  static extract (nodes) {
-    const matches = nodes.map((data) => {
-      const { node, text } = data;
-
-      if (node.hasAttribute(AUGMENTED_NODE_ATTRIBUTE)) {
-        return null;
-      }
-
-      const type = text === undefined
-        ? 'attributes'
-        : 'text';
-
-      const extractions = type === 'attributes'
-        ? Extractor.fromAttributes(node)
-        : Extractor.fromText(text);
-
-      if (extractions.length === 0) {
-        return null;
-      }
-
-      const newMatches = extractions.map((data) => ({
-        ...data, node, from: type
-      }));
-
-      return newMatches;
-    });
-
-    return flatten(matches).filter((match) => match);
+    Extractor.getAttributeNodes(root)
+      .then(() => Extractor.getTextNodes(root));
   }
 
   static getAttributeNodes (root = document.body) {
     const treeWalker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT);
-    let nodes = [];
+    const promises = [];
 
     while (treeWalker.nextNode()) {
       const node = treeWalker.currentNode;
-      nodes.push({ node });
+
+      if (node.hasAttribute(AUGMENTED_NODE_ATTRIBUTE)) {
+        continue;
+      }
+
+      const extractions = Extractor.fromAttributes(node);
+
+      if (extractions.length === 0) {
+        continue;
+      }
+
+      const promise = Runner.execute(PROCESS_MATCHES, extractions)
+        .then((result = {}) => {
+          const keys = Object.keys(result);
+
+          if (keys.length === 0) {
+            return null;
+          }
+
+          const key = keys[0];
+          return Augmentor.augmentNode(key, node, result);
+        })
+        .catch((error) => {
+          console.error('extracting', node, error);
+        });
+
+      promises.push(promise);
     }
 
-    return nodes;
+    return Promise.all(promises);
   }
 
   static getTextNodes (root = document.body) {
     const treeWalker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
-    let nodes = [];
+    const promises = [];
 
     while (treeWalker.nextNode()) {
       const node = treeWalker.currentNode;
-      const parentNode = node.parentElement;
+      let parentNode = node.parentElement;
 
       // Don't extract from blacklisted DOM Tags
       if (TAGS_BLACKLIST.includes(parentNode.tagName.toLowerCase())) {
         continue;
       }
 
-      nodes.push({ node: parentNode, text: node.textContent });
+      if (parentNode.hasAttribute(AUGMENTED_NODE_ATTRIBUTE)) {
+        continue;
+      }
+
+      const text = node.textContent;
+      const extractions = Extractor.fromText(text);
+
+      if (extractions.length === 0) {
+        continue;
+      }
+
+      const promise = Runner.execute(PROCESS_MATCHES, extractions)
+        .then((result = {}) => {
+          extractions.forEach((extraction) => {
+            const { key } = extraction;
+
+            if (!result[key]) {
+              return null;
+            }
+
+            const safeNode = Augmentor.getSafeNode(key, parentNode);
+            console.warn(key, result, safeNode, parentNode);
+            parentNode = safeNode.parentElement;
+            return Augmentor.augmentNode(key, safeNode, result);
+          });
+        })
+        .catch((error) => {
+          console.error('extracting', node, error);
+        });
+
+      promises.push(promise);
     }
 
-    return nodes;
+    return Promise.all(promises);
   }
 
   static fromAttributes ($dom) {
@@ -125,15 +146,23 @@ export default class Extractor {
     return matches;
   }
 
+  /**
+   * Extract matches from the given text
+   *
+   * @param  { String } text                  - The text to match against
+   * @return {[{ key: String, ...other }]}   - The results as an Array of Objects
+   */
   static fromText (text) {
-    const matches = [];
-    const email = findEmail(text);
-    const name = Socials.extract(text);
+    const emails = findEmails(text);
+    const socials = Socials.extract(text);
 
-    push(matches, email);
-    push(matches, name);
+    const values = emails.map((data) => ({ email: data.email, key: data.email }));
 
-    return matches;
+    if (socials) {
+      values.push({ key: socials.name, ...socials });
+    }
+
+    return values;
   }
 
 }
@@ -154,6 +183,19 @@ function findEmail (val) {
   }
 
   return null;
+}
+
+function findEmails (text) {
+  const regex = new RegExp(EMAIL_PATTERN.source, 'gi');
+  const emails = [];
+  let match = regex.exec(text);
+
+  while (match) {
+    emails.push({ email: match[1] });
+    match = regex.exec(text);
+  }
+
+  return emails;
 }
 
 function push (array, val) {

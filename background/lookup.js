@@ -93,10 +93,10 @@ export default class Lookup {
         }
 
         return this.email(email)
-          .then((result = {}) => {
-            delete result.email;
-            return { ...result, name: handle };
-          });
+          // .then((result = {}) => {
+          //   delete result.email;
+          //   return { ...result, name: handle };
+          // });
       });
   }
 

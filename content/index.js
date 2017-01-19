@@ -15,11 +15,7 @@
 // along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 
 /* global NodeFilter,MutationObserver */
-import { PROCESS_MATCHES } from '../background/processor';
-
-import Augmentor from './augmentor';
 import Extractor from './extractor';
-import Runner from './runner';
 
 // Process the page in stages.
 // 0. We listen for possible changes
@@ -27,20 +23,7 @@ import Runner from './runner';
 // 2. Then we process all text nodes
 
 function extract (root = document.body) {
-  const matches = Extractor.run(root);
-
-  if (matches.length > 0) {
-    console.log('got matches', matches);
-
-    Runner.execute(PROCESS_MATCHES, matches)
-    .then((resolved) => {
-      console.log('received resolved', resolved);
-      return Augmentor.run(matches, resolved);
-    })
-    .catch((error) => {
-      console.error(error);
-    });
-  }
+  Extractor.run(root);
 }
 
 // Observe later changes

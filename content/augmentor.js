@@ -90,8 +90,16 @@ export default class Augmentor {
       return;
     }
 
+    const rawText = node.textContent;
+    const text = (rawText || '').trim();
+
     const data = resolved[key];
     node.setAttribute(AUGMENTED_NODE_ATTRIBUTE, true);
+
+    // Don't augment empty nodes
+    if (text.length === 0) {
+      return;
+    }
 
     if (!data) {
       return;

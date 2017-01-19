@@ -53,6 +53,17 @@ describe('content/socials', () => {
         expect(Socials.extract(link)).toBeNull();
       });
     });
+
+    it('does not extract deep links', () => {
+      const links = [
+        'https://github.com/foobar/followers',
+        'https://github.com/foobar/repo/reps'
+      ];
+
+      links.forEach((link) => {
+        expect(Socials.extract(link)).toBeNull();
+      });
+    });
   });
 
   describe('facebook', () => {

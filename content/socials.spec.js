@@ -56,6 +56,7 @@ describe('content/socials', () => {
 
     it('does not extract deep links', () => {
       const links = [
+        'https://github.com/foobar?tab=followers',
         'https://github.com/foobar/followers',
         'https://github.com/foobar/repo/reps'
       ];
@@ -67,7 +68,7 @@ describe('content/socials', () => {
   });
 
   describe('facebook', () => {
-    const rightInput = 'https://facebook.com/foobar?id=123';
+    const rightInput = 'https://facebook.com/foobar';
     const wrongInput = 'https://facebooksad.com/foobar';
 
     it('exists', () => {

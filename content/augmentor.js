@@ -109,16 +109,22 @@ export default class Augmentor {
       .then(([ badges, tokens ]) => {
         const { address, name } = data;
         const { height = 16 } = node.getBoundingClientRect();
+        const iconHeight = Math.min(height, 20);
 
         const augmentedIcon = render((
           <AugmentedIcon
             address={ address }
             badges={ badges }
-            height={ height }
+            height={ iconHeight }
             name={ name }
             tokens={ tokens }
           />
         ));
+
+        // Set the proper height if it has been modified
+        if (height !== iconHeight) {
+          node.style.height = `${height}px`;
+        }
 
         // Add the right classe(s)
         styles.container

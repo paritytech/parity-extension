@@ -56,6 +56,7 @@ describe('content/socials', () => {
 
     it('does not extract deep links', () => {
       const links = [
+        'https://github.com/foobar#tab-followers',
         'https://github.com/foobar?tab=followers',
         'https://github.com/foobar/followers',
         'https://github.com/foobar/repo/reps'

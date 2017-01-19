@@ -29,7 +29,10 @@ export default class Socials {
       return match;
     });
 
-    if (!match || match.includes('/') || match.includes('?')) {
+    const blacklist = [ '/', '?', '#' ];
+    const matchBlacklist = blacklist.find((s) => match && match.includes(s));
+
+    if (!match || matchBlacklist) {
       return null;
     }
 

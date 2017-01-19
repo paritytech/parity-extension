@@ -14,66 +14,60 @@
 // You should have received a copy of the GNU General Public License
 // along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 
-import { Abi, Api } from '@parity/parity.js';
+import { uniq } from 'lodash';
 
-import EmailVerifiactionABI from '../abi/email-verification.json';
+import Lookup from './lookup';
 
 export const PROCESS_MATCHES = 'process_matches';
 
 export default class Processor {
 
-	constructor () {
-		const transport = new Api.Transport.Http('http://localhost:8545');
-		this.api = new Api(transport);
+  process (input = {}) {
+    const { data, type } = input;
 
-		const emailContractAddress = '0x4A99350b039068fD326a318C599Be2E09E657D4A';
-		this.emailContract = this.api.newContract(EmailVerifiactionABI, emailContractAddress);
-	}
+    switch (type) {
+      case PROCESS_MATCHES:
+        return this.processMatches(data);
 
-	process (data = {}) {
-		switch (data.type) {
-			case PROCESS_MATCHES:
-				return this.processMatches(data.data);
+      default:
+        return Promise.reject(`no actions matching  ${type}`);
+    }
+  }
 
-			default:
-				return Promise.reject(`no actions matching  ${data.type}`);
-		}
-	}
+  processMatches (matches) {
+    console.log('received matches', matches);
 
-	processMatches (matches) {
-		console.log('received matches', matches);
+    const emails = matches
+      .map((match) => match.email)
+      .filter((email) => email);
 
-		const promises = matches.map((email) => this.reverseEmail(email));
+    const names = matches
+      .map((match) => match.name)
+      .filter((name) => name);
 
-		return Promise
-			.all(promises)
-			.then((reversed) => {
-				return reversed.filter((data) => data);
-			})
-			.then((values) => {
-				return values.reduce((object, data) => {
-					object[data.email] = { ...data };
-					return object;
-				}, {});
-			});
-	}
+    const githubs = matches
+      .filter((match) => match.github)
+      .map((match) => match.name);
 
-	reverseEmail (email) {
-		const emailHash = this.api.util.sha3(email);
+    const uniqEmails = uniq(emails);
+    const uniqNames = uniq(names);
+    const uniqGithubs = uniq(githubs);
 
-		return this.emailContract
-			.instance.reverse
-			.call({}, [ emailHash ])
-			.then((address) => {
-				console.log(email, emailHash, address);
+    return Lookup.run({ emails: uniqEmails, names: uniqNames, githubs: uniqGithubs })
+      .then((reversed) => reversed.filter((data) => data && data.address))
+      .then((values) => {
+        return values.reduce((object, data) => {
+          if (data.email) {
+            object[data.email] = { ...data };
+          }
 
-				if (!address || /^(0x)?0*$/.test(address)) {
-					return null;
-				}
+          if (data.name) {
+            object[data.name] = { ...data };
+          }
 
-				return {
-					address, email
-				};
-			})
-	}
+          return object;
+        }, {});
+      });
+  }
+
 }

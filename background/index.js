@@ -100,34 +100,34 @@ function web3Message (port) {
 const processor = new Processor();
 function processId (port) {
 	return (msg) => {
-		let message;
+    let message;
 
-		try {
-			message = typeof msg === 'string'
-				? JSON.parse(msg)
-				: msg;
-		} catch (error) {
-			console.error('could not parse message', msg);
-			return;
-		}
+    try {
+      message = typeof msg === 'string'
+        ? JSON.parse(msg)
+        : msg;
+    } catch (error) {
+      console.error('could not parse message', msg);
+      return;
+    }
 
-		const { id, data } = message;
+    const { id, data } = message;
 
-		processor
-			.process(data)
-			.then((result) => {
-				console.log('got results', result);
+    processor
+      .process(data)
+      .then((result) => {
+        console.log('got results', result);
 
-				port.postMessage({
-					id, result
-				});
-			})
-			.catch((error) => {
-				port.postMessage({
-					id, error: error.message
-				});
+        port.postMessage({
+          id, result
+        });
+      })
+      .catch((error) => {
+        port.postMessage({
+          id, error: error.message
+        });
 
-				throw error;
-			});
-	}
+        throw error;
+      });
+  };
 }

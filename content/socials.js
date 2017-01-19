@@ -24,7 +24,7 @@ export default class Socials {
     const { all } = Socials;
 
     let match = null;
-    const social = Object.values(all).find((social) => {
+    const social = Object.keys(all).map(key => all[key]).find((social) => {
       match = social.match(input);
       return match;
     });

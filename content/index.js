@@ -174,7 +174,8 @@ const observer = new MutationObserver((mutations) => {
       return;
     }
 
-    const ignoreNode = Array.prototype.slice.apply(addedNodes).find((node) => {
+    const nodes = [].slice.call(addedNodes);
+    const ignoreNode = nodes.find((node) => {
       return typeof node.getAttribute === 'function' && node.getAttribute('data-parity-ignore') === 'true';
     });
 
@@ -182,7 +183,7 @@ const observer = new MutationObserver((mutations) => {
       return;
     }
 
-    addedNodes.forEach((node) => {
+    nodes.forEach((node) => {
       extract(node);
     });
   });

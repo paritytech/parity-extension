@@ -60,7 +60,7 @@ class JsonRpcBase extends EventEmitter {
   }
 
   get nextId () {
-	return this._id++;
+    return this._id++;
   }
 
   get isDebug () {
@@ -95,7 +95,7 @@ export default class Ws extends JsonRpcBase {
     this._url = url;
     this._token = token;
     this._messages = {};
-	this._rawRequests = {};
+    this._rawRequests = {};
 
     this._connecting = false;
     this._connected = false;
@@ -240,19 +240,19 @@ export default class Ws extends JsonRpcBase {
     }
 
     try {
-		const result = JSON.parse(event.data);
-		const resultId = result.id || result[0].id;
-		const messageId = this._rawRequests[resultId] || resultId;
-		const isRaw = !!this._rawRequests[resultId];
-		const { method, params, json, resolve, reject } = this._messages[messageId];
+      const result = JSON.parse(event.data);
+      const resultId = result.id || result[0].id;
+      const messageId = this._rawRequests[resultId] || resultId;
+      const isRaw = !!this._rawRequests[resultId];
+      const { method, params, json, resolve, reject } = this._messages[messageId];
 
-		  delete this._messages[messageId];
-		delete this._rawRequests[resultId];
+      delete this._messages[messageId];
+      delete this._rawRequests[resultId];
 
-		if (isRaw) {
-			resolve(result);
-			return;
-		}
+      if (isRaw) {
+        resolve(result);
+        return;
+      }
 
       if (result.error) {
         this.error(event.data);
@@ -287,11 +287,11 @@ export default class Ws extends JsonRpcBase {
 
   executeRaw (requests) {
     return new Promise((resolve, reject) => {
-	  const id = this.nextId;
-		const json = JSON.stringify(requests);
-		const rawId = requests.id || requests[0].id;
+      const id = this.nextId;
+      const json = JSON.stringify(requests);
+      const rawId = requests.id || requests[0].id;
 
-	  this._rawRequests[rawId] = id;
+      this._rawRequests[rawId] = id;
       this._messages[id] = { id, method: 'raw', params: requests, json, resolve, reject };
       this._send(id);
     });
@@ -323,11 +323,11 @@ export default class Ws extends JsonRpcBase {
     return this._lastError;
   }
 
-  /**
-   * Exponential Timeout for Retries
-   *
-   * @see http://dthain.blogspot.de/2009/02/exponential-backoff-in-distributed.html
-   */
+    /**
+     * Exponential Timeout for Retries
+     *
+     * @see http://dthain.blogspot.de/2009/02/exponential-backoff-in-distributed.html
+     */
   get retryTimeout () {
     // R between 1 and 2
     const R = Math.random() + 1;

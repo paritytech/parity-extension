@@ -24,19 +24,19 @@ describe('content/socials', () => {
     const wrongInput = 'https://githubwe.com/foobar';
 
     it('exists', () => {
-      expect(all.github).to.be.ok;
+      expect(all.github).toBeDefined();
     });
 
     it('extracts the correct handle', () => {
-      expect(Socials.extract(rightInput).name).to.equal('foobar');
+      expect(Socials.extract(rightInput).name).toEqual('foobar');
     });
 
     it('contains extras', () => {
-      expect(Socials.extract(rightInput)).to.deep.equal({ name: 'foobar', github: true });
+      expect(Socials.extract(rightInput)).toEqual({ name: 'foobar', github: true });
     });
 
     it('fails correctly', () => {
-      expect(Socials.extract(wrongInput)).to.be.null;
+      expect(Socials.extract(wrongInput)).toBeNull();
     });
 
     it('does not extract default links', () => {
@@ -50,7 +50,7 @@ describe('content/socials', () => {
       ];
 
       links.forEach((link) => {
-        expect(Socials.extract(link)).to.be.null;
+        expect(Socials.extract(link)).toBeNull();
       });
     });
   });
@@ -60,15 +60,15 @@ describe('content/socials', () => {
     const wrongInput = 'https://facebooksad.com/foobar';
 
     it('exists', () => {
-      expect(all.facebook).to.be.ok;
+      expect(all.facebook).toBeDefined;
     });
 
     it('extracts the correct handle', () => {
-      expect(Socials.extract(rightInput)).to.deep.equal({ name: 'foobar' });
+      expect(Socials.extract(rightInput)).toEqual({ name: 'foobar' });
     });
 
     it('fails correctly', () => {
-      expect(Socials.extract(wrongInput)).to.be.null;
+      expect(Socials.extract(wrongInput)).toBeNull();
     });
   });
 
@@ -77,15 +77,15 @@ describe('content/socials', () => {
     const wrongInput = 'https://twitterasfdasd.com/foobar';
 
     it('exists', () => {
-      expect(all.twitter).to.be.ok;
+      expect(all.twitter).toBeDefined;
     });
 
     it('extracts the correct handle', () => {
-      expect(Socials.extract(rightInput)).to.deep.equal({ name: 'foobar' });
+      expect(Socials.extract(rightInput)).toEqual({ name: 'foobar' });
     });
 
     it('fails correctly', () => {
-      expect(Socials.extract(wrongInput)).to.be.null;
+      expect(Socials.extract(wrongInput)).toBeNull();
     });
   });
 
@@ -94,15 +94,15 @@ describe('content/socials', () => {
     const wrongInput = 'https://asdasdasd.com/foobar';
 
     it('exists', () => {
-      expect(all.reddit).to.be.ok;
+      expect(all.reddit).toBeDefined;
     });
 
     it('extracts the correct handle', () => {
-      expect(Socials.extract(rightInput)).to.deep.equal({ name: 'foobar' });
+      expect(Socials.extract(rightInput)).toEqual({ name: 'foobar' });
     });
 
     it('fails correctly', () => {
-      expect(Socials.extract(wrongInput)).to.be.null;
+      expect(Socials.extract(wrongInput)).toBeNull();
     });
   });
 });

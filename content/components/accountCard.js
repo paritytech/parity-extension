@@ -49,7 +49,10 @@ export default class AccountCard extends Component {
     }
 
     return (
-      <span className={ mainClasses.join(' ') }>
+      <span
+        className={ mainClasses.join(' ') }
+        ref={ this.handleRef }
+      >
         <span className={ styles.header }>
           <IdentityIcon
             address={ address }
@@ -148,8 +151,74 @@ export default class AccountCard extends Component {
   }
 
   @bind
+  handleRef (element) {
+    this.container = element;
+  }
+
+  @bind
   handleToggleOpen (open) {
+    this.setPosition(open);
     this.setState({ open });
   }
 
+  setPosition (open) {
+    // If open, scales 4 times (0.25 to 1),
+    // else, the inverse
+    const scale = open
+      ? 4
+      : 0.25;
+
+    const position = getPosition(this.container, scale);
+    console.warn('position', position);
+  }
+
+}
+
+/**
+ * Returns the best position for the given
+ * node (with optional future scaling)
+ * as an Object { x, y } x for horizontal
+ * and y for vertical
+ */
+function getPosition (node, scale = 1) {
+  const offset = getOffset(node, scale);
+
+  let x = 'center';
+  let y = 'center';
+
+  if (offset.top < 0) {
+    y = 'bottom';
+  }
+
+  if (offset.bottom < 0) {
+    y = 'top';
+  }
+
+  if (offset.right < 0) {
+    x = 'left';
+  }
+
+  if (offset.left < 0) {
+    x = 'right';
+  }
+
+  return { x, y };
+}
+
+function getOffset (node, scale = 1) {
+  const { left, top, right, bottom } = node.getBoundingClientRect();
+  const { clientHeight, clientWidth } = document.documentElement;
+
+  const offsets = {
+    left, top,
+    right: clientWidth - right,
+    bottom: clientHeight - bottom
+  };
+
+  return {
+    top: offsets.top * scale,
+    left: offsets.left * scale,
+    right: offsets.right * scale,
+    bottom: offsets.bottom * scale
+  };
 }

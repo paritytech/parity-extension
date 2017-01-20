@@ -90,6 +90,7 @@ export default class AugmentedIcon extends Component {
           badges={ badges }
           name={ name }
           open={ open }
+          size={ height }
           tokens={ tokens }
 
           onClose={ this.handleClose }
@@ -99,11 +100,12 @@ export default class AugmentedIcon extends Component {
   }
 
   getBadgesPosition (hover) {
-    if (!this.iconElement || !this.badgesElement) {
+    const { iconElement } = this.state;
+    if (!iconElement || !this.badgesElement) {
       return 'center';
     }
 
-    const iconRect = this.iconElement.base.getBoundingClientRect();
+    const iconRect = iconElement.base.getBoundingClientRect();
     const { top, left } = iconRect;
     const { width, height } = this.badgesElement.base.getBoundingClientRect();
     const scaled = {
@@ -141,13 +143,14 @@ export default class AugmentedIcon extends Component {
   }
 
   getBadgesStyle (position) {
+    const { iconElement } = this.state;
     const N = this.props.badges.length;
 
-    if (!this.iconElement || !this.badgesElement) {
+    if (!iconElement || !this.badgesElement) {
       return {};
     }
 
-    const iconRect = this.iconElement.base.getBoundingClientRect();
+    const iconRect = iconElement.base.getBoundingClientRect();
 
     const width = N * iconRect.width + PADDING * (N - 1);
     const height = iconRect.height;
@@ -217,8 +220,10 @@ export default class AugmentedIcon extends Component {
   @bind
   handleMousemove (event) {
     const { height } = this.props;
+    const { iconElement } = this.state;
+
     const { clientX, clientY } = event;
-    const { top, left } = this.iconElement.base.getBoundingClientRect();
+    const { top, left } = iconElement.base.getBoundingClientRect();
 
     const inH = (clientX >= left && clientX <= (left + height));
     const inV = (clientY >= top && clientY <= (top + height));
@@ -251,7 +256,9 @@ export default class AugmentedIcon extends Component {
 
   @bind
   handleIconRef (element) {
-    this.iconElement = element;
+    if (!this.state.iconElement) {
+      this.setState({ iconElement: element });
+    }
   }
 
   @bind

@@ -105,7 +105,6 @@ export default class Extractor {
             }
 
             const safeNode = Augmentor.getSafeNode(key, parentNode);
-            console.warn(key, result, safeNode, parentNode);
             parentNode = safeNode.parentElement;
             return Augmentor.augmentNode(key, safeNode, result);
           });

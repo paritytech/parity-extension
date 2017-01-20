@@ -21,18 +21,31 @@ import { h, Component } from 'preact';
 
 import IdentityIcon from './identityIcon';
 import Token from './token';
+import { positionToStyle } from '../util/style';
 
 import styles from './accountCard.less';
+
+const DEFAULT_SCALE = 0.05;
 
 export default class AccountCard extends Component {
 
   clickTimeout = null;
 
   state = {
-    open: this.props.open
+    open: this.props.open,
+    position: {},
+    style: {}
   };
 
+  componentWillMount () {
+    this.handleToggleOpen(false);
+  }
+
   componentWillReceiveProps (nextProps) {
+    if (!this.props.origin && nextProps.origin) {
+      this.center(nextProps);
+    }
+
     if (nextProps.open !== this.props.open) {
       this.handleToggleOpen(nextProps.open);
     }
@@ -40,7 +53,7 @@ export default class AccountCard extends Component {
 
   render () {
     const { address, badges, name, tokens } = this.props;
-    const { open } = this.state;
+    const { open, style } = this.state;
 
     const mainClasses = [ styles.card ];
 
@@ -52,6 +65,7 @@ export default class AccountCard extends Component {
       <span
         className={ mainClasses.join(' ') }
         ref={ this.handleRef }
+        style={ style }
       >
         <span className={ styles.header }>
           <IdentityIcon
@@ -152,24 +166,25 @@ export default class AccountCard extends Component {
 
   @bind
   handleRef (element) {
-    this.container = element;
+    if (this.state.containerElement) {
+      return;
+    }
+
+    this.setState({ containerElement: element }, this.center);
   }
 
   @bind
   handleToggleOpen (open) {
-    this.setPosition(open);
-    this.setState({ open });
-  }
+    const { position } = this.state;
 
-  setPosition (open) {
-    // If open, scales 4 times (0.25 to 1),
-    // else, the inverse
-    const scale = open
-      ? 4
-      : 0.25;
+    if (!open) {
+      const style = positionToStyle({ scale: DEFAULT_SCALE, position });
+      return this.setState({ open, style });
+    }
 
-    const position = getPosition(this.container, scale);
-    console.warn('position', position);
+    const nextPosition = getPosition(this.state.containerElement, 1 / DEFAULT_SCALE, position);
+    const style = positionToStyle({ scale: 1, position: nextPosition });
+    return this.setState({ open, position: nextPosition, style });
   }
 
 }
@@ -180,8 +195,8 @@ export default class AccountCard extends Component {
  * as an Object { x, y } x for horizontal
  * and y for vertical
  */
-function getPosition (node, scale = 1) {
-  const offset = getOffset(node, scale);
+function getPosition (node, scale = 1, position = {}) {
+  const offset = getOffset(node, scale, position);
 
   let x = 'center';
   let y = 'center';
@@ -205,20 +220,43 @@ function getPosition (node, scale = 1) {
   return { x, y };
 }
 
-function getOffset (node, scale = 1) {
-  const { left, top, right, bottom } = node.getBoundingClientRect();
+function getOffset (node, scale = 1, position = {}) {
+  const { x = 'center', y = 'center' } = position;
+  const { left, top, right, bottom, width, height } = node.getBoundingClientRect();
   const { clientHeight, clientWidth } = document.documentElement;
 
-  const offsets = {
-    left, top,
-    right: clientWidth - right,
-    bottom: clientHeight - bottom
+  const offset = {
+    x: 0,
+    y: 0
+  };
+
+  if (x === 'left') {
+    offset.x = -width;
+  }
+
+  if (x === 'right') {
+    offset.x = width;
+  }
+
+  if (y === 'top') {
+    offset.y = -height;
+  }
+
+  if (y === 'bottom') {
+    offset.y = height;
+  }
+
+  const center = {
+    left: left + width / 2 - offset.x,
+    top: top + height / 2 - offset.y,
+    right: clientWidth - right + width / 2 + offset.x,
+    bottom: clientHeight - bottom + height / 2 + offset.y
   };
 
   return {
-    top: offsets.top * scale,
-    left: offsets.left * scale,
-    right: offsets.right * scale,
-    bottom: offsets.bottom * scale
+    top: center.top - height / 2 * scale,
+    left: center.left - width / 2 * scale,
+    right: center.right - width / 2 * scale,
+    bottom: center.bottom - height / 2 * scale
   };
 }

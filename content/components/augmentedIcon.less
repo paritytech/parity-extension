@@ -39,8 +39,15 @@
 }
 
 :local(.iconContainer) {
+  composes: transition from '../styles.less';
+
   display: inline-block;
   z-index: 10;
+  opacity: 0.75;
+
+  &:local(.hover) {
+    opacity: 1;
+  }
 }
 
 :local(.badges) {

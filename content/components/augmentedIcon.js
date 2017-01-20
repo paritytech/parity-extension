@@ -55,13 +55,19 @@ export default class AugmentedIcon extends Component {
     const { address, badges, height, name, tokens } = this.props;
     const { badgesStyle, hover, open } = this.state;
 
+    const iconClasses = [styles.iconContainer];
+
+    if (hover) {
+      iconClasses.push(styles.hover);
+    }
+
     return (
       <span
         className={ styles.icons }
         onClick={ this.handleClick }
       >
         <span
-          className={ styles.iconContainer }
+          className={ iconClasses.join(' ') }
           onMousemove={ this.handleMousemove }
           style={ { height: height, width: height } }
         >

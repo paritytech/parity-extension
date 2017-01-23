@@ -25,6 +25,11 @@ chrome.runtime.onConnect.addListener((port) => {
     return;
   }
 
+  if (port.name === 'barScripts') {
+    port.onMessage.addListener(loadScripts(port));
+    return;
+  }
+
   // TODO [ToDr] Use connection without elevated privileges here!
   if (port.name === 'web3') {
     port.onMessage.addListener(web3Message(port));
@@ -42,7 +47,7 @@ chrome.runtime.onConnect.addListener((port) => {
 const ui = '127.0.0.1:8180';
 let transport = null;
 
-chrome.runtime.onMessage.addListener((request, sender) => {
+chrome.runtime.onMessage.addListener((request, sender, callback) => {
   if (!(transport && transport.isConnected) && request.token) {
     if (transport) {
       // TODO [ToDr] kill old transport!
@@ -52,8 +57,59 @@ chrome.runtime.onMessage.addListener((request, sender) => {
       'authToken': request.token
     }, () => {});
     transport = new Ws(`ws://${ui}`, request.token, true);
+    return;
   }
 });
+
+let codeCache = null;
+function loadScripts (port) {
+  return (msg) => {
+    if (msg.type !== 'parity.bar.code') {
+      return;
+    }
+
+    if (codeCache) {
+      codeCache.then(code => port.postMessage(code));
+      return;
+    }
+
+    const vendor = fetch(`http://${ui}/vendor.js`)
+      .then(x => x.blob());
+    const embed = fetch(`http://${ui}/embed.html`)
+      .then(x => x.text())
+      .then(page => ({
+        styles: /styles\/embed\.([a-z0-9]{10})\.css/.exec(page),
+        scripts: /embed\.([a-z0-9]{10})\.js/.exec(page)
+      }))
+      .then(res => {
+        return Promise.all([
+          fetch(`http://${ui}/${res.styles[0]}`),
+          fetch(`http://${ui}/${res.scripts[0]}`)
+        ]);
+      })
+      .then(x => Promise.all(x.map(x => x.blob())));
+
+    codeCache = Promise.all([vendor, embed])
+      .then(scripts => {
+        const vendor = scripts[0];
+        const styles = scripts[1][0];
+        const embed = scripts[1][1];
+        // Concat blobs
+        const blob = new Blob([vendor, embed], { type: 'application/javascript' });
+        const res = {
+          styles: URL.createObjectURL(styles),
+          scripts: URL.createObjectURL(blob),
+        }
+        ;
+        port.postMessage(res);
+        return res;
+      })
+      .catch(err => {
+        console.error('Could not load ParityBar scripts. Retrying in a while..', err);
+        setTimeout(() => loadScripts(port), 5000);
+      });
+  };
+}
 
 chrome.storage.local.get('authToken', (token) => {
   if (!token.authToken) {

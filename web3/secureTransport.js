@@ -1,3 +1,6 @@
+/**
+ * Creates a secureTransport, that can be used by injected ParityBar
+ */
 export function createSecureTransport() {
   let id = 0;
   const data = {};
@@ -49,14 +52,39 @@ export function createSecureTransport() {
   };
 }
 
+/**
+ *  Propagates opening events to upper frame
+ */
 export function handleResizeEvents() {
   document.body.addEventListener('parity.bar.visibility', (ev) => {
-    console.log(ev);
     ev.target.childNodes[0].style.maxHeight = '100vh';
-    // TODO [ToDr] Use cross-frame communication to alter the frame
     window.parent.postMessage({
       type: 'parity.signer.bar',
       opened: ev.detail.opened
     }, '*');
   });
 }
+
+/**
+ * Loads ParityBar scripts from running node.
+ */
+export function loadScripts() {
+  // We need to use `port` here cause the response is asynchronous.
+  const port = chrome.runtime.connect({ name: 'barScripts' });
+  port.onMessage.addListener((code) => {
+    const $script = document.createElement('script');
+    const $styles = document.createElement('link');
+
+    $script.src = code.scripts;
+    $styles.rel = 'stylesheet';
+    $styles.href = code.styles;
+    document.head.appendChild($styles);
+    document.body.appendChild($script);
+  });
+
+  port.postMessage({
+    type: 'parity.bar.code'
+  });
+}
+
+

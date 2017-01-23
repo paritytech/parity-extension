@@ -1,11 +1,12 @@
 import styles from './styles.less';
 
-import { createSecureTransport, handleResizeEvents } from './secureTransport';
+import { createSecureTransport, handleResizeEvents, loadScripts } from './secureTransport';
 
 // TODO [ToDr] Temporary re-using same file to have it processed by webpack
 if (window.location.protocol === 'chrome-extension:') {
   window.secureTransport = createSecureTransport();
   handleResizeEvents();
+  loadScripts();
   // TODO [ToDr] Detect if node is not running and display error message!
 } else {
   const script = document.createElement('script');

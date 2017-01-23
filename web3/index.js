@@ -1,6 +1,5 @@
 /* global chrome */
 
-import styles from './styles.less';
 import { createSecureTransport, handleResizeEvents, loadScripts, getBackgroundSeed } from './secureTransport';
 import { TRANSPORT_UNINITIALIZED, ACCOUNTS_REQUEST } from '../shared';
 
@@ -16,8 +15,7 @@ if (window.location.protocol === 'chrome-extension:') {
 } else {
   const script = document.createElement('script');
   script.src = chrome.extension.getURL('web3/inpage.js');
-  document.head.insertBefore(script, document.head.childNodes[0]);
-
+  document.documentElement.insertBefore(script, document.documentElement.childNodes[0]);
   const port = chrome.runtime.connect({ name: 'web3' });
 
   // process requests
@@ -81,6 +79,8 @@ function injectIframe () {
     return;
   }
 
+  // lazy load styles
+  const styles = require('./styles.less');
   const iframe = document.createElement('iframe');
   iframe.className = styles.iframe__main;
   iframe.src = chrome.extension.getURL('web3/embed.html');

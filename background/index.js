@@ -46,6 +46,7 @@ chrome.runtime.onConnect.addListener((port) => {
   throw new Error(`Unrecognized port: ${port.name}`);
 });
 
+let openedTabId = null;
 let transport = null;
 // Attempt to extract token on start if not available.
 extractToken();
@@ -55,6 +56,12 @@ chrome.runtime.onMessage.addListener((request, sender, callback) => {
     if (transport) {
       // TODO [ToDr] kill old transport!
     }
+
+    if (openedTabId) {
+      chrome.tabs.remove(openedTabId);
+      openedTabId = null;
+    }
+
     console.log('Extracted a token: ', request.token);
     console.log('Extracted backgroundSeed: ', request.backgroundSeed);
     chrome.storage.local.set({
@@ -125,6 +132,8 @@ function extractToken () {
           chrome.tabs.create({
             url: `http://${UI}`,
             active: false
+          }, (tab) => {
+            openedTabId = tab.id;
           });
         })
         .catch(err => {

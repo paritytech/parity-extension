@@ -17,7 +17,7 @@ export function createSecureTransport () {
       console.warn('Unexpected response received: ', id, msg);
       return;
     }
-    const { resolve, reject, method, params } = data[id];
+    const { resolve, reject } = data[id];
     delete data[id];
 
     if (err || payload.error) {

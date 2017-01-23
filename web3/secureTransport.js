@@ -20,8 +20,6 @@ export function createSecureTransport () {
     const { resolve, reject, method, params } = data[id];
     delete data[id];
 
-    console.log(`Resolving ${method}(${params}) = `, payload);
-
     if (err || payload.error) {
       isConnected = err !== TRANSPORT_UNINITIALIZED;
       reject(err || payload.error);

@@ -49,7 +49,6 @@ if (window.location.protocol === 'chrome-extension:') {
   port.onMessage.addListener((msg) => {
     const { id, err, payload } = msg;
 
-    console.log(payload.id, ACCOUNTS_REQUEST);
     // Inject iframe only if the page is using Web3
     if (!payload || payload.id !== ACCOUNTS_REQUEST) {
       if (!err) {

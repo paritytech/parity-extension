@@ -14,31 +14,22 @@
 // You should have received a copy of the GNU General Public License
 // along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 
-/* global chrome */
+import { h } from 'preact';
+/** @jsx h */
 
-import Processor from './processor';
+import styles from './badge.less';
 
-const processor = new Processor();
+const Badge = ({ children, ...props }) => {
+  const { size = 16, src, style = {}, title } = props;
 
-chrome.runtime.onConnect.addListener((port) => {
-  console.assert(port.name === 'id');
+  return (
+    <img
+      className={ styles.badge }
+      src={ src }
+      style={ { height: size, width: size, ...style } }
+      title={ title }
+    />
+  );
+};
 
-  port.onMessage.addListener((message = {}) => {
-    const { id, data } = message;
-
-    processor
-      .process(data)
-      .then((result) => {
-        port.postMessage({
-          id, result
-        });
-      })
-      .catch((error) => {
-        port.postMessage({
-          id, error: error
-        });
-
-        throw error;
-      });
-  });
-});
+export default Badge;

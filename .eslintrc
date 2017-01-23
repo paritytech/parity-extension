@@ -17,6 +17,7 @@
     "no-debugger": "error",
     "object-curly-spacing": ["error", "always"],
     "object-property-newline": 0,
-    "react/jsx-curly-spacing": ["error", "always"]
+    "react/jsx-curly-spacing": ["error", "always"],
+    "react/prop-types": 0
   }
 }

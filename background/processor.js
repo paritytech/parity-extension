@@ -19,19 +19,67 @@ import { uniq } from 'lodash';
 import Lookup from './lookup';
 
 export const PROCESS_MATCHES = 'process_matches';
+export const FETCH_IMAGE = 'fetch_image';
+
+const SVG_MATCH = /.svg(\?.+)?$/i;
+const UNKNOWN_TOKEN_URL = 'https://raw.githubusercontent.com/ethcore/parity/1e6a2cb3783e0d66cfa730f4cea109f60dc3a685/js/assets/images/contracts/unknown-64x64.png';
 
 export default class Processor {
+
+  _images = {};
 
   process (input = {}) {
     const { data, type } = input;
 
     switch (type) {
       case PROCESS_MATCHES:
-        return this.processMatches(data);
+        const result = this.processMatches(data);
+        console.log('got result', result);
+        return result;
+
+      case FETCH_IMAGE:
+        return this.fetchImage(data);
 
       default:
         return Promise.reject(`no actions matching  ${type}`);
     }
+  }
+
+  fetchImage (url) {
+    const validUrl = url && url !== 'null' && url !== 'undefined'
+      ? url
+      : UNKNOWN_TOKEN_URL;
+
+    console.log('fetching image', validUrl);
+
+    if (!this._images[validUrl]) {
+      this._images[validUrl] = fetch(validUrl)
+        .then((response) => {
+          if (SVG_MATCH.test(validUrl)) {
+            return response.text().then((data) => {
+              return new window.Blob([ data ], {
+                type: 'image/svg+xml;charset=utf-8'
+              });
+            });
+          }
+
+          return response.blob();
+        })
+        .then((data) => {
+          return blobToBase64(data);
+        })
+        .then((data) => {
+          this._images[validUrl] = data;
+          return data;
+        })
+        .catch((error) => {
+          // Remove cached promise on error
+          this._images[validUrl] = null;
+          throw error;
+        });
+    }
+
+    return Promise.resolve(this._images[validUrl]);
   }
 
   processMatches (matches) {
@@ -70,4 +118,20 @@ export default class Processor {
       });
   }
 
+}
+
+function blobToBase64 (blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(blob);
+
+    reader.onloadend = () => {
+      const base64data = reader.result;
+      resolve(base64data);
+    };
+
+    reader.onerror = (error) => {
+      reject(error);
+    };
+  });
 }

@@ -1,2 +1,0 @@
--r ./test/babel
--r ./test/mocha.config

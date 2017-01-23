@@ -14,21 +14,16 @@
 // You should have received a copy of the GNU General Public License
 // along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 
-import 'isomorphic-fetch';
-import 'mock-local-storage';
+import AccountCard from './accountCard';
+import AugmentedIcon from './augmentedIcon';
+import Badge from './badge';
+import IdentityIcon from './identityIcon';
+import Token from './token';
 
-import chai from 'chai';
-import jsdom from 'jsdom';
-
-// expose expect to global so we won't have to manually import & define it in every test
-global.expect = chai.expect;
-
-// setup jsdom
-global.document = jsdom.jsdom('<!doctype html><html><body></body></html>');
-global.window = document.defaultView;
-global.navigator = global.window.navigator;
-
-// attach mocked localStorage onto the window as exposed by jsdom
-global.window.localStorage = global.localStorage;
-
-module.exports = {};
+export {
+  AccountCard,
+  AugmentedIcon,
+  Badge,
+  IdentityIcon,
+  Token
+};

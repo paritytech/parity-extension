@@ -14,31 +14,39 @@
 // You should have received a copy of the GNU General Public License
 // along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 
-/* global chrome */
+import { memoize } from 'decko';
+import blockies from 'blockies';
+import { h, Component } from 'preact';
+/** @jsx h */
 
-import Processor from './processor';
+import Badge from './badge';
 
-const processor = new Processor();
+export default class IdentityIcon extends Component {
 
-chrome.runtime.onConnect.addListener((port) => {
-  console.assert(port.name === 'id');
+  render () {
+    const { address, size = 8, style = {} } = this.props;
 
-  port.onMessage.addListener((message = {}) => {
-    const { id, data } = message;
+    const src = this.getBlockie(address, size);
 
-    processor
-      .process(data)
-      .then((result) => {
-        port.postMessage({
-          id, result
-        });
-      })
-      .catch((error) => {
-        port.postMessage({
-          id, error: error
-        });
+    return (
+      <Badge
+        size={ size }
+        src={ src }
+        style={ style }
+        title={ address }
+      />
+    );
+  }
 
-        throw error;
-      });
-  });
-});
+  @memoize
+  getBlockie (address, size = 8) {
+    const src = blockies({
+      seed: (address || '').toLowerCase(),
+      size: 8,
+      scale: size
+    }).toDataURL();
+
+    return src;
+  }
+
+}

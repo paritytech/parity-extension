@@ -14,4 +14,29 @@
 // You should have received a copy of the GNU General Public License
 // along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 
-require('babel-register')();
+export function positionToStyle (options = {}) {
+  const { scale = 1, position = { x: 'center', y: 'center' } } = options;
+  const { x, y } = position;
+
+  // default to center
+  let X = 0;
+  let Y = `-50%`;
+
+  if (x === 'left') {
+    X = `-50%`;
+  }
+
+  if (x === 'right') {
+    X = `50%`;
+  }
+
+  if (y === 'top') {
+    Y = `-100%`;
+  }
+
+  if (y === 'bottom') {
+    Y = `0`;
+  }
+
+  return { transform: `scale(${scale}) translateX(${X}) translateY(${Y})` };
+}

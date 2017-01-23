@@ -1,6 +1,6 @@
 import styles from './styles.less';
-
 import { createSecureTransport, handleResizeEvents, loadScripts } from './secureTransport';
+import { TRANSPORT_UNINITIALIZED } from '../shared';
 
 // TODO [ToDr] Temporary re-using same file to have it processed by webpack
 if (window.location.protocol === 'chrome-extension:') {
@@ -26,8 +26,6 @@ if (window.location.protocol === 'chrome-extension:') {
     const { type } = ev.data;
 
     if (type === 'parity.web3.request') {
-      // Inject iframe only if the page is using Web3
-      injectIframe();
       port.postMessage(ev.data);
       return;
     }
@@ -41,6 +39,15 @@ if (window.location.protocol === 'chrome-extension:') {
 
   port.onMessage.addListener((msg) => {
     const { id, err, payload } = msg;
+
+    // Inject iframe only if the page is using Web3
+    if (!err) {
+      injectIframe();
+    } else {
+      // remove iframe
+      removeIframe(err);
+    }
+
     window.postMessage({
       type: 'parity.web3.response',
       id,
@@ -49,16 +56,24 @@ if (window.location.protocol === 'chrome-extension:') {
     }, '*');
   });
 
-  let iframeInjected = false;
-  function injectIframe() {
+  let iframeInjected = null;
+  function removeIframe (err) {
+    if (err === TRANSPORT_UNINITIALIZED && iframeInjected) {
+      iframeInjected.parentNode.removeChild(iframeInjected);
+      iframeInjected = null;
+    }
+  }
+
+  function injectIframe () {
     if (iframeInjected) {
       return;
     }
 
-    iframeInjected = true;
     const iframe = document.createElement('iframe');
     iframe.className = styles.iframe__main;
     iframe.src = chrome.extension.getURL('web3/embed.html');
+    iframeInjected = iframe;
+
     window.addEventListener('message', (ev) => {
       if (ev.source !== iframe.contentWindow) {
         return;

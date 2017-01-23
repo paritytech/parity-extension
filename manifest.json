@@ -14,12 +14,7 @@
   ],
   "web_accessible_resources": [
 	  "web3/inpage.js",
-	  "web3/embed.html",
-	  "./web3/embed.js",
-	  "./web3/embed.js.map",
-	  "./web3/commons.js",
-	  "./web3/commons.js.map",
-	  "./web3/vendor.js"
+	  "web3/embed.html"
   ],
   "background": {
     "scripts": ["background/index.js"]

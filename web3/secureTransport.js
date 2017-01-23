@@ -1,8 +1,11 @@
+import { TRANSPORT_UNINITIALIZED } from '../shared';
+
 /**
  * Creates a secureTransport, that can be used by injected ParityBar
  */
 export function createSecureTransport() {
   let id = 0;
+  let isConnected = true;
   const data = {};
   const port = chrome.runtime.connect({ name: 'secureApi' });
 
@@ -18,8 +21,10 @@ export function createSecureTransport() {
     console.log(`Resolving ${method}(${params}) = `, payload);
 
     if (err || payload.error) {
+      isConnected = err !== TRANSPORT_UNINITIALIZED;
       reject(err || payload.error);
     } else {
+      isConnected = true;
       resolve(payload.result);
     }
   });
@@ -44,10 +49,11 @@ export function createSecureTransport() {
       });
     },
     on() {
+      // TODO [ToDr] Would be good to handle all requests correctly.
       console.log('listener', arguments);
     },
     get isConnected () {
-      return true;
+      return isConnected;
     }
   };
 }

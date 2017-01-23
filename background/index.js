@@ -17,7 +17,9 @@
 /* global chrome */
 
 import Processor from './processor';
-import Ws from '../web3/ws';
+import Ws from './ws';
+
+import { TRANSPORT_UNINITIALIZED } from '../shared';
 
 chrome.runtime.onConnect.addListener((port) => {
   if (port.name === 'secureApi') {
@@ -63,52 +65,52 @@ chrome.runtime.onMessage.addListener((request, sender, callback) => {
 
 let codeCache = null;
 function loadScripts (port) {
-  return (msg) => {
+  function retry(msg) {
     if (msg.type !== 'parity.bar.code') {
       return;
     }
 
-    if (codeCache) {
-      codeCache.then(code => port.postMessage(code));
-      return;
+    if (!codeCache) {
+      const vendor = fetch(`http://${ui}/vendor.js`)
+        .then(x => x.blob());
+      const embed = fetch(`http://${ui}/embed.html`)
+        .then(x => x.text())
+        .then(page => ({
+          styles: /styles\/embed\.([a-z0-9]{10})\.css/.exec(page),
+          scripts: /embed\.([a-z0-9]{10})\.js/.exec(page)
+        }))
+        .then(res => {
+          return Promise.all([
+            fetch(`http://${ui}/${res.styles[0]}`),
+            fetch(`http://${ui}/${res.scripts[0]}`)
+          ]);
+        })
+        .then(x => Promise.all(x.map(x => x.blob())));
+
+      codeCache = Promise.all([vendor, embed])
+        .then(scripts => {
+          const vendor = scripts[0];
+          const styles = scripts[1][0];
+          const embed = scripts[1][1];
+          // Concat blobs
+          const blob = new Blob([vendor, embed], { type: 'application/javascript' });
+          return {
+            styles: URL.createObjectURL(styles),
+            scripts: URL.createObjectURL(blob),
+          };
+        });
     }
 
-    const vendor = fetch(`http://${ui}/vendor.js`)
-      .then(x => x.blob());
-    const embed = fetch(`http://${ui}/embed.html`)
-      .then(x => x.text())
-      .then(page => ({
-        styles: /styles\/embed\.([a-z0-9]{10})\.css/.exec(page),
-        scripts: /embed\.([a-z0-9]{10})\.js/.exec(page)
-      }))
-      .then(res => {
-        return Promise.all([
-          fetch(`http://${ui}/${res.styles[0]}`),
-          fetch(`http://${ui}/${res.scripts[0]}`)
-        ]);
-      })
-      .then(x => Promise.all(x.map(x => x.blob())));
-
-    codeCache = Promise.all([vendor, embed])
-      .then(scripts => {
-        const vendor = scripts[0];
-        const styles = scripts[1][0];
-        const embed = scripts[1][1];
-        // Concat blobs
-        const blob = new Blob([vendor, embed], { type: 'application/javascript' });
-        const res = {
-          styles: URL.createObjectURL(styles),
-          scripts: URL.createObjectURL(blob),
-        }
-        ;
-        port.postMessage(res);
-        return res;
-      })
+    codeCache
+      .then(code => port.postMessage(code))
       .catch(err => {
+        codeCache = null;
         console.error('Could not load ParityBar scripts. Retrying in a while..', err);
-        setTimeout(() => loadScripts(port), 5000);
+        setTimeout(() => retry(msg), 5000);
       });
-  };
+  }
+
+  return retry;
 }
 
 chrome.storage.local.get('authToken', (token) => {
@@ -129,7 +131,7 @@ function web3Message (port) {
     if (!transport || !transport.isConnected) {
       console.error('Transport uninitialized!');
       port.postMessage({
-        id, err: 'Transport uninitialized',
+        id, err: TRANSPORT_UNINITIALIZED,
         payload: null,
         connected: false
       });

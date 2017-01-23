@@ -323,11 +323,11 @@ export default class Ws extends JsonRpcBase {
     return this._lastError;
   }
 
-    /**
-     * Exponential Timeout for Retries
-     *
-     * @see http://dthain.blogspot.de/2009/02/exponential-backoff-in-distributed.html
-     */
+  /**
+   * Exponential Timeout for Retries
+   *
+   * @see http://dthain.blogspot.de/2009/02/exponential-backoff-in-distributed.html
+   */
   get retryTimeout () {
     // R between 1 and 2
     const R = Math.random() + 1;

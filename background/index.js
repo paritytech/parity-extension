@@ -68,7 +68,7 @@ chrome.runtime.onMessage.addListener((request, sender, callback) => {
 
 let codeCache = null;
 function loadScripts (port) {
-  function retry(msg) {
+  function retry (msg) {
     if (msg.type !== 'parity.bar.code') {
       return;
     }
@@ -99,7 +99,7 @@ function loadScripts (port) {
           const blob = new Blob([vendor, embed], { type: 'application/javascript' });
           return {
             styles: URL.createObjectURL(styles),
-            scripts: URL.createObjectURL(blob),
+            scripts: URL.createObjectURL(blob)
           };
         });
     }
@@ -116,7 +116,7 @@ function loadScripts (port) {
   return retry;
 }
 
-function extractToken() {
+function extractToken () {
   chrome.storage.local.get('authToken', (token) => {
     if (!token.authToken) {
       fetch(`http://${UI}`)
@@ -128,6 +128,7 @@ function extractToken() {
           });
         })
         .catch(err => {
+          console.error('Node seems down, will re-try', err);
           setTimeout(() => extractToken(), 1000);
         });
       return;

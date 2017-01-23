@@ -244,7 +244,7 @@ export default class Ws extends JsonRpcBase {
       const resultId = result.id || result[0].id;
       const messageId = this._rawRequests[resultId] || resultId;
       const isRaw = !!this._rawRequests[resultId];
-      const { method, params, json, resolve, reject } = this._messages[messageId];
+      const { method, params, resolve, reject } = this._messages[messageId];
 
       delete this._messages[messageId];
       delete this._rawRequests[resultId];

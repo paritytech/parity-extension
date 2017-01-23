@@ -1,3 +1,5 @@
+/* global chrome */
+
 import styles from './styles.less';
 import { createSecureTransport, handleResizeEvents, loadScripts, getBackgroundSeed } from './secureTransport';
 import { TRANSPORT_UNINITIALIZED, ACCOUNTS_REQUEST } from '../shared';
@@ -65,38 +67,39 @@ if (window.location.protocol === 'chrome-extension:') {
       payload
     }, '*');
   });
+}
 
-  let iframeInjected = null;
-  function removeIframe (err) {
-    if (err === TRANSPORT_UNINITIALIZED && iframeInjected) {
-      iframeInjected.parentNode.removeChild(iframeInjected);
-      iframeInjected = null;
-    }
-  }
-
-  function injectIframe () {
-    if (iframeInjected) {
-      return;
-    }
-
-    const iframe = document.createElement('iframe');
-    iframe.className = styles.iframe__main;
-    iframe.src = chrome.extension.getURL('web3/embed.html');
-    iframeInjected = iframe;
-
-    window.addEventListener('message', (ev) => {
-      if (ev.source !== iframe.contentWindow) {
-        return;
-      }
-      if (!ev.data.type || ev.data.type !== 'parity.signer.bar') {
-        return;
-      }
-      if (ev.data.opened) {
-        iframe.classList.add(styles.iframe__open);
-      } else {
-        iframe.classList.remove(styles.iframe__open);
-      }
-    });
-    document.body.appendChild(iframe);
+let iframeInjected = null;
+function removeIframe (err) {
+  if (err === TRANSPORT_UNINITIALIZED && iframeInjected) {
+    iframeInjected.parentNode.removeChild(iframeInjected);
+    iframeInjected = null;
   }
 }
+
+function injectIframe () {
+  if (iframeInjected) {
+    return;
+  }
+
+  const iframe = document.createElement('iframe');
+  iframe.className = styles.iframe__main;
+  iframe.src = chrome.extension.getURL('web3/embed.html');
+  iframeInjected = iframe;
+
+  window.addEventListener('message', (ev) => {
+    if (ev.source !== iframe.contentWindow) {
+      return;
+    }
+    if (!ev.data.type || ev.data.type !== 'parity.signer.bar') {
+      return;
+    }
+    if (ev.data.opened) {
+      iframe.classList.add(styles.iframe__open);
+    } else {
+      iframe.classList.remove(styles.iframe__open);
+    }
+  });
+  document.body.appendChild(iframe);
+}
+

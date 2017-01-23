@@ -1,9 +1,11 @@
+/* global chrome */
+
 import { TRANSPORT_UNINITIALIZED } from '../shared';
 
 /**
  * Creates a secureTransport, that can be used by injected ParityBar
  */
-export function createSecureTransport() {
+export function createSecureTransport () {
   let id = 0;
   let isConnected = true;
   const data = {};
@@ -30,7 +32,7 @@ export function createSecureTransport() {
   });
 
   return {
-    execute(method, ...params) {
+    execute (method, ...params) {
       return new Promise((resolve, reject) => {
         id++;
         data[id] = { resolve, reject, method, params };
@@ -48,7 +50,7 @@ export function createSecureTransport() {
         });
       });
     },
-    on() {
+    on () {
       // TODO [ToDr] Would be good to handle all requests correctly.
       console.log('listener', arguments);
     },
@@ -61,7 +63,7 @@ export function createSecureTransport() {
 /**
  *  Propagates opening events to upper frame
  */
-export function handleResizeEvents() {
+export function handleResizeEvents () {
   document.body.addEventListener('parity.bar.visibility', (ev) => {
     document.querySelector('#container > div > div').style.maxHeight = '100vh';
     window.parent.postMessage({
@@ -74,7 +76,7 @@ export function handleResizeEvents() {
 /**
  * Loads ParityBar scripts from running node.
  */
-export function loadScripts() {
+export function loadScripts () {
   // We need to use `port` here cause the response is asynchronous.
   const port = chrome.runtime.connect({ name: 'barScripts' });
   port.onMessage.addListener((code) => {

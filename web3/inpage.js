@@ -26,12 +26,21 @@ class Web3FrameProvider {
     });
 
     // Initialize main account
+    this.initializeMainAccount();
+  }
+
+  initializeMainAccount () {
     this.sendAsync({
       jsonrpc: '2.0',
       id: ACCOUNTS_REQUEST,
       method: 'eth_accounts',
       params: []
     }, (err, accounts) => {
+      if (err) {
+        setTimeout(() => this.initializeMainAccount(), 2000);
+        return;
+      }
+
       if (accounts && accounts[0]) {
         this.mainAccount = accounts[0];
       }
@@ -44,11 +53,11 @@ class Web3FrameProvider {
     window.postMessage({
       type: 'parity.web3.request',
       id: this.id,
-      payload: payload,
+      payload: payload
     }, '*');
   };
 
-  send = (payload)  => {
+  send = (payload) => {
     const { id, method, jsonrpc } = payload;
     if (method === 'eth_accounts') {
       const selectedAccount = this.mainAccount;
@@ -62,7 +71,7 @@ class Web3FrameProvider {
     }
 
     if (method === 'eth_uninstallFilter') {
-      this.sendAsync(payload, () => {})
+      this.sendAsync(payload, () => {});
       return {
         id, jsonrpc,
         result: true
@@ -80,7 +89,7 @@ class Web3FrameProvider {
 if (!window.chrome || !window.chrome.extension) {
   console.log('Parity - Injecting Web3');
   window.web3 = {
-    currentProvider: new Web3FrameProvider(),
+    currentProvider: new Web3FrameProvider()
   };
 
   // Extract token and background
@@ -96,12 +105,13 @@ if (!window.chrome || !window.chrome.extension) {
       }, '*');
     }
   }
+}
 
-  function fromJson (val) {
-    try {
-      return JSON.parse(val);
-    } catch (e) {
-      return val;
-    }
+function fromJson (val) {
+  try {
+    return JSON.parse(val);
+  } catch (e) {
+    return val;
   }
 }
+

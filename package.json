@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "chrome-extension build ./manifest.json -o ./build",
-    "lint": "eslint --cache --ignore-path .gitignore --ignore-pattern web3 .",
+    "lint": "eslint --cache --ignore-path .gitignore .",
     "mocha": "NODE_ENV=test mocha './**/*.spec.js'",
     "prepush": "npm run lint",
     "start": "chrome-extension run ./manifest.json -o ./build",

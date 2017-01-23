@@ -1,10 +1,13 @@
 import styles from './styles.less';
-import { createSecureTransport, handleResizeEvents, loadScripts } from './secureTransport';
-import { TRANSPORT_UNINITIALIZED } from '../shared';
+import { createSecureTransport, handleResizeEvents, loadScripts, getBackgroundSeed } from './secureTransport';
+import { TRANSPORT_UNINITIALIZED, ACCOUNTS_REQUEST } from '../shared';
 
 // TODO [ToDr] Temporary re-using same file to have it processed by webpack
 if (window.location.protocol === 'chrome-extension:') {
   window.secureTransport = createSecureTransport();
+  getBackgroundSeed(seed => {
+    window.backgroundSeed = seed;
+  });
   handleResizeEvents();
   loadScripts();
   // TODO [ToDr] Detect if node is not running and display error message!
@@ -20,19 +23,23 @@ if (window.location.protocol === 'chrome-extension:') {
     if (ev.source !== window) {
       return;
     }
+
     if (!ev.data.type) {
       return;
     }
+
     const { type } = ev.data;
 
     if (type === 'parity.web3.request') {
       port.postMessage(ev.data);
       return;
     }
+
     if (type === 'parity.token') {
       console.log('Sending token', ev.data.token);
       chrome.runtime.sendMessage({
-        token: ev.data.token
+        token: ev.data.token,
+        backgroundSeed: ev.data.backgroundSeed
       });
     }
   });
@@ -40,12 +47,15 @@ if (window.location.protocol === 'chrome-extension:') {
   port.onMessage.addListener((msg) => {
     const { id, err, payload } = msg;
 
+    console.log(payload.id, ACCOUNTS_REQUEST);
     // Inject iframe only if the page is using Web3
-    if (!err) {
-      injectIframe();
-    } else {
-      // remove iframe
-      removeIframe(err);
+    if (!payload || payload.id !== ACCOUNTS_REQUEST) {
+      if (!err) {
+        injectIframe();
+      } else {
+        // remove iframe
+        removeIframe(err);
+      }
     }
 
     window.postMessage({

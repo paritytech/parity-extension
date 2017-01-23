@@ -19,7 +19,6 @@
   "background": {
     "scripts": ["background/index.js"]
   },
-  "__content_security_policy": "script-src http://localhost:3000;style-src 'self' 'unsafe-inline';default-src 'self'",
   "permissions": [
 	  "storage",
 	  "tabs"

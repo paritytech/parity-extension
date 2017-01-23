@@ -63,7 +63,7 @@ export function createSecureTransport() {
  */
 export function handleResizeEvents() {
   document.body.addEventListener('parity.bar.visibility', (ev) => {
-    ev.target.childNodes[0].style.maxHeight = '100vh';
+    document.querySelector('#container > div > div').style.maxHeight = '100vh';
     window.parent.postMessage({
       type: 'parity.signer.bar',
       opened: ev.detail.opened
@@ -86,6 +86,8 @@ export function loadScripts() {
     $styles.href = code.styles;
     document.head.appendChild($styles);
     document.body.appendChild($script);
+
+    port.disconnect();
   });
 
   port.postMessage({
@@ -93,4 +95,9 @@ export function loadScripts() {
   });
 }
 
+export function getBackgroundSeed (callback) {
+  chrome.storage.local.get('backgroundSeed', res => {
+    callback(res.backgroundSeed);
+  });
+}
 

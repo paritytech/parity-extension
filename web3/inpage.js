@@ -1,6 +1,9 @@
+import { UI, ACCOUNTS_REQUEST } from '../shared';
+
 class Web3FrameProvider {
   id = 0;
   callbacks = {};
+  mainAccount = null;
 
   constructor () {
     window.addEventListener('message', (ev) => {
@@ -21,6 +24,18 @@ class Web3FrameProvider {
 
       cb(err, payload);
     });
+
+    // Initialize main account
+    this.sendAsync({
+      jsonrpc: '2.0',
+      id: ACCOUNTS_REQUEST,
+      method: 'eth_accounts',
+      params: []
+    }, (err, accounts) => {
+      if (accounts && accounts[0]) {
+        this.mainAccount = accounts[0];
+      }
+    });
   }
 
   sendAsync = (payload, cb) => {
@@ -36,13 +51,13 @@ class Web3FrameProvider {
   send = (payload)  => {
     const { id, method, jsonrpc } = payload;
     if (method === 'eth_accounts') {
-      const selectedAccount = localStorage.get('selectedAccount')
-      const result = selectedAccount ? [selectedAccount] : []
+      const selectedAccount = this.mainAccount;
+      const result = selectedAccount ? [selectedAccount] : [];
       return { id, jsonrpc, result };
     }
 
     if (method === 'eth_coinbase') {
-      const result = localStorage.get('selectedAccount') || '0x0000000000000000000000000000000000000000';
+      const result = this.mainAccount || '0x0000000000000000000000000000000000000000';
       return { id, jsonrpc, result };
     }
 
@@ -68,12 +83,25 @@ if (!window.chrome || !window.chrome.extension) {
     currentProvider: new Web3FrameProvider(),
   };
 
-  // TODO [ToDr] Validate token?
-  const token = localStorage.getItem('sysuiToken');
-  if (token) {
-    window.postMessage({
-      type: 'parity.token',
-      token
-    }, '*');
+  // Extract token and background
+  if (window.location.origin === `http://${UI}`) {
+    // TODO [ToDr] Validate token?
+    const token = fromJson(localStorage.getItem('sysuiToken'));
+    const backgroundSeed = fromJson(localStorage.getItem('backgroundSeed'));
+    if (token) {
+      window.postMessage({
+        type: 'parity.token',
+        token,
+        backgroundSeed
+      }, '*');
+    }
+  }
+
+  function fromJson (val) {
+    try {
+      return JSON.parse(val);
+    } catch (e) {
+      return val;
+    }
   }
 }

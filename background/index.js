@@ -19,7 +19,7 @@
 import Processor from './processor';
 import Ws from './ws';
 
-import { TRANSPORT_UNINITIALIZED } from '../shared';
+import { UI, TRANSPORT_UNINITIALIZED } from '../shared';
 
 chrome.runtime.onConnect.addListener((port) => {
   if (port.name === 'secureApi') {
@@ -46,8 +46,9 @@ chrome.runtime.onConnect.addListener((port) => {
   throw new Error(`Unrecognized port: ${port.name}`);
 });
 
-const ui = '127.0.0.1:8180';
 let transport = null;
+// Attempt to extract token on start if not available.
+extractToken();
 
 chrome.runtime.onMessage.addListener((request, sender, callback) => {
   if (!(transport && transport.isConnected) && request.token) {
@@ -55,10 +56,12 @@ chrome.runtime.onMessage.addListener((request, sender, callback) => {
       // TODO [ToDr] kill old transport!
     }
     console.log('Extracted a token: ', request.token);
+    console.log('Extracted backgroundSeed: ', request.backgroundSeed);
     chrome.storage.local.set({
-      'authToken': request.token
+      'authToken': request.token,
+      'backgroundSeed': request.backgroundSeed
     }, () => {});
-    transport = new Ws(`ws://${ui}`, request.token, true);
+    transport = new Ws(`ws://${UI}`, request.token, true);
     return;
   }
 });
@@ -71,9 +74,9 @@ function loadScripts (port) {
     }
 
     if (!codeCache) {
-      const vendor = fetch(`http://${ui}/vendor.js`)
+      const vendor = fetch(`http://${UI}/vendor.js`)
         .then(x => x.blob());
-      const embed = fetch(`http://${ui}/embed.html`)
+      const embed = fetch(`http://${UI}/embed.html`)
         .then(x => x.text())
         .then(page => ({
           styles: /styles\/embed\.([a-z0-9]{10})\.css/.exec(page),
@@ -81,8 +84,8 @@ function loadScripts (port) {
         }))
         .then(res => {
           return Promise.all([
-            fetch(`http://${ui}/${res.styles[0]}`),
-            fetch(`http://${ui}/${res.scripts[0]}`)
+            fetch(`http://${UI}/${res.styles[0]}`),
+            fetch(`http://${UI}/${res.scripts[0]}`)
           ]);
         })
         .then(x => Promise.all(x.map(x => x.blob())));
@@ -113,17 +116,26 @@ function loadScripts (port) {
   return retry;
 }
 
-chrome.storage.local.get('authToken', (token) => {
-  if (!token.authToken) {
-    // Open a UI to extract the token from it
-    chrome.tabs.create({
-      url: `http://${ui}`,
-      active: false
-    });
-    return;
-  }
-  transport = new Ws(`ws://${ui}`, token.authToken, true);
-});
+function extractToken() {
+  chrome.storage.local.get('authToken', (token) => {
+    if (!token.authToken) {
+      fetch(`http://${UI}`)
+        .then(() => {
+          // Open a UI to extract the token from it
+          chrome.tabs.create({
+            url: `http://${UI}`,
+            active: false
+          });
+        })
+        .catch(err => {
+          setTimeout(() => extractToken(), 1000);
+        });
+      return;
+    }
+
+    transport = new Ws(`ws://${UI}`, token.authToken, true);
+  });
+}
 
 function web3Message (port) {
   return (msg) => {

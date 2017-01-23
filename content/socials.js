@@ -29,7 +29,10 @@ export default class Socials {
       return match;
     });
 
-    if (!match) {
+    const blacklist = [ '/', '?', '#' ];
+    const matchBlacklist = blacklist.find((s) => match && match.includes(s));
+
+    if (!match || matchBlacklist) {
       return null;
     }
 
@@ -55,7 +58,7 @@ export default class Socials {
     ];
 
     const blacklistRegexp = blacklist.join('|');
-    const matcher = new RegExp(`/(?:https?://)?(?:www.)?github.(?:[a-z]+)/(?!(${blacklistRegexp}))([^/?\\s]+)`, 'i');
+    const matcher = new RegExp(`/(?:https?://)?(?:www.)?github.(?:[a-z]+)/(?!(${blacklistRegexp}))([^\\s]+)`, 'i');
 
     return {
       match: (input) => {
@@ -71,7 +74,7 @@ export default class Socials {
   }
 
   static get facebook () {
-    const matcher = /(?:https?:\/\/)?(?:www.)?facebook.(?:[a-z]+)\/([^/?\s]+)/i;
+    const matcher = /(?:https?:\/\/)?(?:www.)?facebook.(?:[a-z]+)\/([^\s]+)/i;
 
     return {
       match: (input) => {
@@ -86,7 +89,7 @@ export default class Socials {
   }
 
   static get twitter () {
-    const matcher = /(?:https?:\/\/)?(?:www.)?twitter.(?:[a-z]+)\/([^/?\s]+)/i;
+    const matcher = /(?:https?:\/\/)?(?:www.)?twitter.(?:[a-z]+)\/([^\s]+)/i;
 
     return {
       match: (input) => {
@@ -101,7 +104,7 @@ export default class Socials {
   }
 
   static get reddit () {
-    const matcher = /(?:https?:\/\/)?(?:www.)?reddit.(?:[a-z]+)\/u\/([^/?\s]+)/i;
+    const matcher = /(?:https?:\/\/)?(?:www.)?reddit.(?:[a-z]+)\/u\/([^\s]+)/i;
 
     return {
       match: (input) => {

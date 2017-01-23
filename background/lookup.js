@@ -24,6 +24,7 @@ export default class Lookup {
   _githubs = {};
   _emails = {};
   _names = {};
+  _tokens = {};
 
   constructor () {
     instance = this;
@@ -91,11 +92,7 @@ export default class Lookup {
           return { ...data };
         }
 
-        return this.email(email)
-          .then((result = {}) => {
-            delete result.email;
-            return { ...result, name: handle };
-          });
+        return this.email(email);
       });
   }
 
@@ -118,7 +115,7 @@ export default class Lookup {
     return this
       ._reverseEmail(input)
       .then((data) => {
-        const { address, badges, name } = data;
+        const { address, badges, name, tokens } = data;
 
         // Set in cache the data for the given address
         if (address && badges) {
@@ -128,6 +125,11 @@ export default class Lookup {
         // Set in cache the data for the given name
         if (address && name) {
           this._names[name] = { ...data };
+        }
+
+        // Set in cache the data for the given address
+        if (address && tokens) {
+          this._tokens[address] = { ...data };
         }
 
         return data;

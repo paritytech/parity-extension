@@ -172,32 +172,19 @@ function web3Message (port) {
 
 const processor = new Processor();
 function processId (port) {
-  return (msg) => {
-    let message;
-
-    try {
-      message = typeof msg === 'string'
-        ? JSON.parse(msg)
-        : msg;
-    } catch (error) {
-      console.error('could not parse message', msg);
-      return;
-    }
-
+  return (message = {}) => {
     const { id, data } = message;
 
     processor
       .process(data)
       .then((result) => {
-        console.log('got results', result);
-
         port.postMessage({
           id, result
         });
       })
       .catch((error) => {
         port.postMessage({
-          id, error: error.message
+          id, error: error
         });
 
         throw error;

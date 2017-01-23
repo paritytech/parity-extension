@@ -127,7 +127,7 @@ export default class Augmentor {
           });
 
         // Add the augmented icon
-        node.appendChild(augmentedIcon);
+        node.insertBefore(augmentedIcon, node.childNodes[0]);
       })
       .catch((error) => {
         console.error('augmenting node', key, error);

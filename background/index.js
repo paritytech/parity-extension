@@ -73,15 +73,16 @@ chrome.runtime.onMessage.addListener((request, sender, callback) => {
   }
 });
 
+class VersionMismatch extends Error {
+}
+
 let codeCache = null;
 function loadScripts (port) {
   function checkResponseOk (response) {
     if (response.ok) {
       return response;
     }
-    const error = new Error('Expected successful response. Likely a version mismatch.');
-    error.isVersionMismatch = true;
-    throw error;
+    throw new VersionMismatch('Expected successful response. Likely a version mismatch.');
   }
 
   function retry (msg) {
@@ -129,7 +130,7 @@ function loadScripts (port) {
         port.postMessage(code);
       })
       .catch(err => {
-        if (err.isVersionMismatch) {
+        if (err instanceof VersionMismatch) {
           port.postMessage({
             success: false,
             error: err.message,

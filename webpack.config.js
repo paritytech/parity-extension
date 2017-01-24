@@ -24,7 +24,6 @@ const postcssVars = require('postcss-simple-vars');
 const rucksack = require('rucksack-css');
 
 const Manifest = require('chrome-extension-scripts/lib/manifest').default;
-const ManifestPlugin = require('chrome-extension-scripts/lib/manifest/plugin').default;
 
 const ENV = process.env.NODE_ENV || 'development';
 const isProd = ENV === 'production';
@@ -127,5 +126,3 @@ module.exports = {
     new CaseSensitivePathsPlugin()
   ]
 };
-
-

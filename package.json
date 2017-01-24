@@ -1,5 +1,5 @@
 {
-  "name": "id-extension",
+  "name": "parity-extension",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -22,7 +22,8 @@
     "babel-preset-es2017": "^6.16.0",
     "babel-preset-stage-0": "^6.16.0",
     "babel-register": "^6.18.0",
-    "chrome-extension-scripts": "^0.9.5",
+    "chai": "^3.5.0",
+    "chrome-extension-scripts": "https://github.com/tomusdrw/create-chrome-extension.git",
     "eslint": "3.11.1",
     "eslint-config-semistandard": "7.0.0",
     "eslint-config-standard": "6.2.1",
@@ -34,6 +35,7 @@
     "jest": "^18.1.0"
   },
   "dependencies": {
+    "eventemitter3": "^2.0.2",
     "blockies": "0.0.2",
     "decko": "^1.1.3",
     "isomorphic-fetch": "^2.2.1",

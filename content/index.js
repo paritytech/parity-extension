@@ -35,7 +35,8 @@ const observer = new MutationObserver((mutations) => {
       return;
     }
 
-    addedNodes.forEach((node) => {
+    const nodes = [].slice.call(addedNodes);
+    nodes.forEach((node) => {
       extract(node);
     });
   });

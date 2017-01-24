@@ -1,16 +1,30 @@
 {
+  "name": "Parity Ethereum Integration",
+  "short_name": "ParityExtension",
   "manifest_version": 2,
-  "homepage_url": "https://github.com/schovi/webpack-chrome-extension",
+  "homepage_url": "https://github.com/ethcore/parity-extension/",
+  "description": "Integrate the Parity Ethereum client with the Chrome browser",
   "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["web3/index.js", "web3/inpage.js"],
+      "run_at": "document_start"
+    },
     {
       "matches": ["<all_urls>"],
       "js": ["content/index.js"]
     }
   ],
+  "web_accessible_resources": [
+    "web3/inpage.js",
+    "web3/embed.html"
+  ],
   "background": {
     "scripts": ["background/index.js"]
   },
   "permissions": [
+    "storage",
+    "tabs"
   ],
   "icons": {
     "16": "icons/icon-16.png",

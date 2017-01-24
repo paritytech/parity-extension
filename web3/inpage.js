@@ -1,9 +1,10 @@
-import { UI, ACCOUNTS_REQUEST } from '../shared';
+import { UI, ACCOUNTS_REQUEST, getRetryTimeout } from '../shared';
 
 class Web3FrameProvider {
   id = 0;
   callbacks = {};
   mainAccount = null;
+  _retries = 0;
 
   constructor () {
     window.addEventListener('message', (ev) => {
@@ -30,6 +31,7 @@ class Web3FrameProvider {
   }
 
   initializeMainAccount () {
+    this._retries += 1;
     this.sendAsync({
       jsonrpc: '2.0',
       id: ACCOUNTS_REQUEST,
@@ -37,7 +39,7 @@ class Web3FrameProvider {
       params: []
     }, (err, accounts) => {
       if (err) {
-        setTimeout(() => this.initializeMainAccount(), 2000);
+        setTimeout(() => this.initializeMainAccount(), getRetryTimeout(this._retries));
         return;
       }
 

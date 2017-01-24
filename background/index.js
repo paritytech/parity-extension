@@ -19,7 +19,7 @@
 import Processor from './processor';
 import Ws from './ws';
 
-import { UI, TRANSPORT_UNINITIALIZED } from '../shared';
+import { UI, TRANSPORT_UNINITIALIZED, getRetryTimeout } from '../shared';
 
 chrome.runtime.onConnect.addListener((port) => {
   if (port.name === 'secureApi') {
@@ -112,14 +112,20 @@ function loadScripts (port) {
     }
 
     codeCache
-      .then(code => port.postMessage(code))
+      .then(code => {
+        retry.retries = 0;
+        port.postMessage(code);
+      })
       .catch(err => {
         codeCache = null;
+        retry.retries += 1;
+
         console.error('Could not load ParityBar scripts. Retrying in a while..', err);
-        setTimeout(() => retry(msg), 5000);
+        setTimeout(() => retry(msg), getRetryTimeout(retry.retries));
       });
   }
 
+  retry.retries = 0;
   return retry;
 }
 
@@ -135,10 +141,12 @@ function extractToken () {
           }, (tab) => {
             openedTabId = tab.id;
           });
+          extractToken.retries = 0;
         })
         .catch(err => {
           console.error('Node seems down, will re-try', err);
-          setTimeout(() => extractToken(), 1000);
+          extractToken.retries += 1;
+          setTimeout(() => extractToken(), getRetryTimeout(extractToken.retries));
         });
       return;
     }
@@ -146,6 +154,7 @@ function extractToken () {
     transport = new Ws(`ws://${UI}`, token.authToken, true);
   });
 }
+extractToken.retries = 0;
 
 function web3Message (port) {
   return (msg) => {

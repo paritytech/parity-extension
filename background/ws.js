@@ -20,6 +20,7 @@
 
 import EventEmitter from 'eventemitter3';
 import { keccak_256 } from 'js-sha3'; // eslint-disable-line camelcase
+import { getRetryTimeout } from '../shared';
 
 class JsonRpcBase extends EventEmitter {
   constructor () {
@@ -329,21 +330,8 @@ export default class Ws extends JsonRpcBase {
    * @see http://dthain.blogspot.de/2009/02/exponential-backoff-in-distributed.html
    */
   get retryTimeout () {
-    // R between 1 and 2
-    const R = Math.random() + 1;
-    // Initial timeout (100ms)
-    const T = 100;
-    // Exponential Factor
-    const F = 2;
-    // Max timeout (4s)
-    const M = 4000;
-    // Current number of retries
-    const N = this._retries;
-
-    // Increase retries number
-    this._retries++;
-
-    return Math.min(R * T * Math.pow(F, N), M);
+    this._retries += 1;
+    return getRetryTimeout(this._retries - 1);
   }
 }
 

@@ -22,7 +22,8 @@
 	background: none;
 	border: none;
 	opacity: 0;
-	animation: .4s ease-out 2s fadeIn;
+	animation: .4s ease-out 2s;
+  animation-name: fadeIn;
 	animation-fill-mode: forwards;
   width: 300px;
   height: 100px;
@@ -34,7 +35,7 @@
   width: 1000px;
 }
 
-@keyframes fadeIn {
+@keyframes :local(fadeIn) {
 	from { opacity: 0 }
 	to { opacity: 1 }
 }

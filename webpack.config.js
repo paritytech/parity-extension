@@ -33,7 +33,7 @@ const manifestOptions = {
   output: path.resolve('./build')
 };
 
-// Contruct the output directory // process
+// Contruct the output directory and process
 // the Manifest file and write it
 const manifest = new Manifest(manifestOptions);
 manifest.run();

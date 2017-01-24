@@ -15,7 +15,7 @@
 /* along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-:local(.token) {
+.token {
   background-color: rgba(0, 0, 0, 0.25);
   border-radius: 16px;
   height: 24px;
@@ -27,21 +27,21 @@
   align-items: center;
 }
 
-:local(.balance) {
+.balance {
   margin-left: 0.5em;
   display: flex;
   flex-direction: row;
   align-items: center;
 
-  &:local(.no-value) :local(.tla) {
+  &.no-value .tla {
     margin-bottom: 0;
   }
 
-  :local(.value) {
+  .value {
     margin-right: 0.5em;
   }
 
-  :local(.tla) {
+  .tla {
     font-size: 0.75em;
     text-transform: uppercase;
     margin-bottom: -0.1em;

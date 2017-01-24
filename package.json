@@ -12,7 +12,7 @@
     "test": "npm run lint && npm run test:jest",
     "test:jest": "NODE_ENV=test jest ./**/*.spec.js",
     "clean": "rm -rf build",
-    "webpack": "webpack"
+    "webpack:start": "webpack --watch"
   },
   "author": "Parity Technologies <info@ethcore.io>",
   "license": "GPL3",

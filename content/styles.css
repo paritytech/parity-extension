@@ -17,13 +17,13 @@
 
 @import url('https://fonts.googleapis.com/css?family=Roboto:300');
 
-:local(.transition) {
+.transition {
   transition-property: opacity, transform, z-index;
   transition-duration: 0.25s;
   transition-timing-function: cubic-bezier(0.7,0,0.3,1);
 }
 
-:local(.container) {
+.container {
   composes: transition;
 
   display: inline-flex !important;

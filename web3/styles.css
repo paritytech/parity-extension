@@ -15,7 +15,7 @@
 /* along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-:local(.iframe__main) {
+.iframe__main {
 	position: fixed;
 	bottom: 0;
 	right: 0;
@@ -29,7 +29,7 @@
   z-index: 9999999999;
 }
 
-:local(.iframe__open) {
+.iframe__open {
   height: 355px;
   width: 1000px;
 }

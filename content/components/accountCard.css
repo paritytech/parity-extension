@@ -15,11 +15,11 @@
 /* along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-:local(.container) {
+.container {
   position: relative;
 }
 
-:local(.card), :local(.tokens) {
+.card, .tokens {
   composes: transition from '../styles.css';
 
   display: inline-flex;
@@ -27,7 +27,7 @@
   align-items: center;
 }
 
-:local(.card) {
+.card {
   position: absolute;
   font-size: 1rem;
 
@@ -44,23 +44,23 @@
 
   padding: 0.75em 1em;
 
-  :local(.address) {
+  .address {
     cursor: text;
   }
 }
 
-:local(.card):local(.open) {
+.card.open {
   opacity: 1;
   z-index: 9999;
 }
 
-:local(.header) {
+.header {
   display: flex;
   flex-direction: row;
   align-items: center;
   margin-bottom: 0.5em;
 
-  :local(.title) {
+  .title {
     margin-left: 1em;
     font-size: 1.15em;
 
@@ -69,7 +69,7 @@
       margin: 0.25em 0;
     }
 
-    :local(.name) {
+    .name {
       font-size: 0.75em;
     }
   }

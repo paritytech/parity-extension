@@ -23,7 +23,7 @@ import AccountCard from './accountCard';
 import Badge from './badge';
 import IdentityIcon from './identityIcon';
 
-import styles from './augmentedIcon.less';
+import styles from './augmentedIcon.css';
 
 const SCALE = 1.5;
 const OFFSET = 5;

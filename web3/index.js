@@ -80,7 +80,7 @@ function injectIframe () {
   }
 
   // lazy load styles
-  const styles = require('./styles.less');
+  const styles = require('./styles.css');
   const iframe = document.createElement('iframe');
   iframe.className = styles.iframe__main;
   iframe.src = chrome.extension.getURL('web3/embed.html');

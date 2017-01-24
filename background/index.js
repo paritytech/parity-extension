@@ -17,13 +17,14 @@
 /* global chrome */
 
 import Processor from './processor';
-import Ws from './ws';
+import loadScripts from './loadScripts';
+import secureApiMessage from './transport';
 
-import { UI, TRANSPORT_UNINITIALIZED, getRetryTimeout } from '../shared';
+import { DAPPS } from '../shared';
 
 chrome.runtime.onConnect.addListener((port) => {
   if (port.name === 'secureApi') {
-    port.onMessage.addListener(web3Message(port));
+    port.onMessage.addListener(secureApiMessage(port));
     return;
   }
 
@@ -32,7 +33,6 @@ chrome.runtime.onConnect.addListener((port) => {
     return;
   }
 
-  // TODO [ToDr] Use connection without elevated privileges here!
   if (port.name === 'web3') {
     port.onMessage.addListener(web3Message(port));
     return;
@@ -46,131 +46,23 @@ chrome.runtime.onConnect.addListener((port) => {
   throw new Error(`Unrecognized port: ${port.name}`);
 });
 
-let openedTabId = null;
-let transport = null;
-// Attempt to extract token on start if not available.
-extractToken();
-
-chrome.runtime.onMessage.addListener((request, sender, callback) => {
-  if (!(transport && transport.isConnected) && request.token) {
-    if (transport) {
-      // TODO [ToDr] kill old transport!
-    }
-
-    if (openedTabId) {
-      chrome.tabs.remove(openedTabId);
-      openedTabId = null;
-    }
-
-    console.log('Extracted a token: ', request.token);
-    console.log('Extracted backgroundSeed: ', request.backgroundSeed);
-    chrome.storage.local.set({
-      'authToken': request.token,
-      'backgroundSeed': request.backgroundSeed
-    }, () => {});
-    transport = new Ws(`ws://${UI}`, request.token, true);
-    return;
-  }
-});
-
-let codeCache = null;
-function loadScripts (port) {
-  function retry (msg) {
-    if (msg.type !== 'parity.bar.code') {
-      return;
-    }
-
-    if (!codeCache) {
-      const vendor = fetch(`http://${UI}/vendor.js`)
-        .then(x => x.blob());
-      const embed = fetch(`http://${UI}/embed.html`)
-        .then(x => x.text())
-        .then(page => ({
-          styles: /styles\/embed\.([a-z0-9]{10})\.css/.exec(page),
-          scripts: /embed\.([a-z0-9]{10})\.js/.exec(page)
-        }))
-        .then(res => {
-          return Promise.all([
-            fetch(`http://${UI}/${res.styles[0]}`),
-            fetch(`http://${UI}/${res.scripts[0]}`)
-          ]);
-        })
-        .then(x => Promise.all(x.map(x => x.blob())));
-
-      codeCache = Promise.all([vendor, embed])
-        .then(scripts => {
-          const vendor = scripts[0];
-          const styles = scripts[1][0];
-          const embed = scripts[1][1];
-          // Concat blobs
-          const blob = new Blob([vendor, embed], { type: 'application/javascript' });
-          return {
-            styles: URL.createObjectURL(styles),
-            scripts: URL.createObjectURL(blob)
-          };
-        });
-    }
-
-    codeCache
-      .then(code => {
-        retry.retries = 0;
-        port.postMessage(code);
-      })
-      .catch(err => {
-        codeCache = null;
-        retry.retries += 1;
-
-        console.error('Could not load ParityBar scripts. Retrying in a while..', err);
-        setTimeout(() => retry(msg), getRetryTimeout(retry.retries));
-      });
-  }
-
-  retry.retries = 0;
-  return retry;
-}
-
-function extractToken () {
-  chrome.storage.local.get('authToken', (token) => {
-    if (!token.authToken) {
-      fetch(`http://${UI}`)
-        .then(() => {
-          // Open a UI to extract the token from it
-          chrome.tabs.create({
-            url: `http://${UI}`,
-            active: false
-          }, (tab) => {
-            openedTabId = tab.id;
-          });
-          extractToken.retries = 0;
-        })
-        .catch(err => {
-          console.error('Node seems down, will re-try', err);
-          extractToken.retries += 1;
-          setTimeout(() => extractToken(), getRetryTimeout(extractToken.retries));
-        });
-      return;
-    }
-
-    transport = new Ws(`ws://${UI}`, token.authToken, true);
-  });
-}
-extractToken.retries = 0;
-
 function web3Message (port) {
   return (msg) => {
-    const { id, payload } = msg;
-    if (!transport || !transport.isConnected) {
-      console.error('Transport uninitialized!');
-      port.postMessage({
-        id, err: TRANSPORT_UNINITIALIZED,
-        payload: null,
-        connected: false
-      });
-      return;
-    }
+    const { id, payload, origin } = msg;
 
-    transport.executeRaw(payload)
-      .then((response) => {
+    fetch(`http://${DAPPS}/rpc/`, {
+      method: 'POST',
+      mode: 'cors',
+      headers: new Headers({
+        'Content-Type': 'application/json',
+        'X-Parity-Origin': origin
+      }),
+      body: JSON.stringify(payload),
+      redirect: 'error',
+      referrerPolicy: 'origin'
+    })
+      .then(response => response.json())
+      .then(response => {
         port.postMessage({
           id,
           err: null,
@@ -178,7 +70,7 @@ function web3Message (port) {
           connected: true
         });
       })
-      .catch((err) => {
+      .catch(err => {
         port.postMessage({
           id,
           err,

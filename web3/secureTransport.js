@@ -1,5 +1,8 @@
 /* global chrome */
 
+/*
+ * NOTE: Executed in extension context
+ */
 import { TRANSPORT_UNINITIALIZED } from '../shared';
 
 /**

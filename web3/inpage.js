@@ -1,3 +1,7 @@
+/*
+ * NOTE: This file is executed in context of the website:
+ * It's not a content script!
+ */
 import { UI, ACCOUNTS_REQUEST, getRetryTimeout } from '../shared';
 
 class Web3FrameProvider {

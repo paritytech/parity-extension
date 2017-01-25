@@ -16,8 +16,18 @@
 
 import { UI, getRetryTimeout } from '../shared';
 
+class VersionMismatch extends Error {
+}
+
 let codeCache = null;
 export default function loadScripts (port) {
+  function checkResponseOk (response) {
+    if (response.ok) {
+      return response;
+    }
+    throw new VersionMismatch('Expected successful response. Likely a version mismatch.');
+  }
+
   function retry (msg) {
     if (msg.type !== 'parity.bar.code') {
       return;
@@ -25,20 +35,22 @@ export default function loadScripts (port) {
 
     if (!codeCache) {
       const vendor = fetch(`http://${UI}/vendor.js`)
-        .then(x => x.blob());
+        .then(checkResponseOk)
+        .then(response => response.blob());
       const embed = fetch(`http://${UI}/embed.html`)
-        .then(x => x.text())
+        .then(checkResponseOk)
+        .then(response => response.text())
         .then(page => ({
           styles: /styles\/embed\.([a-z0-9]{10})\.css/.exec(page),
           scripts: /embed\.([a-z0-9]{10})\.js/.exec(page)
         }))
         .then(res => {
           return Promise.all([
-            fetch(`http://${UI}/${res.styles[0]}`),
-            fetch(`http://${UI}/${res.scripts[0]}`)
+            fetch(`http://${UI}/${res.styles[0]}`).then(checkResponseOk),
+            fetch(`http://${UI}/${res.scripts[0]}`).then(checkResponseOk)
           ]);
         })
-        .then(x => Promise.all(x.map(x => x.blob())));
+        .then(responses => Promise.all(responses.map(response => response.blob())));
 
       codeCache = Promise.all([vendor, embed])
         .then(scripts => {
@@ -48,6 +60,7 @@ export default function loadScripts (port) {
           // Concat blobs
           const blob = new Blob([vendor, embed], { type: 'application/javascript' });
           return {
+            success: true,
             styles: URL.createObjectURL(styles),
             scripts: URL.createObjectURL(blob)
           };
@@ -60,6 +73,14 @@ export default function loadScripts (port) {
         port.postMessage(code);
       })
       .catch(err => {
+        if (err instanceof VersionMismatch) {
+          port.postMessage({
+            success: false,
+            error: err.message,
+            ui: `http://${UI}`
+          });
+        }
+
         codeCache = null;
         retry.retries += 1;
 

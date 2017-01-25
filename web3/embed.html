@@ -19,19 +19,24 @@
       .loading {
         position: absolute;
         bottom: 0;
-        right: 0;
+        right: 1em;
         text-align: right;
-        font-size: 1.3em;
+        font-size: 1.2em;
         color: #fff;
-        background: #e44;
-        padding: .5em .5em 0;
+        background: rgba(40, 40, 40, 0.75);
+        padding: 0 .5em;
+        height: 52px;
+        display: flex;
+        align-items: center;
       }
     </style>
-  <link rel="shortcut icon" href="parity-logo-black-no-text.png"></head>
-<body>
+    </head>
+  <body>
     <div id="container">
-      <div class="loading">Connecting to Parity...</div>
+      <div class="loading">
+        <span>Connecting to Parity...</span>
+      </div>
     </div>
-    <script src="index.js"></script>
+    <script src="./index.js"></script>
   </body>
 </html>

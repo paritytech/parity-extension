@@ -23,28 +23,15 @@ const postcssNested = require('postcss-nested');
 const postcssVars = require('postcss-simple-vars');
 const rucksack = require('rucksack-css');
 
-const Manifest = require('chrome-extension-scripts/lib/manifest').default;
+const Shared = require('./scripts/shared');
 
 const ENV = process.env.NODE_ENV || 'development';
 const isProd = ENV === 'production';
 
-const manifestOptions = {
-  manifest: path.resolve('./manifest.json'),
-  output: path.resolve('./build')
-};
-
 // Contruct the output directory and process
 // the Manifest file and write it
-const manifest = new Manifest(manifestOptions);
+const manifest = Shared.getManifest();
 manifest.run();
-
-const entries = manifest.scripts.reduce((entries, path) => {
-  const name = path.split('.').slice(0, -1).join('.');
-
-  entries[name] = path;
-
-  return entries;
-}, {});
 
 const postcss = [
   postcssImport({
@@ -65,9 +52,9 @@ module.exports = {
   cache: !isProd,
   devtool: isProd ? '#hidden-source-map' : '#source-map',
 
-  entry: entries,
+  entry: manifest.entries,
   output: {
-    path: manifestOptions.output,
+    path: manifest.buildPath,
     filename: '[name].js',
     chunkFilename: '[name]-[chunkhash].js'
   },
@@ -78,6 +65,15 @@ module.exports = {
         test: /\.js$/,
         exclude: /(node_modules)/,
         use: 'babel-loader'
+      },
+
+      {
+        test: /\.html$/,
+        use: [
+          'file-loader?name=[path][name].[ext]',
+          'extract-loader?publicPath=./',
+          'html-loader'
+        ]
       },
 
       {

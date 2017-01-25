@@ -1,3 +1,4 @@
+import './embed.html';
 import { UI, ACCOUNTS_REQUEST, getRetryTimeout } from '../shared';
 
 class Web3FrameProvider {

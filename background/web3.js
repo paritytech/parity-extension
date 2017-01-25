@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 
-import { DAPPS } from '../shared';
+import { DAPPS, TRANSPORT_UNINITIALIZED } from '../shared';
 
 export default function web3Message (port) {
   return (msg) => {
@@ -40,7 +40,8 @@ export default function web3Message (port) {
           connected: true
         });
       })
-      .catch(err => {
+      .catch(error => {
+        const err = error.message === 'Failed to fetch' ? TRANSPORT_UNINITIALIZED : error.message;
         port.postMessage({
           id,
           err,

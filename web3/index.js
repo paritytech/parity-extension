@@ -43,7 +43,6 @@ if (window.location.protocol === 'chrome-extension:') {
         if (!err) {
           injectIframe();
         } else {
-          // remove iframe
           removeIframe(err);
         }
       }

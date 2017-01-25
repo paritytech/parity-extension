@@ -17,6 +17,7 @@
 import { UI, getRetryTimeout } from '../shared';
 
 class VersionMismatch extends Error {
+  isVersionMismatch = true;
 }
 
 let codeCache = null;
@@ -73,7 +74,8 @@ export default function loadScripts (port) {
         port.postMessage(code);
       })
       .catch(err => {
-        if (err instanceof VersionMismatch) {
+        // TODO [ToDr] For some reason we cannot check instanceof here.
+        if (err.isVersionMismatch) {
           port.postMessage({
             success: false,
             error: err.message,

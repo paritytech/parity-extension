@@ -1,5 +1,8 @@
 /* global chrome */
 
+/*
+ * NOTE: Executed in extension context
+ */
 import { TRANSPORT_UNINITIALIZED } from '../shared';
 
 /**
@@ -78,6 +81,19 @@ export function loadScripts () {
   // We need to use `port` here cause the response is asynchronous.
   const port = chrome.runtime.connect({ name: 'barScripts' });
   port.onMessage.addListener((code) => {
+    if (!code.success) {
+      const $loading = document.querySelector('#container .loading');
+      const $link = document.createElement('a');
+      $link.href = `${code.ui}/#/signer`;
+      $link.target = '_blank';
+      $link.innerHTML = 'Your Parity version is older than 1.5. <br />You need to open UI to sign transactions.';
+
+      $loading.classList.add('version');
+      $loading.innerHTML = '';
+      $loading.appendChild($link);
+      return;
+    }
+
     const $script = document.createElement('script');
     const $styles = document.createElement('link');
 

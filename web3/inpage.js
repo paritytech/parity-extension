@@ -2,12 +2,12 @@
  * NOTE: This file is executed in context of the website:
  * It's not a content script!
  */
-import { UI, ACCOUNTS_REQUEST, getRetryTimeout } from '../shared';
+import { UI, getRetryTimeout } from '../shared';
 
 class Web3FrameProvider {
   id = 0;
   callbacks = {};
-  mainAccount = null;
+  accounts = null;
   _retries = 0;
 
   constructor () {
@@ -15,9 +15,20 @@ class Web3FrameProvider {
       if (ev.source !== window) {
         return;
       }
-      if (!ev.data.type || ev.data.type !== 'parity.web3.response') {
+
+      if (!ev.data.type) {
         return;
       }
+
+      if (ev.data.type === 'parity.web3.accounts.response' && this.onAccounts) {
+        this.onAccounts(ev.data.err, ev.data.payload);
+        return;
+      }
+
+      if (ev.data.type !== 'parity.web3.response') {
+        return;
+      }
+
       const { id, err, payload } = ev.data;
       const cb = this.callbacks[id];
       delete this.callbacks[id];
@@ -30,27 +41,23 @@ class Web3FrameProvider {
       cb(err, payload);
     });
 
-    // Initialize main account
     this.initializeMainAccount();
   }
 
   initializeMainAccount () {
     this._retries += 1;
-    this.sendAsync({
-      jsonrpc: '2.0',
-      id: ACCOUNTS_REQUEST,
-      method: 'eth_accounts',
-      params: []
-    }, (err, accounts) => {
-      if (err) {
-        setTimeout(() => this.initializeMainAccount(), getRetryTimeout(this._retries));
-        return;
-      }
+    window.postMessage({
+      type: 'parity.web3.accounts.request'
+    }, '*');
+  }
 
-      if (accounts && accounts[0]) {
-        this.mainAccount = accounts[0];
-      }
-    });
+  onAccounts (err, accounts) {
+    if (err) {
+      setTimeout(() => this.initializeMainAccount(), getRetryTimeout(this._retries));
+      return;
+    }
+
+    this.accounts = accounts;
   }
 
   sendAsync = (payload, cb) => {
@@ -66,13 +73,12 @@ class Web3FrameProvider {
   send = (payload) => {
     const { id, method, jsonrpc } = payload;
     if (method === 'eth_accounts') {
-      const selectedAccount = this.mainAccount;
-      const result = selectedAccount ? [selectedAccount] : [];
+      const result = this.accounts || [];
       return { id, jsonrpc, result };
     }
 
     if (method === 'eth_coinbase') {
-      const result = this.mainAccount || '0x0000000000000000000000000000000000000000';
+      const result = (this.accounts && this.accounts[0]) || '0x0000000000000000000000000000000000000000';
       return { id, jsonrpc, result };
     }
 

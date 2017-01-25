@@ -1,7 +1,7 @@
 /* global chrome */
 
 import { createSecureTransport, handleResizeEvents, loadScripts, getBackgroundSeed } from './secureTransport';
-import { TRANSPORT_UNINITIALIZED, ACCOUNTS_REQUEST } from '../shared';
+import { TRANSPORT_UNINITIALIZED } from '../shared';
 
 if (window.location.protocol === 'chrome-extension:') {
   /**
@@ -39,12 +39,10 @@ if (window.location.protocol === 'chrome-extension:') {
       const { id, err, payload } = msg;
 
       // Inject iframe only if the page is using Web3
-      if (!payload || payload.id !== ACCOUNTS_REQUEST) {
-        if (!err) {
-          injectIframe();
-        } else {
-          removeIframe(err);
-        }
+      if (!err) {
+        injectIframe();
+      } else {
+        removeIframe(err);
       }
 
       window.postMessage({
@@ -87,9 +85,25 @@ if (window.location.protocol === 'chrome-extension:') {
       return;
     }
 
+    if (type === 'parity.web3.accounts.request') {
+      const origin = window.location.origin;
+      chrome.runtime.sendMessage({
+        type,
+        origin
+      }, ({ err, payload }) => {
+        window.postMessage({
+          type: 'parity.web3.accounts.response',
+          err,
+          payload
+        }, '*');
+      });
+      return;
+    }
+
     if (type === 'parity.token') {
       console.log('Sending token', ev.data.token);
       chrome.runtime.sendMessage({
+        type,
         token: ev.data.token,
         backgroundSeed: ev.data.backgroundSeed
       });

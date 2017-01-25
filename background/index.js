@@ -19,9 +19,9 @@
 import Processor from './processor';
 import loadScripts from './loadScripts';
 import secureApiMessage from './transport';
+import web3Message from './web3';
 
-import { DAPPS } from '../shared';
-
+const processor = new Processor();
 chrome.runtime.onConnect.addListener((port) => {
   if (port.name === 'secureApi') {
     port.onMessage.addListener(secureApiMessage(port));
@@ -39,65 +39,9 @@ chrome.runtime.onConnect.addListener((port) => {
   }
 
   if (port.name === 'id') {
-    port.onMessage.addListener(processId(port));
+    port.onMessage.addListener(processor.getHandler(port));
     return;
   }
 
   throw new Error(`Unrecognized port: ${port.name}`);
 });
-
-function web3Message (port) {
-  return (msg) => {
-    const { id, payload, origin } = msg;
-
-    fetch(`http://${DAPPS}/rpc/`, {
-      method: 'POST',
-      mode: 'cors',
-      headers: new Headers({
-        'Content-Type': 'application/json',
-        'X-Parity-Origin': origin
-      }),
-      body: JSON.stringify(payload),
-      redirect: 'error',
-      referrerPolicy: 'origin'
-    })
-      .then(response => response.json())
-      .then(response => {
-        port.postMessage({
-          id,
-          err: null,
-          payload: response,
-          connected: true
-        });
-      })
-      .catch(err => {
-        port.postMessage({
-          id,
-          err,
-          payload: null
-        });
-      });
-  };
-}
-
-const processor = new Processor();
-function processId (port) {
-  return (message = {}) => {
-    const { id, data } = message;
-
-    processor
-      .process(data)
-      .then((result) => {
-        port.postMessage({
-          id, result
-        });
-      })
-      .catch((error) => {
-        port.postMessage({
-          id, error: error
-        });
-
-        throw error;
-      });
-  };
-}

@@ -118,6 +118,26 @@ export default class Processor {
       });
   }
 
+  getHandler (port) {
+    return (message = {}) => {
+      const { id, data } = message;
+
+      this
+        .process(data)
+        .then((result) => {
+          port.postMessage({
+            id, result
+          });
+        })
+        .catch((error) => {
+          port.postMessage({
+            id, error: error
+          });
+
+          throw error;
+        });
+    };
+  }
 }
 
 function blobToBase64 (blob) {

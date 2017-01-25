@@ -2,7 +2,12 @@
  * NOTE: This file is executed in context of the website:
  * It's not a content script!
  */
-import { UI, getRetryTimeout } from '../shared';
+import {
+  UI, getRetryTimeout,
+  EV_WEB3_REQUEST, EV_WEB3_RESPONSE,
+  EV_WEB3_ACCOUNTS_REQUEST, EV_WEB3_ACCOUNTS_RESPONSE,
+  EV_TOKEN
+} from '../shared';
 
 class Web3FrameProvider {
   id = 0;
@@ -20,12 +25,12 @@ class Web3FrameProvider {
         return;
       }
 
-      if (ev.data.type === 'parity.web3.accounts.response' && this.onAccounts) {
+      if (ev.data.type === EV_WEB3_ACCOUNTS_RESPONSE && this.onAccounts) {
         this.onAccounts(ev.data.err, ev.data.payload);
         return;
       }
 
-      if (ev.data.type !== 'parity.web3.response') {
+      if (ev.data.type !== EV_WEB3_RESPONSE) {
         return;
       }
 
@@ -47,7 +52,7 @@ class Web3FrameProvider {
   initializeMainAccount () {
     this._retries += 1;
     window.postMessage({
-      type: 'parity.web3.accounts.request'
+      type: EV_WEB3_ACCOUNTS_REQUEST
     }, '*');
   }
 
@@ -60,11 +65,20 @@ class Web3FrameProvider {
     this.accounts = accounts;
   }
 
+  request (method, cb) {
+    this.sendAsync({
+      jsonrpc: '2.0',
+      id: this.id,
+      method,
+      params: []
+    }, cb);
+  }
+
   sendAsync = (payload, cb) => {
     this.id += 1;
     this.callbacks[this.id] = cb;
     window.postMessage({
-      type: 'parity.web3.request',
+      type: EV_WEB3_REQUEST,
       id: this.id,
       payload: payload
     }, '*');
@@ -73,11 +87,14 @@ class Web3FrameProvider {
   send = (payload) => {
     const { id, method, jsonrpc } = payload;
     if (method === 'eth_accounts') {
+      // Make a accounts request to refresh them
+      this.request('eth_accounts', (err, payload) => this.onAccounts(err, payload));
       const result = this.accounts || [];
       return { id, jsonrpc, result };
     }
 
     if (method === 'eth_coinbase') {
+      this.request('eth_accounts', (err, payload) => this.onAccounts(err, payload));
       const result = (this.accounts && this.accounts[0]) || '0x0000000000000000000000000000000000000000';
       return { id, jsonrpc, result };
     }
@@ -111,7 +128,7 @@ if (!window.chrome || !window.chrome.extension) {
     const backgroundSeed = fromJson(localStorage.getItem('backgroundSeed'));
     if (token) {
       window.postMessage({
-        type: 'parity.token',
+        type: EV_TOKEN,
         token,
         backgroundSeed
       }, '*');

@@ -3,7 +3,7 @@
 /*
  * NOTE: Executed in extension context
  */
-import { TRANSPORT_UNINITIALIZED } from '../shared';
+import { TRANSPORT_UNINITIALIZED, EV_WEB3_REQUEST, EV_SIGNER_BAR, EV_BAR_CODE } from '../shared';
 
 /**
  * Creates a secureTransport, that can be used by injected ParityBar
@@ -46,7 +46,7 @@ export function createSecureTransport () {
 
         port.postMessage({
           id,
-          type: 'parity.web3.request',
+          type: EV_WEB3_REQUEST,
           payload: request
         });
       });
@@ -68,7 +68,7 @@ export function handleResizeEvents () {
   document.body.addEventListener('parity.bar.visibility', (ev) => {
     document.querySelector('#container > div > div').style.maxHeight = '100vh';
     window.parent.postMessage({
-      type: 'parity.signer.bar',
+      type: EV_SIGNER_BAR,
       opened: ev.detail.opened
     }, '*');
   });
@@ -107,7 +107,7 @@ export function loadScripts () {
   });
 
   port.postMessage({
-    type: 'parity.bar.code'
+    type: EV_BAR_CODE
   });
 }
 

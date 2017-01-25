@@ -17,7 +17,7 @@
 /* global chrome */
 
 import Ws from './ws';
-import { UI, TRANSPORT_UNINITIALIZED, getRetryTimeout } from '../shared';
+import { UI, TRANSPORT_UNINITIALIZED, EV_WEB3_ACCOUNTS_REQUEST, EV_TOKEN, getRetryTimeout } from '../shared';
 
 let openedTabId = null;
 let transport = null;
@@ -68,7 +68,7 @@ function newTransport (token) {
 chrome.runtime.onMessage.addListener((request, sender, callback) => {
   const isTransportReady = transport && transport.isConnected;
 
-  if (request.type === 'parity.web3.accounts.request') {
+  if (request.type === EV_WEB3_ACCOUNTS_REQUEST) {
     if (!isTransportReady) {
       return callback({
         err: TRANSPORT_UNINITIALIZED
@@ -97,7 +97,7 @@ chrome.runtime.onMessage.addListener((request, sender, callback) => {
       }));
   }
 
-  if (request.type !== 'parity.token') {
+  if (request.type !== EV_TOKEN) {
     return;
   }
 

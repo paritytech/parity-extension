@@ -22,8 +22,6 @@ import { AugmentedIcon } from './components';
 import Runner from './runner';
 import { FETCH_IMAGE } from '../background/processor';
 
-import styles from './styles.css';
-
 export const AUGMENTED_NODE_ATTRIBUTE = 'data-parity-touched';
 
 export default class Augmentor {

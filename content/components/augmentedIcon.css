@@ -52,7 +52,7 @@
   composes: transition from '../styles.css';
 
   display: inline-block;
-  vertical-align: text-bottom;
+  vertical-align: text-top;
 
   z-index: 10;
   opacity: 0.75;

@@ -4,12 +4,17 @@ import './embed.html';
  * NOTE: This file is executed in context of the website:
  * It's not a content script!
  */
-import { UI, ACCOUNTS_REQUEST, getRetryTimeout } from '../shared';
+import {
+  UI, getRetryTimeout,
+  EV_WEB3_REQUEST, EV_WEB3_RESPONSE,
+  EV_WEB3_ACCOUNTS_REQUEST, EV_WEB3_ACCOUNTS_RESPONSE,
+  EV_TOKEN
+} from '../shared';
 
 class Web3FrameProvider {
   id = 0;
   callbacks = {};
-  mainAccount = null;
+  accounts = null;
   _retries = 0;
 
   constructor () {
@@ -17,9 +22,20 @@ class Web3FrameProvider {
       if (ev.source !== window) {
         return;
       }
-      if (!ev.data.type || ev.data.type !== 'parity.web3.response') {
+
+      if (!ev.data.type) {
         return;
       }
+
+      if (ev.data.type === EV_WEB3_ACCOUNTS_RESPONSE && this.onAccounts) {
+        this.onAccounts(ev.data.err, ev.data.payload);
+        return;
+      }
+
+      if (ev.data.type !== EV_WEB3_RESPONSE) {
+        return;
+      }
+
       const { id, err, payload } = ev.data;
       const cb = this.callbacks[id];
       delete this.callbacks[id];
@@ -32,34 +48,39 @@ class Web3FrameProvider {
       cb(err, payload);
     });
 
-    // Initialize main account
     this.initializeMainAccount();
   }
 
   initializeMainAccount () {
     this._retries += 1;
+    window.postMessage({
+      type: EV_WEB3_ACCOUNTS_REQUEST
+    }, '*');
+  }
+
+  onAccounts (err, accounts) {
+    if (err) {
+      setTimeout(() => this.initializeMainAccount(), getRetryTimeout(this._retries));
+      return;
+    }
+
+    this.accounts = accounts;
+  }
+
+  request (method, cb) {
     this.sendAsync({
       jsonrpc: '2.0',
-      id: ACCOUNTS_REQUEST,
-      method: 'eth_accounts',
+      id: this.id,
+      method,
       params: []
-    }, (err, accounts) => {
-      if (err) {
-        setTimeout(() => this.initializeMainAccount(), getRetryTimeout(this._retries));
-        return;
-      }
-
-      if (accounts && accounts[0]) {
-        this.mainAccount = accounts[0];
-      }
-    });
+    }, cb);
   }
 
   sendAsync = (payload, cb) => {
     this.id += 1;
     this.callbacks[this.id] = cb;
     window.postMessage({
-      type: 'parity.web3.request',
+      type: EV_WEB3_REQUEST,
       id: this.id,
       payload: payload
     }, '*');
@@ -68,13 +89,15 @@ class Web3FrameProvider {
   send = (payload) => {
     const { id, method, jsonrpc } = payload;
     if (method === 'eth_accounts') {
-      const selectedAccount = this.mainAccount;
-      const result = selectedAccount ? [selectedAccount] : [];
+      // Make a accounts request to refresh them
+      this.request('eth_accounts', (err, payload) => this.onAccounts(err, payload));
+      const result = this.accounts || [];
       return { id, jsonrpc, result };
     }
 
     if (method === 'eth_coinbase') {
-      const result = this.mainAccount || '0x0000000000000000000000000000000000000000';
+      this.request('eth_accounts', (err, payload) => this.onAccounts(err, payload));
+      const result = (this.accounts && this.accounts[0]) || '0x0000000000000000000000000000000000000000';
       return { id, jsonrpc, result };
     }
 
@@ -107,7 +130,7 @@ if (!window.chrome || !window.chrome.extension) {
     const backgroundSeed = fromJson(localStorage.getItem('backgroundSeed'));
     if (token) {
       window.postMessage({
-        type: 'parity.token',
+        type: EV_TOKEN,
         token,
         backgroundSeed
       }, '*');

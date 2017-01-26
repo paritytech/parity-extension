@@ -1,7 +1,14 @@
 export const TRANSPORT_UNINITIALIZED = 'Transport uninitialized';
 export const UI = '127.0.0.1:8180';
 export const DAPPS = '127.0.0.1:8080';
-export const ACCOUNTS_REQUEST = 'parity.background.accounts';
+
+export const EV_WEB3_REQUEST = 'parity.web3.request';
+export const EV_WEB3_RESPONSE = 'parity.web3.response';
+export const EV_WEB3_ACCOUNTS_REQUEST = 'parity.web3.accounts.request';
+export const EV_WEB3_ACCOUNTS_RESPONSE = 'parity.web3.accounts.response';
+export const EV_TOKEN = 'parity.token';
+export const EV_SIGNER_BAR = 'parity.signer.bar';
+export const EV_BAR_CODE = 'parity.signer.bar.code';
 
 /**
  * Exponential Timeout for Retries

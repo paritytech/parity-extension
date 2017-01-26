@@ -2,7 +2,12 @@
 import '../assets/fonts/Roboto/font.css';
 
 import { createSecureTransport, handleResizeEvents, loadScripts, getBackgroundSeed } from './secureTransport';
-import { TRANSPORT_UNINITIALIZED, ACCOUNTS_REQUEST } from '../shared';
+import {
+  TRANSPORT_UNINITIALIZED,
+  EV_WEB3_REQUEST, EV_WEB3_RESPONSE,
+  EV_WEB3_ACCOUNTS_REQUEST, EV_WEB3_ACCOUNTS_RESPONSE,
+  EV_TOKEN, EV_SIGNER_BAR
+} from '../shared';
 
 if (window.location.protocol === 'chrome-extension:') {
   /**
@@ -40,16 +45,14 @@ if (window.location.protocol === 'chrome-extension:') {
       const { id, err, payload } = msg;
 
       // Inject iframe only if the page is using Web3
-      if (!payload || payload.id !== ACCOUNTS_REQUEST) {
-        if (!err) {
-          injectIframe();
-        } else {
-          removeIframe(err);
-        }
+      if (!err) {
+        injectIframe();
+      } else {
+        removeIframe(err);
       }
 
       window.postMessage({
-        type: 'parity.web3.response',
+        type: EV_WEB3_RESPONSE,
         id,
         err,
         payload
@@ -76,7 +79,7 @@ if (window.location.protocol === 'chrome-extension:') {
 
     const { type } = ev.data;
 
-    if (type === 'parity.web3.request') {
+    if (type === EV_WEB3_REQUEST) {
       if (!port || port.isDisconnected) {
         // try to reconnect
         port = initPort();
@@ -88,9 +91,30 @@ if (window.location.protocol === 'chrome-extension:') {
       return;
     }
 
-    if (type === 'parity.token') {
+    if (type === EV_WEB3_ACCOUNTS_REQUEST) {
+      const origin = window.location.origin;
+      chrome.runtime.sendMessage({
+        type,
+        origin
+      }, (result) => {
+        if (!result) {
+          return;
+        }
+
+        const { err, payload } = result;
+        window.postMessage({
+          type: EV_WEB3_ACCOUNTS_RESPONSE,
+          err,
+          payload
+        }, '*');
+      });
+      return;
+    }
+
+    if (type === EV_TOKEN) {
       console.log('Sending token', ev.data.token);
       chrome.runtime.sendMessage({
+        type,
         token: ev.data.token,
         backgroundSeed: ev.data.backgroundSeed
       });
@@ -122,7 +146,7 @@ function injectIframe () {
     if (ev.source !== iframe.contentWindow) {
       return;
     }
-    if (!ev.data.type || ev.data.type !== 'parity.signer.bar') {
+    if (!ev.data.type || ev.data.type !== EV_SIGNER_BAR) {
       return;
     }
     if (ev.data.opened) {

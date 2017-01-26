@@ -17,7 +17,7 @@
 /* global chrome */
 
 import Ws from './ws';
-import { UI, TRANSPORT_UNINITIALIZED, getRetryTimeout } from '../shared';
+import { UI, TRANSPORT_UNINITIALIZED, EV_WEB3_ACCOUNTS_REQUEST, EV_TOKEN, getRetryTimeout } from '../shared';
 
 let openedTabId = null;
 let transport = null;
@@ -56,8 +56,52 @@ export default function secureApiMessage (port) {
   };
 }
 
+let accountsCache = {};
+function newTransport (token) {
+  const transport = new Ws(`ws://${UI}`, token, true);
+  transport.on('open', () => {
+    accountsCache = {};
+  });
+  return transport;
+}
+
 chrome.runtime.onMessage.addListener((request, sender, callback) => {
-  if (!(transport && transport.isConnected) && request.token) {
+  const isTransportReady = transport && transport.isConnected;
+
+  if (request.type === EV_WEB3_ACCOUNTS_REQUEST) {
+    if (!isTransportReady) {
+      return callback({
+        err: TRANSPORT_UNINITIALIZED
+      });
+    }
+
+    const { origin } = request;
+    if (accountsCache[origin]) {
+      return callback({
+        err: null,
+        payload: accountsCache[origin]
+      });
+    }
+
+    transport.execute('parity_getDappsAddresses', origin)
+      .then(accounts => {
+        accountsCache[origin] = accounts;
+        return callback({
+          err: null,
+          payload: accounts
+        });
+      })
+      .catch(err => callback({
+        err,
+        payload: null
+      }));
+  }
+
+  if (request.type !== EV_TOKEN) {
+    return;
+  }
+
+  if (!isTransportReady && request.token) {
     if (transport) {
       // TODO [ToDr] kill old transport!
     }
@@ -73,7 +117,7 @@ chrome.runtime.onMessage.addListener((request, sender, callback) => {
       'authToken': request.token,
       'backgroundSeed': request.backgroundSeed
     }, () => {});
-    transport = new Ws(`ws://${UI}`, request.token, true);
+    transport = newTransport(request.token);
     return;
   }
 });
@@ -100,7 +144,7 @@ function extractToken () {
       return;
     }
 
-    transport = new Ws(`ws://${UI}`, token.authToken, true);
+    transport = newTransport(token.authToken);
   });
 }
 extractToken.retries = 0;

@@ -16,7 +16,7 @@
 
 import { uniq } from 'lodash';
 
-import { UI, getRetryTimeout } from '../shared';
+import { UI, EV_BAR_CODE, getRetryTimeout } from '../shared';
 
 class VersionMismatch extends Error {
   isVersionMismatch = true;
@@ -32,7 +32,7 @@ export default function loadScripts (port) {
   }
 
   function retry (msg) {
-    if (msg.type !== 'parity.bar.code') {
+    if (msg.type !== EV_BAR_CODE) {
       return;
     }
 

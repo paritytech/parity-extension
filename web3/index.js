@@ -1,5 +1,4 @@
 /* global chrome */
-
 import { createSecureTransport, handleResizeEvents, loadScripts, getBackgroundSeed } from './secureTransport';
 import {
   TRANSPORT_UNINITIALIZED,

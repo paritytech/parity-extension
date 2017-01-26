@@ -58,6 +58,7 @@ export default function loadScripts (port) {
           const vendor = scripts[0];
           const styles = scripts[1][0];
           const embed = scripts[1][1];
+
           // Concat blobs
           const blob = new Blob([vendor, embed], { type: 'application/javascript' });
           return {

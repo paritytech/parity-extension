@@ -23,7 +23,7 @@ import IdentityIcon from './identityIcon';
 import Token from './token';
 import { positionToStyle } from '../util/style';
 
-import styles from './accountCard.less';
+import styles from './accountCard.css';
 
 const DEFAULT_SCALE = 0.05;
 

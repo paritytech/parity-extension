@@ -14,22 +14,26 @@
 // You should have received a copy of the GNU General Public License
 // along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 
-import { h } from 'preact';
-/** @jsx h */
+const webpack = require('webpack');
+const WebpackStats = require('webpack/lib/Stats');
 
-import styles from './badge.css';
+const WebpackConfig = require('../webpack.config');
 
-const Badge = ({ children, ...props }) => {
-  const { size = 16, src, style = {}, title } = props;
+const compiler = webpack(WebpackConfig);
 
-  return (
-    <img
-      className={ styles.badge }
-      src={ src }
-      style={ { height: size, width: size, ...style } }
-      title={ title }
-    />
-  );
-};
+compiler.watch({}, function handler (err, stats) {
+  if (err) {
+    return console.error(err);
+  }
 
-export default Badge;
+  // @see https://github.com/webpack/webpack/blob/324d309107f00cfc38ec727521563d309339b2ec/lib/Stats.js#L790
+  // Accepted values: none, errors-only, minimal, normal, verbose
+  const options = WebpackStats.presetToOptions('normal');
+  options.timings = true;
+
+  const output = stats.toString(options);
+
+  process.stdout.write('\n');
+  process.stdout.write(output);
+  process.stdout.write('\n\n');
+});

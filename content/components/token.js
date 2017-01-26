@@ -19,7 +19,7 @@ import { h, Component } from 'preact';
 
 import Badge from './badge';
 
-import styles from './token.less';
+import styles from './token.css';
 
 export default class Token extends Component {
 

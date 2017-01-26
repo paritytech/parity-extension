@@ -15,7 +15,27 @@
 /* along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-:local(.badge) {
-  width: auto;
-  border-radius: 50%;
+.iframe__main {
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  background: none;
+  border: none;
+  opacity: 0;
+  animation: .4s ease-out 2s;
+  animation-name: fadeIn;
+  animation-fill-mode: forwards;
+  width: 300px;
+  height: 100px;
+  z-index: 9999999999;
+}
+
+.iframe__open {
+  height: 355px;
+  width: 1000px;
+}
+
+@keyframes :local(fadeIn) {
+  from { opacity: 0 }
+  to { opacity: 1 }
 }

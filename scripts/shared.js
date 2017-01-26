@@ -14,22 +14,20 @@
 // You should have received a copy of the GNU General Public License
 // along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 
-import { h } from 'preact';
-/** @jsx h */
+const path = require('path');
+const ChromeExtensionUtils = require('chrome-extension-utils');
 
-import styles from './badge.css';
+module.exports = {
+  getManifest: function getManifest () {
+    const output = process.env.NODE_ENV === 'production'
+      ? 'release'
+      : 'build';
 
-const Badge = ({ children, ...props }) => {
-  const { size = 16, src, style = {}, title } = props;
+    const manifestOptions = {
+      manifest: path.resolve(__dirname, '../manifest.json'),
+      output: path.resolve(__dirname, '../', output)
+    };
 
-  return (
-    <img
-      className={ styles.badge }
-      src={ src }
-      style={ { height: size, width: size, ...style } }
-      title={ title }
-    />
-  );
+    return new ChromeExtensionUtils.Manifest(manifestOptions);
+  }
 };
-
-export default Badge;

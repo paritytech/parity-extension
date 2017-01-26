@@ -15,15 +15,15 @@
 /* along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-:local(.badges), :local(.icons) {
-  composes: transition from '../styles.less';
+.badges, .icons {
+  composes: transition from '../styles.css';
 
   display: inline-flex;
   flex-direction: row;
   align-items: center;
 }
 
-:local(.icons) {
+.icons {
   flex-direction: column;
   margin-right: 5px;
   font-family: 'Roboto', sans-serif;
@@ -34,23 +34,23 @@
   }
 }
 
-:local(.badgesContainer) {
+.badgesContainer {
   position: absolute;
 }
 
-:local(.iconContainer) {
-  composes: transition from '../styles.less';
+.iconContainer {
+  composes: transition from '../styles.css';
 
   display: inline-block;
   z-index: 10;
   opacity: 0.75;
 
-  &:local(.hover) {
+  &.hover {
     opacity: 1;
   }
 }
 
-:local(.badges) {
+.badges {
   box-sizing: content-box;
   position: absolute;
 
@@ -69,7 +69,7 @@
     }
   }
 
-  &:local(.hover) {
+  &.hover {
     opacity: 1;
     z-index: 999;
   }

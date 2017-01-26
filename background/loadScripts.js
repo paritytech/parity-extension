@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 
-// import { uniq } from 'lodash';
-
 import { UI, EV_BAR_CODE, getRetryTimeout } from '../shared';
 
 class VersionMismatch extends Error {
@@ -53,27 +51,7 @@ export default function loadScripts (port) {
             fetch(`http://${UI}/${res.scripts[0]}`).then(checkResponseOk)
           ]);
         })
-        .then(([ style, script ]) => {
-          return Promise
-            .all([ style.blob(), script.text() ])
-            .then(([ styleBlob, scriptText ]) => {
-              // const regex = /"(fonts\/[^"]+)"/g;
-              // const fonts = [];
-
-              // let match = regex.exec(scriptText);
-
-              // while (match) {
-              //   fonts.push(match[1]);
-              //   match = regex.exec(scriptText);
-              // }
-
-              // uniq(fonts).forEach((fontURL) => {
-              //   scriptText = scriptText.replace(new RegExp(fontURL, 'g'), `http://${UI}/${fontURL}`);
-              // });
-
-              return [ styleBlob, scriptText ];
-            });
-        });
+        .then(responses => Promise.all(responses.map(response => response.blob())));
 
       codeCache = Promise.all([vendor, embed])
         .then(scripts => {

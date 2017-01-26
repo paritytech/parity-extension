@@ -119,22 +119,6 @@ export default class Augmentor {
           node.style.height = `${height}px`;
         }
 
-        // Add the right classe(s)
-        styles.container
-          .split(' ')
-          .forEach((className) => {
-            // node.classList.add(className);
-          });
-
-        // node.appendChild(augmentedIcon);
-        // Add the augmented icon
-        const placeholder = document.createElement('span');
-        placeholder.textContent = '|';
-        placeholder.style.visibility = 'hidden';
-        placeholder.style.width = '0';
-
-        // node.insertBefore(augmentedIcon, node.childNodes[0]);
-        // node.insertBefore(placeholder, augmentedIcon);
         node.insertAdjacentElement('beforebegin', augmentedIcon);
       })
       .catch((error) => {

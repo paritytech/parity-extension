@@ -122,8 +122,6 @@ module.exports = {
       }
     }),
 
-    // new ManifestPlugin(manifest),
-
     new webpack.DefinePlugin({
       'global.GENTLY': false,
       'process.env.APP_ENV': JSON.stringify(process.env.APP_ENV),

@@ -53,6 +53,7 @@
 
   display: inline-block;
   vertical-align: text-top;
+  position: relative;
 
   z-index: 10;
   opacity: 0.75;
@@ -65,6 +66,11 @@
   &:hover {
     cursor: pointer;
   }
+}
+
+.icon {
+  position: absolute;
+  top: 0;
 }
 
 .badges {

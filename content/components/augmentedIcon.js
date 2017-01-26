@@ -78,6 +78,7 @@ export default class AugmentedIcon extends Component {
       >
         <IdentityIcon
           address={ address }
+          className={ styles.icon }
           ref={ this.handleIconRef }
           size={ height }
         />

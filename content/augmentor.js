@@ -114,7 +114,7 @@ export default class Augmentor {
 
         // Set the proper height if it has been modified
         if (height !== iconHeight) {
-          node.style.height = `${height}px`;
+          augmentedIcon.style.top = (height - iconHeight) / 2 + 'px';
         }
 
         node.insertAdjacentElement('beforebegin', augmentedIcon);

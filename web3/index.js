@@ -1,6 +1,4 @@
 /* global chrome */
-import '../assets/fonts/Roboto/font.css';
-
 import { createSecureTransport, handleResizeEvents, loadScripts, getBackgroundSeed } from './secureTransport';
 import {
   TRANSPORT_UNINITIALIZED,

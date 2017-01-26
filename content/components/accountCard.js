@@ -112,19 +112,31 @@ export default class AccountCard extends Component {
   }
 
   renderTokens (tokens) {
-    return tokens.map((token) => {
-      const { balance, title, TLA, src } = token;
+    return tokens
+      .sort((tokenA, tokenB) => {
+        if (tokenA.TLA.toLowerCase() === 'eth') {
+          return -1;
+        }
 
-      return (
-        <Token
-          badge={ { src, size: 32 } }
-          balance={ balance }
-          key={ TLA }
-          name={ TLA }
-          title={ title }
-        />
-      );
-    });
+        if (tokenB.TLA.toLowerCase() === 'eth') {
+          return 1;
+        }
+
+        return tokenA.TLA.localeCompare(tokenB.TLA);
+      })
+      .map((token) => {
+        const { balance, title, TLA, src } = token;
+
+        return (
+          <Token
+            badge={ { src, size: 32 } }
+            balance={ balance }
+            key={ TLA }
+            name={ TLA }
+            title={ title }
+          />
+        );
+      });
   }
 
   renderBadges (badges) {

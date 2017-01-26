@@ -52,7 +52,7 @@ export default class AccountCard extends Component {
   }
 
   render () {
-    const { address, badges, name, tokens } = this.props;
+    const { address, badges, name, size, tokens } = this.props;
     const { open, style } = this.state;
 
     const mainClasses = [ styles.card ];
@@ -61,11 +61,17 @@ export default class AccountCard extends Component {
       mainClasses.push(styles.open);
     }
 
+    const containerStyle = {
+      ...style,
+      top: size / 2,
+      left: size / 2
+    };
+
     return (
       <span
         className={ mainClasses.join(' ') }
         ref={ this.handleRef }
-        style={ style }
+        style={ containerStyle }
       >
         <span className={ styles.header }>
           <IdentityIcon

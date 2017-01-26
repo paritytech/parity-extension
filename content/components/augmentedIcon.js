@@ -17,6 +17,7 @@
 import { bind } from 'decko';
 import { debounce } from 'lodash';
 import { h, Component } from 'preact';
+import Portal from 'preact-portal';
 /** @jsx h */
 
 import AccountCard from './accountCard';
@@ -36,6 +37,7 @@ export default class AugmentedIcon extends Component {
 
   state = {
     badgesStyle: {},
+    containerStyle: {},
     hover: false,
     open: false
   };
@@ -53,54 +55,64 @@ export default class AugmentedIcon extends Component {
 
   render () {
     const { address, badges, height, name, tokens } = this.props;
-    const { badgesStyle, hover, open } = this.state;
+    const { badgesStyle, containerStyle, hover, open } = this.state;
 
-    const iconClasses = [styles.iconContainer];
+    const iconClasses = [ styles.iconContainer ];
+    const containerClasses = [ styles.icons ];
 
     if (hover) {
       iconClasses.push(styles.hover);
+      containerClasses.push(styles.hover);
+    }
+
+    if (open) {
+      containerClasses.push(styles.open);
     }
 
     return (
       <span
-        className={ styles.icons }
+        className={ iconClasses.join(' ') }
         onClick={ this.handleClick }
+        onMousemove={ this.handleMousemove }
+        style={ { height: height, width: height } }
       >
-        <span
-          className={ iconClasses.join(' ') }
-          onMousemove={ this.handleMousemove }
-          style={ { height: height, width: height } }
-        >
-          <IdentityIcon
-            address={ address }
-            ref={ this.handleIconRef }
-            size={ height }
-          />
-        </span>
-
-        <span
-          className={ styles.badgesContainer }
-          style={ { height: height, width: height } }
-        >
-          <Badges
-            badges={ badges }
-            ref={ this.handleBadgesRef }
-            size={ height }
-            show={ hover }
-            style={ badgesStyle }
-          />
-        </span>
-
-        <AccountCard
+        <IdentityIcon
           address={ address }
-          badges={ badges }
-          name={ name }
-          open={ open }
+          ref={ this.handleIconRef }
           size={ height }
-          tokens={ tokens }
-
-          onClose={ this.handleClose }
         />
+
+        <Portal into='body'>
+          <div
+            className={ containerClasses.join(' ') }
+            onClick={ this.handleClick }
+            style={ containerStyle }
+          >
+            <span
+              className={ styles.badgesContainer }
+              style={ { height: height, width: height } }
+            >
+              <Badges
+                badges={ badges }
+                ref={ this.handleBadgesRef }
+                size={ height }
+                show={ hover }
+                style={ badgesStyle }
+              />
+            </span>
+
+            <AccountCard
+              address={ address }
+              badges={ badges }
+              name={ name }
+              open={ open }
+              size={ height }
+              tokens={ tokens }
+
+              onClose={ this.handleClose }
+            />
+          </div>
+        </Portal>
       </span>
     );
   }
@@ -263,16 +275,41 @@ export default class AugmentedIcon extends Component {
   @bind
   handleIconRef (element) {
     if (!this.state.iconElement) {
-      this.setState({ iconElement: element });
+      const nextState = { iconElement: element };
+
+      this.setState(nextState);
+      this.positionContainer(nextState);
     }
   }
 
   @bind
   _setHover (hover) {
     if (this.state.hover !== hover) {
+      if (hover) {
+        this.positionContainer();
+      }
+
       this.setBadgesStyle(hover);
       this.setState({ hover });
     }
+  }
+
+  positionContainer (state = this.state) {
+    const { iconElement } = state;
+
+    if (!iconElement) {
+      return;
+    }
+
+    const bodyRect = document.body.getBoundingClientRect();
+    const elemRect = iconElement.base.getBoundingClientRect();
+
+    const nextStyle = {
+      top: elemRect.top - bodyRect.top + elemRect.height,
+      left: elemRect.left - bodyRect.left + elemRect.width / 2
+    };
+
+    this.setState({ containerStyle: nextStyle });
   }
 
 }

@@ -20,11 +20,11 @@ import { h } from 'preact';
 import styles from './badge.css';
 
 const Badge = ({ children, ...props }) => {
-  const { size = 16, src, style = {}, title } = props;
+  const { className = '', size = 16, src, style = {}, title } = props;
 
   return (
     <img
-      className={ styles.badge }
+      className={ [ styles.badge, className ].join(' ') }
       src={ src }
       style={ { height: size, width: size, ...style } }
       title={ title }

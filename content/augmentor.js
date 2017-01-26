@@ -123,7 +123,7 @@ export default class Augmentor {
         styles.container
           .split(' ')
           .forEach((className) => {
-            node.classList.add(className);
+            // node.classList.add(className);
           });
 
         // node.appendChild(augmentedIcon);
@@ -132,8 +132,10 @@ export default class Augmentor {
         placeholder.textContent = '|';
         placeholder.style.visibility = 'hidden';
         placeholder.style.width = '0';
-        node.insertBefore(augmentedIcon, node.childNodes[0]);
-        node.insertBefore(placeholder, augmentedIcon);
+
+        // node.insertBefore(augmentedIcon, node.childNodes[0]);
+        // node.insertBefore(placeholder, augmentedIcon);
+        node.insertAdjacentElement('beforebegin', augmentedIcon);
       })
       .catch((error) => {
         console.error('augmenting node', key, error);

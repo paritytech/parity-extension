@@ -87,8 +87,13 @@ module.exports = {
       },
 
       {
-        test: /\.(ico|jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)/,
-        loader: 'url-loader?limit=1000000&name=[name]-[hash].[ext]'
+        test: /\.(ico|jpg|jpeg|png|gif|webp|svg|mp4|webm|wav|mp3|m4a|aac|oga)/,
+        loader: 'url-loader?name=[name]-[hash].[ext]'
+      },
+
+      {
+        test: /\.(woff(2)|ttf|eot|otf)(\?v=[0-9]\.[0-9]\.[0-9])?$/,
+        use: [ 'file-loader?name=fonts/[name][hash:5].[ext]' ]
       }
     ]
   },

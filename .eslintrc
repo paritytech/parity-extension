@@ -19,5 +19,10 @@
     "object-property-newline": 0,
     "react/jsx-curly-spacing": ["error", "always"],
     "react/prop-types": 0
+  },
+  "settings": {
+    "react": {
+      "pragma": "h"
+    }
   }
 }

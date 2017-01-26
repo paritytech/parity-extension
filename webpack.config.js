@@ -17,6 +17,7 @@
 const path = require('path');
 const webpack = require('webpack');
 const CaseSensitivePathsPlugin = require('case-sensitive-paths-webpack-plugin');
+const ProgressBarPlugin = require('progress-bar-webpack-plugin');
 
 const postcssImport = require('postcss-import');
 const postcssNested = require('postcss-nested');
@@ -108,6 +109,10 @@ module.exports = {
   },
 
   plugins: [
+    new ProgressBarPlugin({
+      format: '[:msg] [:bar] ' + ':percent' + ' (:elapsed seconds)'
+    }),
+
     new webpack.LoaderOptionsPlugin({
       minimize: isProd,
       debug: !isProd,

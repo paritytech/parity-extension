@@ -93,7 +93,7 @@ module.exports = {
 
       {
         test: /\.(woff(2)|ttf|eot|otf)(\?v=[0-9]\.[0-9]\.[0-9])?$/,
-        use: [ 'file-loader?name=fonts/[name][hash:5].[ext]' ]
+        use: [ 'file-loader?name=/web3/fonts/[name][hash:10].[ext]' ]
       }
     ]
   },

@@ -301,12 +301,12 @@ export default class AugmentedIcon extends Component {
       return;
     }
 
-    const bodyRect = document.body.getBoundingClientRect();
+    const { scrollTop, scrollLeft } = document.body;
     const elemRect = iconElement.base.getBoundingClientRect();
 
     const nextStyle = {
-      top: elemRect.top - bodyRect.top + elemRect.height,
-      left: elemRect.left - bodyRect.left + elemRect.width / 2
+      top: elemRect.top + scrollTop,
+      left: elemRect.left + scrollLeft
     };
 
     this.setState({ containerStyle: nextStyle });

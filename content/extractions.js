@@ -59,7 +59,17 @@ export default class Extractions {
 
     if (href) {
       this.push(findMailto(href), { type: EXTRACT_TYPE_EMAIL, priority: 1 });
-      // push(matches, Socials.extract(href), EXTRACT_FROM_ATTRIBUTES, EXTRACT_TYPE_EMAIL);
+
+      const social = Socials.extract(href);
+
+      if (social) {
+        const match = social.name;
+        const type = social.github
+          ? EXTRACT_TYPE_GITHUB
+          : EXTRACT_TYPE_HANDLE;
+
+        this.push(match, { type, priority: 10 });
+      }
     }
 
     // Try to find email in these DOM attributes,

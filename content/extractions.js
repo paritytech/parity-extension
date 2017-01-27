@@ -60,9 +60,10 @@ export default class Extractions {
     if (href) {
       this.push(findMailto(href), { type: EXTRACT_TYPE_EMAIL, priority: 1 });
 
-      const social = Socials.extract(href);
+      const socialExtractions = Socials.extract(href);
 
-      if (social) {
+      if (socialExtractions.length) {
+        const social = socialExtractions[0];
         const match = social.name;
         const type = social.github
           ? EXTRACT_TYPE_GITHUB
@@ -88,10 +89,18 @@ export default class Extractions {
    */
   fromText (text) {
     const emails = findEmails(text);
-    // const socials = Socials.extract(text);
+    const socialExtractions = Socials.extract(text);
 
     emails.forEach((email) => {
       this.push(email, { text: email, type: EXTRACT_TYPE_EMAIL });
+    });
+
+    socialExtractions.forEach((social) => {
+      const type = social.github
+        ? EXTRACT_TYPE_GITHUB
+        : EXTRACT_TYPE_HANDLE;
+
+      this.push(social.name, { type, text: social.text });
     });
 
     return this;
@@ -120,6 +129,10 @@ export default class Extractions {
       });
 
     return extraction;
+  }
+
+  all () {
+    return this.extractions.filter((extraction) => extraction.address);
   }
 
   /**

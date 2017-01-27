@@ -16,11 +16,28 @@
 
 export default class Socials {
 
+  static extract (input) {
+    const matches = [];
+    let text = input;
+    let match = Socials.extractSingle(text);
+
+    while (match) {
+      matches.push(match);
+
+      // Re-extract from the text starting after the current match
+      const index = text.indexOf(match.name);
+      text = text.slice(index + match.name.length);
+      match = Socials.extractSingle(text);
+    }
+
+    return matches;
+  }
+
   /**
    * Tries to extract a handle from the given input based on different
    * social networks regex (facebook, github, etc...)
    */
-  static extract (input) {
+  static extractSingle (input) {
     const { all } = Socials;
 
     let match = null;
@@ -30,7 +47,7 @@ export default class Socials {
     });
 
     const blacklist = [ '/', '?', '#' ];
-    const matchBlacklist = blacklist.find((s) => match && match.includes(s));
+    const matchBlacklist = blacklist.find((s) => match && match.handle.includes(s));
 
     if (!match || matchBlacklist) {
       return null;
@@ -38,7 +55,7 @@ export default class Socials {
 
     // Return the handle from the RegExp matcher
     const extras = social.extras || {};
-    return { name: match, ...extras };
+    return { name: match.handle, text: match.text, ...extras };
   }
 
   static get all () {
@@ -58,7 +75,7 @@ export default class Socials {
     ];
 
     const blacklistRegexp = blacklist.join('|');
-    const matcher = new RegExp(`/(?:https?://)?(?:www.)?github.(?:[a-z]+)/(?!(${blacklistRegexp}))([^\\s]+)`, 'i');
+    const matcher = new RegExp(`(?:https?://)?(?:www.)?github.(?:[a-z]+)/(?!(${blacklistRegexp}))([^\\s]+)`, 'i');
 
     return {
       match: (input) => {
@@ -67,7 +84,7 @@ export default class Socials {
         }
 
         const matches = matcher.exec(input);
-        return matches[2];
+        return { handle: matches[2], text: matches[0] };
       },
       extras: { github: true }
     };
@@ -83,7 +100,7 @@ export default class Socials {
         }
 
         const matches = matcher.exec(input);
-        return matches[1];
+        return { handle: matches[1], text: matches[0] };
       }
     };
   }
@@ -98,7 +115,7 @@ export default class Socials {
         }
 
         const matches = matcher.exec(input);
-        return matches[1];
+        return { handle: matches[1], text: matches[0] };
       }
     };
   }
@@ -113,7 +130,7 @@ export default class Socials {
         }
 
         const matches = matcher.exec(input);
-        return matches[1];
+        return { handle: matches[1], text: matches[0] };
       }
     };
   }

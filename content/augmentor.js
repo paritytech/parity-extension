@@ -26,13 +26,28 @@ export const AUGMENTED_NODE_ATTRIBUTE = 'data-parity-touched';
 
 export default class Augmentor {
 
-  static getSafeNode (value, node) {
-    const text = node.textContent || '';
+  static getSafeNodes (extraction, node) {
+    const { text } = extraction;
+    const content = node.textContent || '';
 
     // Already the safe node if the inner text is only the value
-    if (text.trim() === value) {
-      return node;
+    if (content.trim() === text.trim()) {
+      return [ node ];
     }
+
+    const safeNodes = [];
+    let safeNode = Augmentor.getSafeNode(text, node);
+
+    while (safeNode) {
+      safeNodes.push(safeNode.node);
+      safeNode = Augmentor.getSafeNode(text, safeNode.after);
+    }
+
+    return safeNodes;
+  }
+
+  static getSafeNode (value, node) {
+    const text = node.textContent || '';
 
     const valueIndex = text.indexOf(value);
 
@@ -46,7 +61,8 @@ export default class Augmentor {
         .apply(node.childNodes)
         .find((node) => node.textContent.includes(value));
 
-      return Augmentor.getSafeNode(value, textNode);
+      const safeNode  = Augmentor.getSafeNode(value, textNode);
+      return safeNode && safeNode.node;
     }
 
     const beforeText = text.slice(0, valueIndex);
@@ -73,7 +89,7 @@ export default class Augmentor {
       node.appendChild(afterNode);
     }
 
-    return safeNode;
+    return { after: afterNode, node: safeNode };
   }
 
   static augmentNode (extraction, node) {

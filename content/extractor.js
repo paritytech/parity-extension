@@ -96,26 +96,19 @@ export default class Extractor {
         continue;
       }
 
-      /** @todo  For each extraction, find ALL occurencies/safe nodes and augment them */
-      // const promise = Runner.execute(PROCESS_MATCHES, extractions.toObject())
-      //   .then((result = {}) => {
-      //     extractions.forEach((extraction) => {
-      //       const { key } = extraction;
+      const promise = Accounts.processExtractions(extractions)
+        .then(() => {
+          // Get all the matching extractions
+          return extractions.all().map((extraction) => {
+            const safeNodes = Augmentor.getSafeNodes(extraction, parentNode);
 
-      //       if (!result[key]) {
-      //         return null;
-      //       }
+            return safeNodes.map((safeNode) => {
+              return Augmentor.augmentNode(extraction, safeNode);
+            });
+          });
+        });
 
-      //       const safeNode = Augmentor.getSafeNode(key, parentNode);
-      //       parentNode = safeNode.parentElement;
-      //       return Augmentor.augmentNode(key, safeNode, result);
-      //     });
-      //   })
-      //   .catch((error) => {
-      //     console.error('extracting', node, error);
-      //   });
-
-      // promises.push(promise);
+      promises.push(promise);
     }
 
     return Promise.all(promises);

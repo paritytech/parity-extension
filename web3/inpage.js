@@ -11,6 +11,11 @@ import {
   EV_TOKEN
 } from '../shared';
 
+// Indicate that the extension is installed.
+window[Symbol.for('parity.extension')] = {
+  version: require('../package.json').version
+};
+
 class Web3FrameProvider {
   id = 0;
   callbacks = {};

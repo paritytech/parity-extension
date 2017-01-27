@@ -61,7 +61,7 @@ export default class Augmentor {
         .apply(node.childNodes)
         .find((node) => node.textContent.includes(value));
 
-      const safeNode  = Augmentor.getSafeNode(value, textNode);
+      const safeNode = Augmentor.getSafeNode(value, textNode);
       return safeNode && safeNode.node;
     }
 

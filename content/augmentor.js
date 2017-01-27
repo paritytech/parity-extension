@@ -17,7 +17,7 @@
 import { h, render } from 'preact';
 
 import { AugmentedIcon } from './components';
-import { EXTRACT_TYPE_HANDLE } from './extraction';
+import { EXTRACT_TYPE_HANDLE, EXTRACT_TYPE_GITHUB } from './extraction';
 import Accounts from './accounts';
 import Runner from './runner';
 import { FETCH_IMAGE } from '../background/processor';
@@ -119,12 +119,18 @@ export default class Augmentor {
         const iconHeight = Math.min(height, 20);
         const safe = extraction.type !== EXTRACT_TYPE_HANDLE;
 
+        // If from Github, display the Github handle if
+        // no name linked
+        const displayName = extraction.type === EXTRACT_TYPE_GITHUB
+          ? name || extraction.match
+          : name;
+
         const augmentedIcon = render((
           <AugmentedIcon
             address={ address }
             badges={ badges }
             height={ iconHeight }
-            name={ name }
+            name={ displayName }
             safe={ safe }
             tokens={ tokens }
           />

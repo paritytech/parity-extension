@@ -15,7 +15,6 @@
 // along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 
 import { h, render } from 'preact';
-/** @jsx h */
 
 import { AugmentedIcon } from './components';
 
@@ -121,7 +120,7 @@ export default class Augmentor {
         node.insertAdjacentElement('beforebegin', augmentedIcon);
       })
       .catch((error) => {
-        console.error('augmenting node', key, error);
+        console.error('augmenting node', extraction.toObject(), error);
       });
   }
 

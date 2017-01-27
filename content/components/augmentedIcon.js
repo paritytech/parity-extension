@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 
+import classnames from 'classnames';
 import { bind } from 'decko';
 import { debounce } from 'lodash';
 import { h, Component } from 'preact';
@@ -56,21 +57,20 @@ export default class AugmentedIcon extends Component {
     const { address, badges, height, name, tokens } = this.props;
     const { badgesStyle, containerStyle, hover, open } = this.state;
 
-    const iconClasses = [ styles.iconContainer ];
-    const containerClasses = [ styles.icons ];
+    const iconClass = classnames({
+      [styles.iconContainer]: true,
+      [styles.hover]: hover
+    });
 
-    if (hover) {
-      iconClasses.push(styles.hover);
-      containerClasses.push(styles.hover);
-    }
-
-    if (open) {
-      containerClasses.push(styles.open);
-    }
+    const containerClass = classnames({
+      [styles.icons]: true,
+      [styles.hover]: hover,
+      [styles.open]: open
+    });
 
     return (
       <span
-        className={ iconClasses.join(' ') }
+        className={ iconClass }
         onClick={ this.handleClick }
         onMousemove={ this.handleMousemove }
         style={ { height: height, width: height } }
@@ -84,7 +84,7 @@ export default class AugmentedIcon extends Component {
 
         <Portal into='body'>
           <div
-            className={ containerClasses.join(' ') }
+            className={ containerClass }
             onClick={ this.handleClick }
             style={ containerStyle }
           >
@@ -330,15 +330,14 @@ class Badges extends Component {
     const { badges, size, style = {} } = this.props;
     const { show } = this.state;
 
-    const classes = [ styles.badges ];
-
-    if (show) {
-      classes.push(styles.hover);
-    }
+    const className = classnames({
+      [styles.badges]: true,
+      [styles.hover]: show
+    });
 
     return (
       <span
-        className={ classes.join(' ') }
+        className={ className }
         style={ style }
       >
         { this.renderBadges(badges, size) }

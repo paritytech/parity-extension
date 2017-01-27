@@ -15,7 +15,7 @@
 /* along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-.badges, .icons {
+.badges {
   composes: transition from '../styles.css';
 
   display: inline-flex;
@@ -24,10 +24,20 @@
 }
 
 .icons {
-  flex-direction: column;
-  margin-right: 5px;
+  composes: transition from '../styles.css';
+
   font-family: 'Roboto', sans-serif;
   font-weight: 300;
+
+  position: absolute;
+  top: 0;
+  left: 0;
+
+  z-index: -1;
+
+  &.open, &.hover {
+    z-index: 999;
+  }
 
   &:hover {
     cursor: pointer;
@@ -42,12 +52,25 @@
   composes: transition from '../styles.css';
 
   display: inline-block;
+  vertical-align: text-top;
+  position: relative;
+
   z-index: 10;
   opacity: 0.75;
+  margin-right: 5px;
 
   &.hover {
     opacity: 1;
   }
+
+  &:hover {
+    cursor: pointer;
+  }
+}
+
+.icon {
+  position: absolute;
+  top: 0;
 }
 
 .badges {

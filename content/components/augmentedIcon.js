@@ -14,9 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 
+import classnames from 'classnames';
 import { bind } from 'decko';
 import { debounce } from 'lodash';
 import { h, Component } from 'preact';
+import Portal from 'preact-portal';
 
 import AccountCard from './accountCard';
 import Badge from './badge';
@@ -35,6 +37,7 @@ export default class AugmentedIcon extends Component {
 
   state = {
     badgesStyle: {},
+    containerStyle: {},
     hover: false,
     open: false
   };
@@ -52,54 +55,64 @@ export default class AugmentedIcon extends Component {
 
   render () {
     const { address, badges, height, name, tokens } = this.props;
-    const { badgesStyle, hover, open } = this.state;
+    const { badgesStyle, containerStyle, hover, open } = this.state;
 
-    const iconClasses = [styles.iconContainer];
+    const iconClass = classnames({
+      [styles.iconContainer]: true,
+      [styles.hover]: hover
+    });
 
-    if (hover) {
-      iconClasses.push(styles.hover);
-    }
+    const containerClass = classnames({
+      [styles.icons]: true,
+      [styles.hover]: hover,
+      [styles.open]: open
+    });
 
     return (
       <span
-        className={ styles.icons }
+        className={ iconClass }
         onClick={ this.handleClick }
+        onMousemove={ this.handleMousemove }
+        style={ { height: height, width: height } }
       >
-        <span
-          className={ iconClasses.join(' ') }
-          onMousemove={ this.handleMousemove }
-          style={ { height: height, width: height } }
-        >
-          <IdentityIcon
-            address={ address }
-            ref={ this.handleIconRef }
-            size={ height }
-          />
-        </span>
-
-        <span
-          className={ styles.badgesContainer }
-          style={ { height: height, width: height } }
-        >
-          <Badges
-            badges={ badges }
-            ref={ this.handleBadgesRef }
-            size={ height }
-            show={ hover }
-            style={ badgesStyle }
-          />
-        </span>
-
-        <AccountCard
+        <IdentityIcon
           address={ address }
-          badges={ badges }
-          name={ name }
-          open={ open }
+          className={ styles.icon }
+          ref={ this.handleIconRef }
           size={ height }
-          tokens={ tokens }
-
-          onClose={ this.handleClose }
         />
+
+        <Portal into='body'>
+          <div
+            className={ containerClass }
+            onClick={ this.handleClick }
+            style={ containerStyle }
+          >
+            <span
+              className={ styles.badgesContainer }
+              style={ { height: height, width: height } }
+            >
+              <Badges
+                badges={ badges }
+                ref={ this.handleBadgesRef }
+                size={ height }
+                show={ hover }
+                style={ badgesStyle }
+              />
+            </span>
+
+            <AccountCard
+              address={ address }
+              badges={ badges }
+              name={ name }
+              open={ open }
+              size={ height }
+              tokens={ tokens }
+
+              onClose={ this.handleClose }
+            />
+          </div>
+        </Portal>
       </span>
     );
   }
@@ -262,16 +275,41 @@ export default class AugmentedIcon extends Component {
   @bind
   handleIconRef (element) {
     if (!this.state.iconElement) {
-      this.setState({ iconElement: element });
+      const nextState = { iconElement: element };
+
+      this.setState(nextState);
+      this.positionContainer(nextState);
     }
   }
 
   @bind
   _setHover (hover) {
     if (this.state.hover !== hover) {
+      if (hover) {
+        this.positionContainer();
+      }
+
       this.setBadgesStyle(hover);
       this.setState({ hover });
     }
+  }
+
+  positionContainer (state = this.state) {
+    const { iconElement } = state;
+
+    if (!iconElement) {
+      return;
+    }
+
+    const { scrollTop, scrollLeft } = document.body;
+    const elemRect = iconElement.base.getBoundingClientRect();
+
+    const nextStyle = {
+      top: elemRect.top + scrollTop,
+      left: elemRect.left + scrollLeft
+    };
+
+    this.setState({ containerStyle: nextStyle });
   }
 
 }
@@ -292,15 +330,14 @@ class Badges extends Component {
     const { badges, size, style = {} } = this.props;
     const { show } = this.state;
 
-    const classes = [ styles.badges ];
-
-    if (show) {
-      classes.push(styles.hover);
-    }
+    const className = classnames({
+      [styles.badges]: true,
+      [styles.hover]: show
+    });
 
     return (
       <span
-        className={ classes.join(' ') }
+        className={ className }
         style={ style }
       >
         { this.renderBadges(badges, size) }

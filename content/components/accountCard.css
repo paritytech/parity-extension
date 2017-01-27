@@ -34,7 +34,7 @@
   opacity: 0;
   z-index: -1;
 
-  transform-origin: top;
+  transform-origin: top left;
 
   flex-direction: column;
   align-items: flex-start;

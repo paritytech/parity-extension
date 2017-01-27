@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 
+import classnames from 'classnames';
 import { h, Component } from 'preact';
 
 import Badge from './badge';
@@ -26,11 +27,10 @@ export default class Token extends Component {
     const { badge, balance, name, title } = this.props;
     const { size, src } = badge;
 
-    const nameClasses = [ styles.tla ];
-
-    if (!balance) {
-      nameClasses.push(styles['no-value']);
-    }
+    const nameClass = classnames({
+      [styles.tla]: true,
+      [styles['no-value']]: !balance
+    });
 
     return (
       <span
@@ -46,7 +46,7 @@ export default class Token extends Component {
         <span className={ styles.balance }>
           { this.renderBalance(balance) }
 
-          <span className={ nameClasses.join(' ') }>
+          <span className={ nameClass }>
             { name }
           </span>
         </span>

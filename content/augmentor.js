@@ -22,8 +22,6 @@ import { AugmentedIcon } from './components';
 import Runner from './runner';
 import { FETCH_IMAGE } from '../background/processor';
 
-import styles from './styles.css';
-
 export const AUGMENTED_NODE_ATTRIBUTE = 'data-parity-touched';
 
 export default class Augmentor {
@@ -116,24 +114,10 @@ export default class Augmentor {
 
         // Set the proper height if it has been modified
         if (height !== iconHeight) {
-          node.style.height = `${height}px`;
+          augmentedIcon.style.top = (height - iconHeight) / 2 + 'px';
         }
 
-        // Add the right classe(s)
-        styles.container
-          .split(' ')
-          .forEach((className) => {
-            node.classList.add(className);
-          });
-
-        // node.appendChild(augmentedIcon);
-        // Add the augmented icon
-        const placeholder = document.createElement('span');
-        placeholder.textContent = '|';
-        placeholder.style.visibility = 'hidden';
-        placeholder.style.width = '0';
-        node.insertBefore(augmentedIcon, node.childNodes[0]);
-        node.insertBefore(placeholder, augmentedIcon);
+        node.insertAdjacentElement('beforebegin', augmentedIcon);
       })
       .catch((error) => {
         console.error('augmenting node', key, error);

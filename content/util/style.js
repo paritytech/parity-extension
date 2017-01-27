@@ -19,15 +19,15 @@ export function positionToStyle (options = {}) {
   const { x, y } = position;
 
   // default to center
-  let X = 0;
+  let X = '-50%';
   let Y = `-50%`;
 
   if (x === 'left') {
-    X = `-50%`;
+    X = `-100%`;
   }
 
   if (x === 'right') {
-    X = `50%`;
+    X = `0`;
   }
 
   if (y === 'top') {

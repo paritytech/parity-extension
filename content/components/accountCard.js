@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 
+import classnames from 'classnames';
 import { bind } from 'decko';
 import { noop } from 'lodash';
 import { h, Component } from 'preact';
@@ -51,20 +52,25 @@ export default class AccountCard extends Component {
   }
 
   render () {
-    const { address, badges, name, tokens } = this.props;
+    const { address, badges, name, size, tokens } = this.props;
     const { open, style } = this.state;
 
-    const mainClasses = [ styles.card ];
+    const className = classnames({
+      [styles.card]: true,
+      [styles.open]: open
+    });
 
-    if (open) {
-      mainClasses.push(styles.open);
-    }
+    const containerStyle = {
+      ...style,
+      top: size / 2,
+      left: size / 2
+    };
 
     return (
       <span
-        className={ mainClasses.join(' ') }
+        className={ className }
         ref={ this.handleRef }
-        style={ style }
+        style={ containerStyle }
       >
         <span className={ styles.header }>
           <IdentityIcon
@@ -105,19 +111,31 @@ export default class AccountCard extends Component {
   }
 
   renderTokens (tokens) {
-    return tokens.map((token) => {
-      const { balance, title, TLA, src } = token;
+    return tokens
+      .sort((tokenA, tokenB) => {
+        if (tokenA.TLA.toLowerCase() === 'eth') {
+          return -1;
+        }
 
-      return (
-        <Token
-          badge={ { src, size: 32 } }
-          balance={ balance }
-          key={ TLA }
-          name={ TLA }
-          title={ title }
-        />
-      );
-    });
+        if (tokenB.TLA.toLowerCase() === 'eth') {
+          return 1;
+        }
+
+        return tokenA.TLA.localeCompare(tokenB.TLA);
+      })
+      .map((token) => {
+        const { balance, title, TLA, src } = token;
+
+        return (
+          <Token
+            badge={ { src, size: 32 } }
+            balance={ balance }
+            key={ TLA }
+            name={ TLA }
+            title={ title }
+          />
+        );
+      });
   }
 
   renderBadges (badges) {

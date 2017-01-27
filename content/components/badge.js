@@ -14,16 +14,19 @@
 // You should have received a copy of the GNU General Public License
 // along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 
+import classnames from 'classnames';
 import { h } from 'preact';
 
 import styles from './badge.css';
 
 const Badge = ({ children, ...props }) => {
-  const { size = 16, src, style = {}, title } = props;
+  const { className = '', size = 16, src, style = {}, title } = props;
+
+  const imgClassName = classnames(styles.badge, className);
 
   return (
     <img
-      className={ styles.badge }
+      className={ imgClassName }
       src={ src }
       style={ { height: size, width: size, ...style } }
       title={ title }

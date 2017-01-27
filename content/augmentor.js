@@ -19,6 +19,7 @@ import { h, render } from 'preact';
 
 import { AugmentedIcon } from './components';
 
+import Accounts from './accounts';
 import Runner from './runner';
 import { FETCH_IMAGE } from '../background/processor';
 
@@ -29,7 +30,7 @@ export default class Augmentor {
   static getSafeNode (value, node) {
     const text = node.textContent || '';
 
-    // Safe Node is if the node which inner text is only the value
+    // Already the safe node if the inner text is only the value
     if (text.trim() === value) {
       return node;
     }
@@ -76,7 +77,7 @@ export default class Augmentor {
     return safeNode;
   }
 
-  static augmentNode (key, node, resolved = {}) {
+  static augmentNode (extraction, node) {
     if (!node || node.hasAttribute(AUGMENTED_NODE_ATTRIBUTE)) {
       return;
     }
@@ -84,7 +85,7 @@ export default class Augmentor {
     const rawText = node.textContent;
     const text = (rawText || '').trim();
 
-    const data = resolved[key];
+    const data = Accounts.find(extraction.address);
     node.setAttribute(AUGMENTED_NODE_ATTRIBUTE, true);
 
     // Don't augment empty nodes

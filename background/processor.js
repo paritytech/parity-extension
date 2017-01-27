@@ -16,10 +16,12 @@
 
 import { uniq } from 'lodash';
 
+import Extractions from '../content/extractions';
 import Lookup from './lookup';
 
-export const PROCESS_MATCHES = 'process_matches';
-export const FETCH_IMAGE = 'fetch_image';
+export const FETCH_ADDRESS = 'FETCH_ADDRESS';
+export const PROCESS_EXTRACTIONS = 'PROCESS_EXTRACTIONS';
+export const FETCH_IMAGE = 'FETCH_IMAGE';
 
 const SVG_MATCH = /.svg(\?.+)?$/i;
 const UNKNOWN_TOKEN_URL = 'https://raw.githubusercontent.com/ethcore/parity/1e6a2cb3783e0d66cfa730f4cea109f60dc3a685/js/assets/images/contracts/unknown-64x64.png';
@@ -32,10 +34,14 @@ export default class Processor {
     const { data, type } = input;
 
     switch (type) {
-      case PROCESS_MATCHES:
-        const result = this.processMatches(data);
-        console.log('got result', result);
-        return result;
+      case PROCESS_EXTRACTIONS:
+        const extractions = Extractions.fromObject(data);
+
+        return this.processExtractions(extractions)
+          .then(() => extractions.toObject());
+
+      case FETCH_ADDRESS:
+        return this.fetchAddress(data);
 
       case FETCH_IMAGE:
         return this.fetchImage(data);
@@ -45,14 +51,20 @@ export default class Processor {
     }
   }
 
+  fetchAddress (address) {
+    const lookup = Lookup.get();
+
+    return lookup.address(address);
+  }
+
   fetchImage (url) {
     const validUrl = url && url !== 'null' && url !== 'undefined'
       ? url
       : UNKNOWN_TOKEN_URL;
 
-    console.log('fetching image', validUrl);
-
     if (!this._images[validUrl]) {
+      console.log('fetching image', validUrl);
+
       this._images[validUrl] = fetch(validUrl)
         .then((response) => {
           if (SVG_MATCH.test(validUrl)) {
@@ -82,40 +94,15 @@ export default class Processor {
     return Promise.resolve(this._images[validUrl]);
   }
 
-  processMatches (matches) {
-    console.log('received matches', matches);
+  processExtractions (extractions) {
+    console.log('received extractions', extractions.toObject());
 
-    const emails = matches
-      .map((match) => match.email)
-      .filter((email) => email);
+    const lookup = Lookup.get();
+    const promises = extractions.map((extraction) => {
+      return extraction.lookup(lookup);
+    });
 
-    const names = matches
-      .map((match) => match.name)
-      .filter((name) => name);
-
-    const githubs = matches
-      .filter((match) => match.github)
-      .map((match) => match.name);
-
-    const uniqEmails = uniq(emails);
-    const uniqNames = uniq(names);
-    const uniqGithubs = uniq(githubs);
-
-    return Lookup.run({ emails: uniqEmails, names: uniqNames, githubs: uniqGithubs })
-      .then((reversed) => reversed.filter((data) => data && data.address))
-      .then((values) => {
-        return values.reduce((object, data) => {
-          if (data.email) {
-            object[data.email] = { ...data };
-          }
-
-          if (data.name) {
-            object[data.name] = { ...data };
-          }
-
-          return object;
-        }, {});
-      });
+    return Promise.all(promises);
   }
 
   getHandler (port) {

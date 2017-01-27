@@ -17,23 +17,21 @@
 // Given DOM element returns array of possible id-links to resolve.
 
 import Augmentor, { AUGMENTED_NODE_ATTRIBUTE } from './augmentor';
-import { PROCESS_MATCHES } from '../background/processor';
-import Runner from './runner';
-import Socials from './socials';
-
-export const TAGS_BLACKLIST = [ 'script' ];
-
-const EMAIL_PATTERN = /([^\s@]+@[^\s@]+\.[a-z]+)/i;
-const MAILTO_PATTERN = new RegExp(`mailto:${EMAIL_PATTERN.source}`, 'i');
+import Accounts from './accounts';
+import Extractions, { TAGS_BLACKLIST } from './extractions';
 
 export default class Extractor {
 
+  /**
+   * First try to find a match from the nodes
+   * attributes, then from the nodes text content
+   */
   static run (root = document.body) {
-    Extractor.getAttributeNodes(root)
-      .then(() => Extractor.getTextNodes(root));
+    Extractor.processAttributeNodes(root)
+      .then(() => Extractor.processTextNodes(root));
   }
 
-  static getAttributeNodes (root = document.body) {
+  static processAttributeNodes (root = document.body) {
     const treeWalker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT);
     const promises = [];
 
@@ -44,25 +42,26 @@ export default class Extractor {
         continue;
       }
 
-      const extractions = Extractor.fromAttributes(node);
+      const extractions = new Extractions();
 
-      if (extractions.length === 0) {
+      extractions.fromAttributes(node);
+
+      // Nothing found, move on
+      if (extractions.empty()) {
         continue;
       }
 
-      const promise = Runner.execute(PROCESS_MATCHES, extractions)
-        .then((result = {}) => {
-          const keys = Object.keys(result);
+      const promise = Accounts.processExtractions(extractions)
+        .then(() => {
+          // Find the first extraction with a result,
+          // sorted by priority
+          const extraction = extractions.first();
 
-          if (keys.length === 0) {
+          if (!extraction) {
             return null;
           }
 
-          const key = keys[0];
-          return Augmentor.augmentNode(key, node, result);
-        })
-        .catch((error) => {
-          console.error('extracting', node, error);
+          return Augmentor.augmentNode(extraction, node);
         });
 
       promises.push(promise);
@@ -71,7 +70,7 @@ export default class Extractor {
     return Promise.all(promises);
   }
 
-  static getTextNodes (root = document.body) {
+  static processTextNodes (root = document.body) {
     const treeWalker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
     const promises = [];
 
@@ -89,116 +88,37 @@ export default class Extractor {
       }
 
       const text = node.textContent;
-      const extractions = Extractor.fromText(text);
+      const extractions = new Extractions();
 
-      if (extractions.length === 0) {
+      extractions.fromText(text);
+
+      if (extractions.empty()) {
         continue;
       }
 
-      const promise = Runner.execute(PROCESS_MATCHES, extractions)
-        .then((result = {}) => {
-          extractions.forEach((extraction) => {
-            const { key } = extraction;
+      /** @todo  For each extraction, find ALL occurencies/safe nodes and augment them */
+      // const promise = Runner.execute(PROCESS_MATCHES, extractions.toObject())
+      //   .then((result = {}) => {
+      //     extractions.forEach((extraction) => {
+      //       const { key } = extraction;
 
-            if (!result[key]) {
-              return null;
-            }
+      //       if (!result[key]) {
+      //         return null;
+      //       }
 
-            const safeNode = Augmentor.getSafeNode(key, parentNode);
-            parentNode = safeNode.parentElement;
-            return Augmentor.augmentNode(key, safeNode, result);
-          });
-        })
-        .catch((error) => {
-          console.error('extracting', node, error);
-        });
+      //       const safeNode = Augmentor.getSafeNode(key, parentNode);
+      //       parentNode = safeNode.parentElement;
+      //       return Augmentor.augmentNode(key, safeNode, result);
+      //     });
+      //   })
+      //   .catch((error) => {
+      //     console.error('extracting', node, error);
+      //   });
 
-      promises.push(promise);
+      // promises.push(promise);
     }
 
     return Promise.all(promises);
   }
 
-  static fromAttributes ($dom) {
-    const tag = $dom.tagName.toLowerCase();
-
-    if (!tag || TAGS_BLACKLIST.includes(tag)) {
-      return [];
-    }
-
-    const { href, title, alt } = $dom;
-    const matches = [];
-
-    if (href) {
-      push(matches, findMailto(href));
-      push(matches, Socials.extract(href));
-    }
-
-    if (title) {
-      push(matches, findEmail(title));
-    }
-
-    if (alt) {
-      push(matches, findEmail(title));
-    }
-
-    return matches;
-  }
-
-  /**
-   * Extract matches from the given text
-   *
-   * @param  { String } text                  - The text to match against
-   * @return {[{ key: String, ...other }]}   - The results as an Array of Objects
-   */
-  static fromText (text) {
-    const emails = findEmails(text);
-    const socials = Socials.extract(text);
-
-    const values = emails.map((data) => ({ email: data.email, key: data.email }));
-
-    if (socials) {
-      values.push({ key: socials.name, ...socials });
-    }
-
-    return values;
-  }
-
-}
-
-function findMailto (val) {
-  if (MAILTO_PATTERN.test(val)) {
-    const match = MAILTO_PATTERN.exec(val);
-    return { email: match[1] };
-  }
-
-  return null;
-}
-
-function findEmail (val) {
-  if (EMAIL_PATTERN.test(val)) {
-    const match = EMAIL_PATTERN.exec(val);
-    return { email: match[1] };
-  }
-
-  return null;
-}
-
-function findEmails (text) {
-  const regex = new RegExp(EMAIL_PATTERN.source, 'gi');
-  const emails = [];
-  let match = regex.exec(text);
-
-  while (match) {
-    emails.push({ email: match[1] });
-    match = regex.exec(text);
-  }
-
-  return emails;
-}
-
-function push (array, val) {
-  if (val) {
-    array.push(val);
-  }
 }

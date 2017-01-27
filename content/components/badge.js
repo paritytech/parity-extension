@@ -15,7 +15,6 @@
 // along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 
 import { h } from 'preact';
-/** @jsx h */
 
 import styles from './badge.css';
 

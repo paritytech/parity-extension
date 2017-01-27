@@ -6,7 +6,10 @@
     "transform-runtime",
     "transform-decorators-legacy",
     "transform-class-properties",
-    "transform-object-rest-spread"
+    "transform-object-rest-spread",
+    [ "transform-react-jsx", {
+      "pragma": "h"
+    } ]
   ],
   "retainLines": true,
   "env": {}

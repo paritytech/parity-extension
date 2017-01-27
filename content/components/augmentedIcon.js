@@ -18,7 +18,6 @@ import { bind } from 'decko';
 import { debounce } from 'lodash';
 import { h, Component } from 'preact';
 import Portal from 'preact-portal';
-/** @jsx h */
 
 import AccountCard from './accountCard';
 import Badge from './badge';

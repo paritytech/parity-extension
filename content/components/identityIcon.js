@@ -17,7 +17,6 @@
 import { memoize } from 'decko';
 import blockies from 'blockies';
 import { h, Component } from 'preact';
-/** @jsx h */
 
 import Badge from './badge';
 

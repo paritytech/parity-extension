@@ -17,7 +17,6 @@
 import { bind } from 'decko';
 import { noop } from 'lodash';
 import { h, Component } from 'preact';
-/** @jsx h */
 
 import IdentityIcon from './identityIcon';
 import Token from './token';

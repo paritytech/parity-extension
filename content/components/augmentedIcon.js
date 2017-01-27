@@ -17,7 +17,6 @@
 import { bind } from 'decko';
 import { debounce } from 'lodash';
 import { h, Component } from 'preact';
-/** @jsx h */
 
 import AccountCard from './accountCard';
 import Badge from './badge';

@@ -48,6 +48,10 @@
   position: absolute;
 }
 
+.unsafe {
+  filter: grayscale(100%);
+}
+
 .iconContainer {
   composes: transition from '../styles.css';
 
@@ -58,6 +62,11 @@
   z-index: 10;
   opacity: 0.75;
   margin-right: 5px;
+
+  &.unsafe {
+    filter: grayscale(100%);
+    opacity: 0.5;
+  }
 
   &.hover {
     opacity: 1;

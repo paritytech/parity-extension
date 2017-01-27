@@ -17,7 +17,7 @@
 import { h, render } from 'preact';
 
 import { AugmentedIcon } from './components';
-
+import { EXTRACT_TYPE_HANDLE } from './extraction';
 import Accounts from './accounts';
 import Runner from './runner';
 import { FETCH_IMAGE } from '../background/processor';
@@ -117,6 +117,7 @@ export default class Augmentor {
         const { address, name } = data;
         const { height = 16 } = node.getBoundingClientRect();
         const iconHeight = Math.min(height, 20);
+        const safe = extraction.type !== EXTRACT_TYPE_HANDLE;
 
         const augmentedIcon = render((
           <AugmentedIcon
@@ -124,6 +125,7 @@ export default class Augmentor {
             badges={ badges }
             height={ iconHeight }
             name={ name }
+            safe={ safe }
             tokens={ tokens }
           />
         ));

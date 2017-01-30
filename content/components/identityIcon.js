@@ -25,7 +25,9 @@ export default class IdentityIcon extends Component {
   render () {
     const { address, className = '', size = 8, style = {} } = this.props;
 
-    const src = this.getBlockie(address, size);
+    // Use a key for memoize
+    const key = JSON.stringify({ address, size });
+    const src = this.getBlockie(key);
 
     return (
       <Badge
@@ -39,7 +41,8 @@ export default class IdentityIcon extends Component {
   }
 
   @memoize
-  getBlockie (address, size = 8) {
+  getBlockie (key) {
+    const { address, size = 8 } = JSON.parse(key);
     const src = blockies({
       seed: (address || '').toLowerCase(),
       size: 8,

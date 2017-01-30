@@ -112,6 +112,7 @@ export default class AugmentedIcon extends Component {
               badges={ badges }
               name={ name }
               open={ open }
+              safe={ safe }
               size={ height }
               tokens={ tokens }
 

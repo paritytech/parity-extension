@@ -84,3 +84,14 @@
     }
   }
 }
+
+.warning {
+  margin: 0.5em 0;
+  font-size: 0.85rem;
+  text-align: justify;
+
+  code {
+    font-family: monospace !important;
+    font-size: 1rem;
+  }
+}

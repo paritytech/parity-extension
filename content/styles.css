@@ -17,14 +17,16 @@
 
 @import url('https://fonts.googleapis.com/css?family=Roboto:300');
 
-.transition {
-  transition-property: opacity, transform, z-index;
-  transition-duration: 0.25s;
-  transition-timing-function: cubic-bezier(0.7,0,0.3,1);
+:root {
+  --transition-property: opacity, transform, z-index;
+  --transition-duration: 0.25s;
+  --transition-timing-function: cubic-bezier(0.7,0,0.3,1);
 }
 
 .container {
-  composes: transition;
+  transition-property: var(--transition-property);
+  transition-duration: var(--transition-duration);
+  transition-timing-function: var(--transition-timing-function);
 
   display: inline-flex !important;
   flex-direction: row !important;

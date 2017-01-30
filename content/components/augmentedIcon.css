@@ -15,8 +15,12 @@
 /* along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+@import "../styles.css";
+
 .badges {
-  composes: transition from '../styles.css';
+  transition-property: var(--transition-property);
+  transition-duration: var(--transition-duration);
+  transition-timing-function: var(--transition-timing-function);
 
   display: inline-flex;
   flex-direction: row;
@@ -24,10 +28,9 @@
 }
 
 .icons {
-  composes: transition from '../styles.css';
-
-  font-family: 'Roboto', sans-serif;
-  font-weight: 300;
+  transition-property: var(--transition-property);
+  transition-duration: var(--transition-duration);
+  transition-timing-function: var(--transition-timing-function);
 
   position: absolute;
   top: 0;
@@ -53,11 +56,17 @@
 }
 
 .iconContainer {
-  composes: transition from '../styles.css';
+  transition-property: var(--transition-property);
+  transition-duration: var(--transition-duration);
+  transition-timing-function: var(--transition-timing-function);
 
-  display: inline-block;
-  vertical-align: text-top;
-  position: relative;
+  display: inline-block !important;
+  padding: 0 !important;
+  margin: 0 5px 0 0 !important;
+
+  vertical-align: text-top !important;
+  position: relative !important;
+  text-align: initial !important;
 
   z-index: 10;
   opacity: 0.75;

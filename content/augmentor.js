@@ -115,8 +115,26 @@ export default class Augmentor {
     return Augmentor.fetchImages(data)
       .then(([ badges, tokens ]) => {
         const { address, name } = data;
+
+        // Compute the height of the text, which should be the
+        // height of the element minus the paddings
         const { height = 16 } = node.getBoundingClientRect();
-        const iconHeight = Math.min(height, 20);
+        const { paddingTop, paddingBottom } = window.getComputedStyle(node);
+
+        let padding = 0;
+        const pxRegex = /^(\d+)px$/i;
+
+        if (pxRegex.test(paddingTop)) {
+          padding += parseFloat(pxRegex.exec(paddingTop)[1]);
+        }
+
+        if (pxRegex.test(paddingBottom)) {
+          padding += parseFloat(pxRegex.exec(paddingBottom)[1]);
+        }
+
+        const nodeHeight = height - padding;
+        const iconHeight = Math.min(nodeHeight, 20);
+
         const safe = extraction.type !== EXTRACT_TYPE_HANDLE;
 
         // If from Github, display the Github handle if
@@ -137,11 +155,11 @@ export default class Augmentor {
         ));
 
         // Set the proper height if it has been modified
-        if (height !== iconHeight) {
-          augmentedIcon.style.top = (height - iconHeight) / 2 + 'px';
+        if (nodeHeight !== iconHeight) {
+          augmentedIcon.style.top = (nodeHeight - iconHeight) / 2 + 'px';
         }
 
-        node.insertAdjacentElement('beforebegin', augmentedIcon);
+        node.insertAdjacentElement('afterbegin', augmentedIcon);
       })
       .catch((error) => {
         console.error('augmenting node', extraction.toObject(), error);

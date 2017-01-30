@@ -41,7 +41,7 @@ const postcss = [
   }),
   postcssNested({}),
   postcssAutoreset({
-    rulesMatcher: (rule) => !rule.selector.match(/(hover|open|icon|\*)/)
+    rulesMatcher: (rule) => !rule.selector.match(/(hover|open|icon|root|\*)/)
   }),
   postcssVariables({}),
   rucksack({

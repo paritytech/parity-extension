@@ -22,7 +22,6 @@ const ProgressBarPlugin = require('progress-bar-webpack-plugin');
 const postcssImport = require('postcss-import');
 const postcssNested = require('postcss-nested');
 const postcssAutoreset = require('postcss-autoreset');
-const postcssVars = require('postcss-simple-vars');
 const postcssVariables = require('postcss-css-variables');
 const rucksack = require('rucksack-css');
 
@@ -43,11 +42,6 @@ const postcss = [
   postcssNested({}),
   postcssAutoreset({
     rulesMatcher: (rule) => !rule.selector.match(/(hover|open|icon|\*)/)
-  }),
-  postcssVars({
-    unknown: function (node, name, result) {
-      node.warn(result, `Unknown variable ${name}`);
-    }
   }),
   postcssVariables({}),
   rucksack({

@@ -119,20 +119,26 @@ export default class Augmentor {
         // Compute the height of the text, which should be the
         // height of the element minus the paddings
         const { height = 16 } = node.getBoundingClientRect();
-        const { paddingTop, paddingBottom } = window.getComputedStyle(node);
+        const { lineHeight, paddingTop, paddingBottom } = window.getComputedStyle(node);
 
-        let padding = 0;
+        let padTop = 0;
+        let padBottom = 0;
+        let nodeLineHeight = height;
         const pxRegex = /^(\d+)px$/i;
 
         if (pxRegex.test(paddingTop)) {
-          padding += parseFloat(pxRegex.exec(paddingTop)[1]);
+          padTop = parseFloat(pxRegex.exec(paddingTop)[1]);
         }
 
         if (pxRegex.test(paddingBottom)) {
-          padding += parseFloat(pxRegex.exec(paddingBottom)[1]);
+          padBottom = parseFloat(pxRegex.exec(paddingBottom)[1]);
         }
 
-        const nodeHeight = height - padding;
+        if (pxRegex.test(lineHeight)) {
+          nodeLineHeight = parseFloat(pxRegex.exec(lineHeight)[1]);
+        }
+
+        const nodeHeight = height - padTop - padBottom;
         const iconHeight = Math.min(nodeHeight, 20);
 
         const safe = extraction.type !== EXTRACT_TYPE_HANDLE;
@@ -155,9 +161,7 @@ export default class Augmentor {
         ));
 
         // Set the proper height if it has been modified
-        if (nodeHeight !== iconHeight) {
-          augmentedIcon.style.top = (nodeHeight - iconHeight) / 2 + 'px';
-        }
+        augmentedIcon.style.top = ((nodeLineHeight - iconHeight) / 2 - padTop) + 'px';
 
         node.insertAdjacentElement('afterbegin', augmentedIcon);
       })

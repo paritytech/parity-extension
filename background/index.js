@@ -50,8 +50,6 @@ chrome.runtime.onConnect.addListener((port) => {
 chrome.runtime.onMessage.addListener((request, sender) => {
   const { tab } = sender;
 
-  console.log('message', request, sender);
-
   if (!tab || !tab.id) {
     return;
   }

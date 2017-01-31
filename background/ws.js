@@ -122,6 +122,24 @@ export default class Ws extends JsonRpcBase {
     }
   }
 
+  close () {
+    this._connected = false;
+    this._connecting = false;
+    this._autoConnect = false;
+    this._connectPromise = null;
+    this._connectPromiseFunctions = {};
+
+    if (this._reconnectTimeoutId) {
+      window.clearTimeout(this._reconnectTimeoutId);
+      this._reconnectTimeoutId = null;
+    }
+
+    if (this._ws) {
+      this._ws.close();
+      this._ws = null;
+    }
+  }
+
   connect () {
     if (this._connected) {
       return Promise.resolve();

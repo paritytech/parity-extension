@@ -1,3 +1,19 @@
+// Copyright 2015-2017 Parity Technologies (UK) Ltd.
+// This file is part of Parity.
+
+// Parity is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// Parity is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with Parity.  If not, see <http://www.gnu.org/licenses/>.
+
 import './embed.html';
 
 /*
@@ -8,7 +24,7 @@ import {
   UI, getRetryTimeout,
   EV_WEB3_REQUEST, EV_WEB3_RESPONSE,
   EV_WEB3_ACCOUNTS_REQUEST, EV_WEB3_ACCOUNTS_RESPONSE,
-  EV_TOKEN
+  EV_TOKEN, TRANSPORT_UNINITIALIZED
 } from '../shared';
 
 // Indicate that the extension is installed.
@@ -20,6 +36,7 @@ class Web3FrameProvider {
   id = 0;
   callbacks = {};
   accounts = null;
+  _isConnected = true;
   _retries = 0;
 
   constructor () {
@@ -39,6 +56,16 @@ class Web3FrameProvider {
 
       if (ev.data.type !== EV_WEB3_RESPONSE) {
         return;
+      }
+
+      if (ev.data.err === TRANSPORT_UNINITIALIZED) {
+        if (this.isConnected) {
+          // re-fetch accounts in case it's disconnected
+          this.initializeMainAccount();
+        }
+        this.isConnected = false;
+      } else {
+        this.isConnected = true;
       }
 
       const { id, err, payload } = ev.data;
@@ -118,7 +145,7 @@ class Web3FrameProvider {
   };
 
   isConnected () {
-    return true;
+    return this._isConnected;
   }
 }
 

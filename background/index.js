@@ -46,35 +46,18 @@ chrome.runtime.onConnect.addListener((port) => {
   throw new Error(`Unrecognized port: ${port.name}`);
 });
 
-chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-  if (changeInfo.status !== 'loading') {
-    return;
-  }
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  const { action } = message;
 
-  return Config.get()
-    .then((config) => {
-      const { enabled = true } = config;
+  switch (action) {
+    case 'isEnabled':
+      Config.get()
+        .then((config) => {
+          const { enabled = true } = config;
 
-      if (!enabled) {
-        return false;
-      }
-
-      // Inject all the necessary scripts if
-      // extension is enabled
-      [
-        'web3/content_script.js',
-        'web3/index.js',
-        'web3/inpage.js'
-      ].forEach((script) => {
-        chrome.tabs.executeScript(tab.id, {
-          file: script,
-          runAt: 'document_start'
+          sendResponse(enabled);
         });
-      });
 
-      chrome.tabs.executeScript(tab.id, {
-        file: 'content/index.js',
-        runAt: 'document_idle'
-      });
-    });
+      return true;
+  }
 });

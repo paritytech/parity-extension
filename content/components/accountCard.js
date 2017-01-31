@@ -52,7 +52,7 @@ export default class AccountCard extends Component {
   }
 
   render () {
-    const { address, badges, name, size, tokens } = this.props;
+    const { address, badges, name, safe, size, tokens } = this.props;
     const { open, style } = this.state;
 
     const className = classnames({
@@ -85,6 +85,8 @@ export default class AccountCard extends Component {
             { this.renderAddress(address) }
           </span>
         </span>
+
+        { this.renderWarning(safe, name) }
 
         <span className={ styles.tokens }>
           { this.renderTokens(tokens) }
@@ -151,6 +153,20 @@ export default class AccountCard extends Component {
         />
       );
     });
+  }
+
+  renderWarning (safe, name) {
+    if (safe) {
+      return null;
+    }
+
+    return (
+      <p className={ styles.warning }>
+        This account have been matched against the
+        Registry record <code>{ name }</code>.
+        It have not been verified and could be a false positive.
+      </p>
+    );
   }
 
   clearClick () {

@@ -54,37 +54,43 @@ export default class AugmentedIcon extends Component {
   }
 
   render () {
-    const { address, badges, height, name, tokens } = this.props;
+    const { address, badges, height, name, safe, tokens } = this.props;
     const { badgesStyle, containerStyle, hover, open } = this.state;
 
-    const iconClass = classnames({
+    const containerClass = classnames({
       [styles.iconContainer]: true,
-      [styles.hover]: hover
+      [styles.hover]: hover,
+      [styles.unsafe]: !safe
     });
 
-    const containerClass = classnames({
+    const contentClass = classnames({
       [styles.icons]: true,
       [styles.hover]: hover,
-      [styles.open]: open
+      [styles.open]: open,
+      [styles.unsafe]: !safe
+    });
+
+    const iconClass = classnames({
+      [styles.icon]: true
     });
 
     return (
       <span
-        className={ iconClass }
+        className={ containerClass }
         onClick={ this.handleClick }
         onMousemove={ this.handleMousemove }
         style={ { height: height, width: height } }
       >
         <IdentityIcon
           address={ address }
-          className={ styles.icon }
+          className={ iconClass }
           ref={ this.handleIconRef }
           size={ height }
         />
 
         <Portal into='body'>
           <div
-            className={ containerClass }
+            className={ contentClass }
             onClick={ this.handleClick }
             style={ containerStyle }
           >
@@ -106,6 +112,7 @@ export default class AugmentedIcon extends Component {
               badges={ badges }
               name={ name }
               open={ open }
+              safe={ safe }
               size={ height }
               tokens={ tokens }
 

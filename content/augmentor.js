@@ -15,10 +15,10 @@
 // along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 
 import { h, render } from 'preact';
-/** @jsx h */
 
 import { AugmentedIcon } from './components';
-
+import { EXTRACT_TYPE_HANDLE, EXTRACT_TYPE_GITHUB } from './extraction';
+import Accounts from './accounts';
 import Runner from './runner';
 import { FETCH_IMAGE } from '../background/processor';
 
@@ -26,13 +26,28 @@ export const AUGMENTED_NODE_ATTRIBUTE = 'data-parity-touched';
 
 export default class Augmentor {
 
+  static getSafeNodes (extraction, node) {
+    const { text } = extraction;
+    const content = node.textContent || '';
+
+    // Already the safe node if the inner text is only the value
+    if (content.trim() === text.trim()) {
+      return [ node ];
+    }
+
+    const safeNodes = [];
+    let safeNode = Augmentor.getSafeNode(text, node);
+
+    while (safeNode) {
+      safeNodes.push(safeNode.node);
+      safeNode = Augmentor.getSafeNode(text, safeNode.after);
+    }
+
+    return safeNodes;
+  }
+
   static getSafeNode (value, node) {
     const text = node.textContent || '';
-
-    // Safe Node is if the node which inner text is only the value
-    if (text.trim() === value) {
-      return node;
-    }
 
     const valueIndex = text.indexOf(value);
 
@@ -46,7 +61,8 @@ export default class Augmentor {
         .apply(node.childNodes)
         .find((node) => node.textContent.includes(value));
 
-      return Augmentor.getSafeNode(value, textNode);
+      const safeNode = Augmentor.getSafeNode(value, textNode);
+      return safeNode && safeNode.node;
     }
 
     const beforeText = text.slice(0, valueIndex);
@@ -73,10 +89,10 @@ export default class Augmentor {
       node.appendChild(afterNode);
     }
 
-    return safeNode;
+    return { after: afterNode, node: safeNode };
   }
 
-  static augmentNode (key, node, resolved = {}) {
+  static augmentNode (extraction, node) {
     if (!node || node.hasAttribute(AUGMENTED_NODE_ATTRIBUTE)) {
       return;
     }
@@ -84,7 +100,7 @@ export default class Augmentor {
     const rawText = node.textContent;
     const text = (rawText || '').trim();
 
-    const data = resolved[key];
+    const data = Accounts.find(extraction.address);
     node.setAttribute(AUGMENTED_NODE_ATTRIBUTE, true);
 
     // Don't augment empty nodes
@@ -99,28 +115,58 @@ export default class Augmentor {
     return Augmentor.fetchImages(data)
       .then(([ badges, tokens ]) => {
         const { address, name } = data;
+
+        // Compute the height of the text, which should be the
+        // height of the element minus the paddings
         const { height = 16 } = node.getBoundingClientRect();
-        const iconHeight = Math.min(height, 20);
+        const { lineHeight, paddingTop, paddingBottom } = window.getComputedStyle(node);
+
+        let padTop = 0;
+        let padBottom = 0;
+        let nodeLineHeight = height;
+        const pxRegex = /^(\d+)px$/i;
+
+        if (pxRegex.test(paddingTop)) {
+          padTop = parseFloat(pxRegex.exec(paddingTop)[1]);
+        }
+
+        if (pxRegex.test(paddingBottom)) {
+          padBottom = parseFloat(pxRegex.exec(paddingBottom)[1]);
+        }
+
+        if (pxRegex.test(lineHeight)) {
+          nodeLineHeight = parseFloat(pxRegex.exec(lineHeight)[1]);
+        }
+
+        const nodeHeight = height - padTop - padBottom;
+        const iconHeight = Math.min(nodeHeight, 20);
+
+        const safe = extraction.type !== EXTRACT_TYPE_HANDLE;
+
+        // If from Github, display the Github handle if
+        // no name linked
+        const displayName = extraction.type === EXTRACT_TYPE_GITHUB
+          ? name || extraction.match
+          : name;
 
         const augmentedIcon = render((
           <AugmentedIcon
             address={ address }
             badges={ badges }
             height={ iconHeight }
-            name={ name }
+            name={ displayName }
+            safe={ safe }
             tokens={ tokens }
           />
         ));
 
         // Set the proper height if it has been modified
-        if (height !== iconHeight) {
-          augmentedIcon.style.top = (height - iconHeight) / 2 + 'px';
-        }
+        augmentedIcon.style.top = ((nodeLineHeight - iconHeight) / 2 - padTop) + 'px';
 
-        node.insertAdjacentElement('beforebegin', augmentedIcon);
+        node.insertAdjacentElement('afterbegin', augmentedIcon);
       })
       .catch((error) => {
-        console.error('augmenting node', key, error);
+        console.error('augmenting node', extraction.toObject(), error);
       });
   }
 

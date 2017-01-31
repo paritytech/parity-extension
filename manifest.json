@@ -4,13 +4,6 @@
   "manifest_version": 2,
   "homepage_url": "https://github.com/ethcore/parity-extension/",
   "description": "Integrate the Parity Ethereum client with the Chrome browser",
-  "content_scripts": [
-    {
-      "matches": ["<all_urls>"],
-      "js": ["content/loader.js"],
-      "run_at": "document_start"
-    }
-  ],
   "web_accessible_resources": [
     "content/index.js",
     "web3/content_script.js",

@@ -16,6 +16,7 @@
 
 /* global NodeFilter,MutationObserver */
 import Extractor from './extractor';
+import { isEnabled } from '../shared';
 
 function main () {
   // Process the page in stages.
@@ -54,8 +55,9 @@ function main () {
   extract();
 }
 
-chrome.runtime.sendMessage({ action: 'isEnabled' }, (enabled) => {
-  if (enabled) {
-    main();
-  }
-});
+isEnabled()
+  .then((enabled) => {
+    if (enabled) {
+      main();
+    }
+  });

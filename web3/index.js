@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 
-/* global chrome */
 /**
  * NOTE: This part is executed on embedded Parity Bar
  *
@@ -23,16 +22,19 @@
  */
 
 import { createSecureTransport } from './secureTransport';
-import { EV_SIGNER_BAR, EV_BAR_CODE } from '../shared';
+import { EV_SIGNER_BAR, EV_BAR_CODE, isEnabled } from '../shared';
 
-if (window.location.protocol === 'chrome-extension:') {
-  window.secureTransport = createSecureTransport();
-  getBackgroundSeed().then(seed => {
-    window.backgroundSeed = seed;
+isEnabled()
+  .then((enabled) => {
+    if (enabled && window.location.protocol === 'chrome-extension:') {
+      window.secureTransport = createSecureTransport();
+      getBackgroundSeed().then(seed => {
+        window.backgroundSeed = seed;
+      });
+      handleResizeEvents();
+      loadScripts();
+    }
   });
-  handleResizeEvents();
-  loadScripts();
-}
 
 /**
  *  Propagates opening events to upper frame

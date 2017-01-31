@@ -3,7 +3,7 @@
 /*
  * NOTE: Executed in extension context
  */
-import { TRANSPORT_UNINITIALIZED, EV_WEB3_REQUEST, EV_SIGNER_BAR, EV_BAR_CODE } from '../shared';
+import { TRANSPORT_UNINITIALIZED, EV_WEB3_REQUEST } from '../shared';
 
 /**
  * Creates a secureTransport, that can be used by injected ParityBar

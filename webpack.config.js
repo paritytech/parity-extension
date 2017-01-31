@@ -88,6 +88,15 @@ module.exports = {
       },
 
       {
+        test: /\.css$/,
+        include: [ /node_modules/ ],
+        use: [
+          'style-loader',
+          'css-loader'
+        ]
+      },
+
+      {
         test: /\.(ico|jpg|jpeg|png|gif|webp|svg|mp4|webm|wav|mp3|m4a|aac|oga)/,
         loader: 'url-loader?name=[name]-[hash].[ext]'
       },

@@ -15,7 +15,6 @@
 // along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 
 /* global chrome */
-
 import Processor from './processor';
 import loadScripts from './loadScripts';
 import secureApiMessage from './transport';

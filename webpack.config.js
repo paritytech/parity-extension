@@ -35,13 +35,24 @@ const isProd = ENV === 'production';
 const manifest = Shared.getManifest();
 manifest.run();
 
+const contentDir = path.resolve(__dirname, './content');
 const postcss = [
   postcssImport({
     addDependencyTo: webpack
   }),
   postcssNested({}),
   postcssAutoreset({
-    rulesMatcher: (rule) => !rule.selector.match(/(hover|open|icon|root|\*)/)
+    rulesMatcher: (rule, data) => {
+      const { file } = rule.source.input;
+
+      // Only use Autoreset for content folder
+      // stylesheets
+      if (!file.includes(contentDir)) {
+        return false;
+      }
+
+      return !rule.selector.match(/(hover|open|icon|root|\*)/);
+    }
   }),
   postcssVariables({}),
   rucksack({

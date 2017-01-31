@@ -20,11 +20,10 @@ let instance = null;
 
 export default class Lookup {
 
-  _badges = {};
+  _addresses = {};
   _githubs = {};
   _emails = {};
   _names = {};
-  _tokens = {};
 
   constructor () {
     instance = this;
@@ -38,25 +37,8 @@ export default class Lookup {
     return instance;
   }
 
-  static run (matches = {}) {
-    const { emails, names, githubs } = matches;
-    const lookup = Lookup.get();
-
-    const emailPromises = emails.map((email) => lookup.email(email));
-    const namePromises = names.map((name) => lookup.name(name));
-    const githubPromises = githubs.map((handle) => lookup.github(handle));
-
-    return Promise
-      .all([
-        Promise.all(emailPromises),
-        Promise.all(namePromises),
-        Promise.all(githubPromises)
-      ])
-      .then(([ emailResults, nameResults, githubResults ]) => {
-        return []
-          .concat(emailResults, nameResults, githubResults)
-          .filter((result) => result && result.address);
-      });
+  address (address) {
+    return this._reverse('_addresses', 'address', address);
   }
 
   github (handle) {
@@ -97,39 +79,19 @@ export default class Lookup {
   }
 
   name (input) {
-    return this
-      ._reverseName(input)
-      .then((data) => {
-        const { address, badges } = data;
-
-        // Set in cache the data for the given address
-        if (address && badges) {
-          this._badges[address] = { ...data };
-        }
-
-        return data;
-      });
+    return this._reverseName(input);
   }
 
   email (input) {
     return this
       ._reverseEmail(input)
-      .then((data) => {
-        const { address, badges, name, tokens } = data;
-
-        // Set in cache the data for the given address
-        if (address && badges) {
-          this._badges[address] = { ...data };
-        }
+      .then((result) => {
+        const data = { ...result, email: input };
+        const { address, name } = data;
 
         // Set in cache the data for the given name
         if (address && name) {
           this._names[name] = { ...data };
-        }
-
-        // Set in cache the data for the given address
-        if (address && tokens) {
-          this._tokens[address] = { ...data };
         }
 
         return data;
@@ -138,17 +100,14 @@ export default class Lookup {
 
   _reverseEmail (input) {
     const hash = sha3(input);
-    const extra = { email: input, trusted: true };
-
-    return this._reverse('_emails', 'emailHash', `0x${hash}`, extra);
+    return this._reverse('_emails', 'emailHash', `0x${hash}`);
   }
 
   _reverseName (name) {
-    const extra = { trusted: false };
-    return this._reverse('_names', 'name', name, extra);
+    return this._reverse('_names', 'name', name);
   }
 
-  _reverse (cacheKey, method, input, extra = {}) {
+  _reverse (cacheKey, method, input) {
     if (!this[cacheKey][input]) {
       this[cacheKey][input] = fetch(`https://id.parity.io:8443/?${method}=${input}`)
         .then((response) => response.json())
@@ -163,17 +122,18 @@ export default class Lookup {
             return null;
           }
 
-          return {
-            address, ...other, ...extra
-          };
+          return { address, ...other };
         })
         .then((data) => {
           const date = Date.now();
 
           if (data) {
             this[cacheKey][input] = { ...data, date };
+
+            // Cache the address results
+            this._addresses[data.address] = { ...data, date };
           } else {
-            this[cacheKey][input] = { date, ...extra };
+            this[cacheKey][input] = { date };
           }
         })
         .catch((error) => {
@@ -181,7 +141,7 @@ export default class Lookup {
 
           console.error('reverse', input, error);
 
-          this[cacheKey][input] = { date, error, ...extra };
+          this[cacheKey][input] = { date, error };
         })
         .then(() => {
           return this[cacheKey][input];

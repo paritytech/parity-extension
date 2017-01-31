@@ -1,5 +1,3 @@
-/* global chrome */
-
 /*
  * NOTE: Executed in extension context
  */

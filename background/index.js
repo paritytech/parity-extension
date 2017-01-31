@@ -19,8 +19,10 @@ import Processor from './processor';
 import loadScripts from './loadScripts';
 import secureApiMessage from './transport';
 import web3Message from './web3';
+import Config from './config';
 
 const processor = new Processor();
+
 chrome.runtime.onConnect.addListener((port) => {
   if (port.name === 'secureApi') {
     port.onMessage.addListener(secureApiMessage(port));
@@ -43,4 +45,40 @@ chrome.runtime.onConnect.addListener((port) => {
   }
 
   throw new Error(`Unrecognized port: ${port.name}`);
+});
+
+chrome.runtime.onMessage.addListener((request, sender) => {
+  const { tab } = sender;
+
+  console.log('message', request, sender);
+
+  if (!tab || !tab.id) {
+    return;
+  }
+
+  switch (request.action) {
+    // Load the Extension Content Scripts
+    case 'load':
+      return Config.get()
+        .then((config) => {
+          const { enabled = true } = config;
+
+          if (!enabled) {
+            return false;
+          }
+
+          // Inject all the necessary scripts if
+          // extension is enabled
+          [
+            'content/index.js',
+            'web3/index.js',
+            'web3/inpage.js'
+          ].forEach((script) => {
+            chrome.tabs.executeScript(tab.id, {
+              file: script,
+              runAt: 'document_start'
+            });
+          });
+        });
+  }
 });

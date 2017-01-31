@@ -21,6 +21,8 @@ import { CheckBox } from 'preact-mdl';
 import 'material-design-lite/material.css';
 import 'material-design-lite/material';
 
+import Config from '../../background/config';
+
 import styles from './app.css';
 
 export default class App extends Component {
@@ -28,6 +30,15 @@ export default class App extends Component {
   state = {
     enabled: true
   };
+
+  componentWillMount () {
+    Config.get()
+      .then((config) => {
+        const { enabled = true } = config;
+
+        this.setState({ enabled });
+      });
+  }
 
   render () {
     const { enabled } = this.state;
@@ -49,7 +60,11 @@ export default class App extends Component {
   @bind
   handleChange (event) {
     const { checked } = event.target;
-    this.setState({ enabled: checked });
+
+    Config.set({ enabled: checked })
+      .then(() => {
+        this.setState({ enabled: checked });
+      });
   }
 
 }

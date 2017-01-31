@@ -18,6 +18,7 @@
 
 import Ws from './ws';
 import { UI, TRANSPORT_UNINITIALIZED, EV_WEB3_ACCOUNTS_REQUEST, EV_TOKEN, getRetryTimeout } from '../shared';
+import Config from './config';
 
 let openedTabId = null;
 let transport = null;
@@ -113,19 +114,26 @@ chrome.runtime.onMessage.addListener((request, sender, callback) => {
 
     console.log('Extracted a token: ', request.token);
     console.log('Extracted backgroundSeed: ', request.backgroundSeed);
-    chrome.storage.local.set({
+
+    Config.set({
       'authToken': request.token,
       'backgroundSeed': request.backgroundSeed
-    }, () => {});
+    });
+
     transport = newTransport(request.token);
     return;
   }
 });
 
 function extractToken () {
-  chrome.storage.local.get('authToken', (token) => {
-    if (!token.authToken) {
-      fetch(`http://${UI}`)
+  return Config.get()
+    .then((config) => {
+      if (config.authToken) {
+        transport = newTransport(config.authToken);
+        return;
+      }
+
+      return fetch(`http://${UI}`)
         .then(() => {
           // Open a UI to extract the token from it
           chrome.tabs.create({
@@ -141,10 +149,6 @@ function extractToken () {
           extractToken.retries += 1;
           setTimeout(() => extractToken(), getRetryTimeout(extractToken.retries));
         });
-      return;
-    }
-
-    transport = newTransport(token.authToken);
-  });
+    });
 }
 extractToken.retries = 0;

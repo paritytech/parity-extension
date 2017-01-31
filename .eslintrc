@@ -8,7 +8,8 @@
   },
   "globals": {
     "expect": true,
-    "FileReader": true
+    "FileReader": true,
+    "chrome": true
   },
   "rules": {
     "curly": ["error", "all"],

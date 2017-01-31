@@ -7,15 +7,13 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["web3/index.js", "web3/inpage.js"],
+      "js": ["content/loader.js"],
       "run_at": "document_start"
-    },
-    {
-      "matches": ["<all_urls>"],
-      "js": ["content/index.js"]
     }
   ],
   "web_accessible_resources": [
+    "content/index.js",
+    "web3/index.js",
     "web3/inpage.js",
     "web3/embed.html"
   ],
@@ -33,7 +31,8 @@
   },
   "permissions": [
     "storage",
-    "tabs"
+    "tabs",
+    "<all_urls>"
   ],
   "icons": {
     "16": "icons/icon-16.png",

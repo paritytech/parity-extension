@@ -19,6 +19,25 @@ import Socials from './socials';
 describe('content/socials', () => {
   const { all } = Socials;
 
+  describe('extracts', () => {
+    const single = 'There is https://github.com/foobar';
+    const multiple = 'There is https://github.com/foobar and https://github.com/foobaz';
+
+    it('multiple matches', () => {
+      const matches = Socials.extract(multiple);
+
+      expect(matches.length).toEqual(2);
+      expect(matches[0].name).toEqual('foobar');
+      expect(matches[0].text).toEqual('https://github.com/foobar');
+    });
+
+    it('single match', () => {
+      const matches = Socials.extract(single);
+
+      expect(matches.length).toEqual(1);
+    });
+  });
+
   describe('github', () => {
     const rightInput = 'https://github.com/foobar';
     const wrongInput = 'https://githubwe.com/foobar';
@@ -28,15 +47,16 @@ describe('content/socials', () => {
     });
 
     it('extracts the correct handle', () => {
-      expect(Socials.extract(rightInput).name).toEqual('foobar');
+      expect(Socials.extractSingle(rightInput).name).toEqual('foobar');
+      expect(Socials.extractSingle(rightInput).text).toEqual(rightInput);
     });
 
     it('contains extras', () => {
-      expect(Socials.extract(rightInput)).toEqual({ name: 'foobar', github: true });
+      expect(Socials.extractSingle(rightInput)).toEqual({ name: 'foobar', text: rightInput, github: true });
     });
 
     it('fails correctly', () => {
-      expect(Socials.extract(wrongInput)).toBeNull();
+      expect(Socials.extractSingle(wrongInput)).toBeNull();
     });
 
     it('does not extract default links', () => {
@@ -50,7 +70,7 @@ describe('content/socials', () => {
       ];
 
       links.forEach((link) => {
-        expect(Socials.extract(link)).toBeNull();
+        expect(Socials.extractSingle(link)).toBeNull();
       });
     });
 
@@ -63,7 +83,7 @@ describe('content/socials', () => {
       ];
 
       links.forEach((link) => {
-        expect(Socials.extract(link)).toBeNull();
+        expect(Socials.extractSingle(link)).toBeNull();
       });
     });
   });
@@ -77,11 +97,11 @@ describe('content/socials', () => {
     });
 
     it('extracts the correct handle', () => {
-      expect(Socials.extract(rightInput)).toEqual({ name: 'foobar' });
+      expect(Socials.extractSingle(rightInput)).toEqual({ name: 'foobar', text: rightInput });
     });
 
     it('fails correctly', () => {
-      expect(Socials.extract(wrongInput)).toBeNull();
+      expect(Socials.extractSingle(wrongInput)).toBeNull();
     });
   });
 
@@ -94,11 +114,11 @@ describe('content/socials', () => {
     });
 
     it('extracts the correct handle', () => {
-      expect(Socials.extract(rightInput)).toEqual({ name: 'foobar' });
+      expect(Socials.extractSingle(rightInput)).toEqual({ name: 'foobar', text: rightInput });
     });
 
     it('fails correctly', () => {
-      expect(Socials.extract(wrongInput)).toBeNull();
+      expect(Socials.extractSingle(wrongInput)).toBeNull();
     });
   });
 
@@ -111,11 +131,11 @@ describe('content/socials', () => {
     });
 
     it('extracts the correct handle', () => {
-      expect(Socials.extract(rightInput)).toEqual({ name: 'foobar' });
+      expect(Socials.extractSingle(rightInput)).toEqual({ name: 'foobar', text: rightInput });
     });
 
     it('fails correctly', () => {
-      expect(Socials.extract(wrongInput)).toBeNull();
+      expect(Socials.extractSingle(wrongInput)).toBeNull();
     });
   });
 });

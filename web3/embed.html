@@ -6,8 +6,33 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>Parity Bar</title>
     <style>
+      :root,
+      :root body {
+        margin: 0;
+        padding: 0;
+        border: 0;
+        font-size: 100%;
+        font: inherit;
+        vertical-align: baseline;
+        color: rgba(255, 255, 255, 0.75);
+        font-size: 16px;
+        font-family: 'Roboto', sans-serif;
+        font-weight: 300 !important;
+      }
+
       :root * {
-        font-weight: 300!important;
+        font-weight: 300 !important;
+      }
+
+      :root a,
+      :root a:visited {
+        text-decoration: none;
+        cursor: pointer;
+        color: rgb(0, 151, 167); /* #f80 */
+      }
+
+      :root a:hover {
+        color: rgb(0, 174, 193);
       }
 
       html, body, #container {

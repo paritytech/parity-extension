@@ -13,6 +13,7 @@
   ],
   "web_accessible_resources": [
     "content/index.js",
+    "web3/content_script.js",
     "web3/index.js",
     "web3/inpage.js",
     "web3/embed.html"

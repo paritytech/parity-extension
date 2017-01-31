@@ -59,9 +59,22 @@ let accountsCache = {};
 function newTransport (token) {
   const transport = new Ws(`ws://${UI}`, token, true);
   transport.on('open', () => {
+    const oldOrigins = Object.keys(accountsCache);
     accountsCache = {};
+    // re-populate cache (for new network)
+    oldOrigins.forEach(origin => {
+      fetchAccountsForCache(origin);
+    });
   });
   return transport;
+}
+
+function fetchAccountsForCache (origin) {
+  return transport.execute('parity_getDappsAddresses', origin)
+    .then(accounts => {
+      accountsCache[origin] = accounts;
+      return accounts;
+    });
 }
 
 chrome.runtime.onMessage.addListener((request, sender, callback) => {
@@ -82,9 +95,8 @@ chrome.runtime.onMessage.addListener((request, sender, callback) => {
       });
     }
 
-    transport.execute('parity_getDappsAddresses', origin)
+    fetchAccountsForCache(origin)
       .then(accounts => {
-        accountsCache[origin] = accounts;
         return callback({
           err: null,
           payload: accounts
@@ -102,7 +114,7 @@ chrome.runtime.onMessage.addListener((request, sender, callback) => {
 
   if (!isTransportReady && request.token) {
     if (transport) {
-      // TODO [ToDr] kill old transport!
+      transport.close();
     }
 
     if (openedTabId) {
@@ -127,6 +139,10 @@ function extractToken () {
   return Config.get()
     .then((config) => {
       if (config.authToken) {
+        if (transport) {
+          transport.close();
+        }
+
         transport = newTransport(config.authToken);
         return;
       }

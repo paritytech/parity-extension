@@ -60,7 +60,7 @@ let accountsCache = {};
 function newTransport (token) {
   const transport = new Ws(`ws://${UI}`, token, true);
   transport.on('open', () => {
-    let oldOrigins = Object.keys(accountsCache);
+    const oldOrigins = Object.keys(accountsCache);
     accountsCache = {};
     // re-populate cache (for new network)
     oldOrigins.forEach(origin => {

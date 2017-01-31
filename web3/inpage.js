@@ -8,7 +8,7 @@ import {
   UI, getRetryTimeout,
   EV_WEB3_REQUEST, EV_WEB3_RESPONSE,
   EV_WEB3_ACCOUNTS_REQUEST, EV_WEB3_ACCOUNTS_RESPONSE,
-  EV_TOKEN
+  EV_TOKEN, TRANSPORT_UNINITIALIZED
 } from '../shared';
 
 // Indicate that the extension is installed.
@@ -20,6 +20,7 @@ class Web3FrameProvider {
   id = 0;
   callbacks = {};
   accounts = null;
+  _isConnected = true;
   _retries = 0;
 
   constructor () {
@@ -39,6 +40,16 @@ class Web3FrameProvider {
 
       if (ev.data.type !== EV_WEB3_RESPONSE) {
         return;
+      }
+
+      if (ev.data.err === TRANSPORT_UNINITIALIZED) {
+        if (this.isConnected) {
+          // re-fetch accounts in case it's disconnected
+          this.initializeMainAccount();
+        }
+        this.isConnected = false;
+      } else {
+        this.isConnected = true;
       }
 
       const { id, err, payload } = ev.data;
@@ -118,7 +129,7 @@ class Web3FrameProvider {
   };
 
   isConnected () {
-    return true;
+    return this._isConnected;
   }
 }
 

@@ -16,38 +16,48 @@
 
 /* global NodeFilter,MutationObserver */
 import Extractor from './extractor';
+import { isEnabled } from '../shared';
 
-// Process the page in stages.
-// 0. We listen for possible changes
-// 1. First we look for most likely matches <a href="mailto:..> and <a href="{user_profile}">
-// 2. Then we process all text nodes
+function main () {
+  // Process the page in stages.
+  // 0. We listen for possible changes
+  // 1. First we look for most likely matches <a href="mailto:..> and <a href="{user_profile}">
+  // 2. Then we process all text nodes
 
-function extract (root = document.body) {
-  Extractor.run(root);
-}
+  function extract (root = document.body) {
+    Extractor.run(root);
+  }
 
-// Observe later changes
-const observer = new MutationObserver((mutations) => {
-  mutations.forEach((mutation) => {
-    const { addedNodes } = mutation;
+  // Observe later changes
+  const observer = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+      const { addedNodes } = mutation;
 
-    if (!addedNodes || addedNodes.length === 0) {
-      return;
-    }
+      if (!addedNodes || addedNodes.length === 0) {
+        return;
+      }
 
-    const nodes = [].slice.call(addedNodes);
-    nodes.forEach((node) => {
-      extract(node);
+      const nodes = [].slice.call(addedNodes);
+      nodes.forEach((node) => {
+        extract(node);
+      });
     });
   });
-});
 
-observer.observe(document.body, {
-  attributes: true,
-  childList: true,
-  characterData: true,
-  subtree: true
-});
+  observer.observe(document.body, {
+    attributes: true,
+    childList: true,
+    characterData: true,
+    subtree: true
+  });
 
-// Start processing
-extract();
+  // Start processing
+  extract();
+}
+
+isEnabled()
+  .then((enabled) => {
+    if (enabled) {
+      main();
+    }
+  });

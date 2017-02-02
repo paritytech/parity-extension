@@ -15,28 +15,17 @@
 /* along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-@import url('https://fonts.googleapis.com/icon?family=Material+Icons');
-
-.container {
-  padding: 0.5em 1em;
-  width: 30em;
+.extractions {
   display: flex;
   flex-direction: column;
-}
+  flex: 1;
+  overflow: auto;
 
+  > * {
+    margin-bottom: 0.5rem;
 
-.header {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-
-  .title {
-    font-size: 1.5em;
-    margin: 0.5em 0;
-    flex: 1;
-  }
-
-  .check {
-    flex: 0;
+    &:last-child {
+      margin-bottom: 0;
+    }
   }
 }

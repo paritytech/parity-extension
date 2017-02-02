@@ -28,16 +28,16 @@ export default class AccountCard extends Component {
   clickTimeout = null;
 
   render () {
-    const { address, badges, email, name, safe, tokens } = this.props;
+    const { address, badges, className, email, name, safe, tokens } = this.props;
 
     return (
       <span
-        className={ styles.card }
+        className={ [ styles.card, className ].join(' ') }
       >
         <span className={ styles.header }>
           <IdentityIcon
             address={ address }
-            size={ 48 }
+            size={ 44 }
           />
 
           <span className={ styles.title }>

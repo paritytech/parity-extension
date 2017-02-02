@@ -47,6 +47,7 @@ class Account extends Component {
       <AccountCard
         address={ address }
         badges={ badges }
+        className={ styles.accountCard }
         email={ email }
         key={ address }
         name={ name }

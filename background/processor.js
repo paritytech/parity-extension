@@ -63,6 +63,12 @@ export default class Processor {
                 .filter((address) => address);
 
               this._extractions[tab.id] = uniq(nextExtractions);
+
+              // Set the number of extractions as a badge
+              chrome.browserAction.setBadgeText({
+                text: this._extractions[tab.id].length.toString(),
+                tabId: tab.id
+              });
             }
 
             return result;

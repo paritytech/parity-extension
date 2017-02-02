@@ -66,18 +66,26 @@ export default class Processor {
     return lookup.address(address);
   }
 
+  cleanImages (data) {
+    const omit = (data) => {
+      return data instanceof Promise || (Date.now() - data.date) > IMAGES_TTL;
+    };
+
+    return omitBy(data, omit);
+  }
+
   loadImages () {
     chrome.storage.local.get(IMAGES_STORAGE_KEY, (storage = {}) => {
       const images = storage[IMAGES_STORAGE_KEY] || {};
 
       // Load the saved images, omitting the old data
-      this._images = omitBy(images, (data) => (Date.now() - data.date) > IMAGES_TTL);
+      this._images = this.cleanImages(images);
       this.saveImages();
     });
   }
 
   saveImages () {
-    const data = omitBy(this._images, (data) => data instanceof Promise);
+    const data = this.cleanImages(this._images);
 
     chrome.storage.local.set({ [ IMAGES_STORAGE_KEY ]: data }, () => {});
   }

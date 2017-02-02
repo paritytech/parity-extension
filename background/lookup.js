@@ -38,26 +38,47 @@ export default class Lookup {
     this.load();
   }
 
-  save () {
-    const data = {
-      addresses: omitBy(this._addresses, (data) => data instanceof Promise),
-      githubs: omitBy(this._githubs, (data) => data instanceof Promise),
-      emails: omitBy(this._emails, (data) => data instanceof Promise),
-      names: omitBy(this._names, (data) => data instanceof Promise)
+  /**
+   * Clean the given data by removing all the Promises and
+   * all the old data
+   */
+  clean (data = {}) {
+    const { addresses = {}, githubs = {}, emails = {}, names = {} } = data;
+
+    const omit = (data) => {
+      return data instanceof Promise || (Date.now() - data.date) > TTL;
     };
+
+    const cleanData = {
+      addresses: omitBy(addresses, omit),
+      githubs: omitBy(githubs, omit),
+      emails: omitBy(emails, omit),
+      names: omitBy(names, omit)
+    };
+
+    return cleanData;
+  }
+
+  save () {
+    const data = this.clean({
+      addresses: this._addresses,
+      githubs: this._githubs,
+      emails: this._emails,
+      names: this._names
+    });
 
     chrome.storage.local.set({ [ LOOKUP_STORAGE_KEY ]: data }, () => {});
   }
 
   load () {
     chrome.storage.local.get(LOOKUP_STORAGE_KEY, (storage = {}) => {
-      const { addresses = {}, githubs = {}, emails = {}, names = {} } = storage[LOOKUP_STORAGE_KEY] || {};
+      const data = this.clean(storage[LOOKUP_STORAGE_KEY]);
 
       // Load the saved data, omitting the old data
-      this._addresses = omitBy(addresses, (data) => (Date.now() - data.date) > TTL);
-      this._githubs = omitBy(githubs, (data) => (Date.now() - data.date) > TTL);
-      this._emails = omitBy(emails, (data) => (Date.now() - data.date) > TTL);
-      this._names = omitBy(names, (data) => (Date.now() - data.date) > TTL);
+      this._addresses = data.addresses;
+      this._githubs = data.githubs;
+      this._emails = data.emails;
+      this._names = data.names;
 
       this.save();
     });
@@ -173,7 +194,7 @@ export default class Lookup {
         .catch((error) => {
           const date = Date.now();
 
-          console.error('reverse', input, error);
+          console.error('reverse', cacheKey, method, input, error);
 
           this[cacheKey][input] = { date, error };
         })

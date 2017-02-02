@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 
+import State from './state';
 import { UI, EV_BAR_CODE, getRetryTimeout } from '../shared';
 
 class VersionMismatch extends Error {
@@ -21,6 +22,8 @@ class VersionMismatch extends Error {
 }
 
 let codeCache = null;
+let codeCacheVersion = null;
+
 export default function loadScripts (port) {
   function checkResponseOk (response) {
     if (response.ok) {
@@ -32,6 +35,11 @@ export default function loadScripts (port) {
   function retry (msg) {
     if (msg.type !== EV_BAR_CODE) {
       return;
+    }
+
+    // Clear cache if parity was updated.
+    if (codeCacheVersion !== State.version) {
+      codeCache = null;
     }
 
     if (!codeCache) {
@@ -53,6 +61,7 @@ export default function loadScripts (port) {
         })
         .then(responses => Promise.all(responses.map(response => response.blob())));
 
+      codeCacheVersion = State.version;
       codeCache = Promise.all([vendor, embed])
         .then(scripts => {
           const vendor = scripts[0];

@@ -23,16 +23,17 @@
 
 import { createSecureTransport } from './secureTransport';
 import { EV_SIGNER_BAR, EV_BAR_CODE, isEnabled } from '../shared';
+import Config from '../background/config';
 
 isEnabled()
   .then((enabled) => {
     if (enabled && window.location.protocol === 'chrome-extension:') {
       window.secureTransport = createSecureTransport();
-      getBackgroundSeed().then(seed => {
-        window.backgroundSeed = seed;
+      Config.get().then(config => {
+        window.backgroundSeed = config.backgroundSeed;
+        loadScripts();
       });
       handleResizeEvents();
-      loadScripts();
     }
   });
 
@@ -83,18 +84,6 @@ function loadScripts () {
 
   port.postMessage({
     type: EV_BAR_CODE
-  });
-}
-
-function getBackgroundSeed (callback) {
-  return new Promise((resolve, reject) => {
-    chrome.storage.local.get('backgroundSeed', res => {
-      if (!res) {
-        return reject();
-      }
-
-      resolve(res.backgroundSeed);
-    });
   });
 }
 

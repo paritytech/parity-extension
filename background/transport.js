@@ -15,6 +15,7 @@
 // along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 
 import Ws from './ws';
+import State from './state';
 import { UI, TRANSPORT_UNINITIALIZED, EV_WEB3_ACCOUNTS_REQUEST, EV_TOKEN, getRetryTimeout } from '../shared';
 import Config from './config';
 
@@ -65,6 +66,16 @@ function newTransport (token) {
     oldOrigins.forEach(origin => {
       fetchAccountsForCache(origin);
     });
+
+    // fetch version
+    transport.execute('web3_clientVersion')
+      .then(version => {
+        State.version = version;
+      });
+  });
+
+  transport.on('close', () => {
+    State.version = null;
   });
   return transport;
 }

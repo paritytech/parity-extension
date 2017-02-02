@@ -34,8 +34,15 @@ export default class Processor {
 
   // Contains the extracted addresses
   // per tab
-  // TODO : should be cleaned up on tab close
   _extractions = {};
+
+  constructor () {
+    chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+      if (changeInfo.status === 'loading') {
+        delete this._extractions[tabId];
+      }
+    });
+  }
 
   static get () {
     if (!instance) {

@@ -42,6 +42,10 @@ export default class Processor {
         delete this._extractions[tabId];
       }
     });
+
+    chrome.tabs.onRemoved.addListener((tabId) => {
+      delete this._extractions[tabId];
+    });
   }
 
   static get () {

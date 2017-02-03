@@ -14,7 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 
+/* global chrome */
+
 import { keccak_256 as sha3 } from 'js-sha3';
+import { omitBy } from 'lodash';
+
+const LOOKUP_STORAGE_KEY = 'parity::lookup_cache';
+// Time To Live for Lookup data (in ms : 1 day)
+const TTL = 1000 * 3600 * 24;
 
 let instance = null;
 
@@ -27,6 +34,56 @@ export default class Lookup {
 
   constructor () {
     instance = this;
+
+    this.load();
+  }
+
+  /**
+   * Clean the given data by removing all the Promises and
+   * all the old data
+   */
+  clean (data = {}) {
+    const { addresses = {}, githubs = {}, emails = {}, names = {} } = data;
+
+    const omit = (data) => {
+      return data instanceof Promise || (Date.now() - data.date) > TTL;
+    };
+
+    const cleanData = {
+      addresses: omitBy(addresses, omit),
+      githubs: omitBy(githubs, omit),
+      emails: omitBy(emails, omit),
+      names: omitBy(names, omit)
+    };
+
+    return cleanData;
+  }
+
+  save () {
+    setTimeout(() => {
+      const data = this.clean({
+        addresses: this._addresses,
+        githubs: this._githubs,
+        emails: this._emails,
+        names: this._names
+      });
+
+      chrome.storage.local.set({ [ LOOKUP_STORAGE_KEY ]: data }, () => {});
+    }, 50);
+  }
+
+  load () {
+    chrome.storage.local.get(LOOKUP_STORAGE_KEY, (storage = {}) => {
+      const data = this.clean(storage[LOOKUP_STORAGE_KEY]);
+
+      // Load the saved data, omitting the old data
+      this._addresses = data.addresses;
+      this._githubs = data.githubs;
+      this._emails = data.emails;
+      this._names = data.names;
+
+      this.save();
+    });
   }
 
   find (address) {
@@ -143,11 +200,12 @@ export default class Lookup {
         .catch((error) => {
           const date = Date.now();
 
-          console.error('reverse', input, error);
+          console.error('reverse', cacheKey, method, input, error);
 
           this[cacheKey][input] = { date, error };
         })
         .then(() => {
+          this.save();
           return this[cacheKey][input];
         });
     }
@@ -156,3 +214,5 @@ export default class Lookup {
   }
 
 }
+
+Lookup.get();

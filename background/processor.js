@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 
-import { uniq } from 'lodash';
+import { omitBy, uniq } from 'lodash';
 
 import Extractions from '../content/extractions';
 import Lookup from './lookup';
@@ -22,6 +22,9 @@ import Lookup from './lookup';
 export const FETCH_ADDRESS = 'FETCH_ADDRESS';
 export const PROCESS_EXTRACTIONS = 'PROCESS_EXTRACTIONS';
 export const FETCH_IMAGE = 'FETCH_IMAGE';
+
+const IMAGES_STORAGE_KEY = 'parity::images_cache';
+const IMAGES_TTL = 1000 * 3600 * 24;
 
 const SVG_MATCH = /.svg(\?.+)?$/i;
 const UNKNOWN_TOKEN_URL = 'https://raw.githubusercontent.com/ethcore/parity/1e6a2cb3783e0d66cfa730f4cea109f60dc3a685/js/assets/images/contracts/unknown-64x64.png';
@@ -46,6 +49,8 @@ export default class Processor {
     chrome.tabs.onRemoved.addListener((tabId) => {
       delete this._extractions[tabId];
     });
+
+    this.loadImages();
   }
 
   static get () {
@@ -119,6 +124,31 @@ export default class Processor {
     return lookup.address(address);
   }
 
+  cleanImages (data) {
+    const omit = (data) => {
+      return data instanceof Promise || (Date.now() - data.date) > IMAGES_TTL;
+    };
+
+    return omitBy(data, omit);
+  }
+
+  loadImages () {
+    chrome.storage.local.get(IMAGES_STORAGE_KEY, (storage = {}) => {
+      const images = storage[IMAGES_STORAGE_KEY] || {};
+
+      // Load the saved images, omitting the old data
+      this._images = this.cleanImages(images);
+      this.saveImages();
+    });
+  }
+
+  saveImages () {
+    setTimeout(() => {
+      const data = this.cleanImages(this._images);
+      chrome.storage.local.set({ [ IMAGES_STORAGE_KEY ]: data }, () => {});
+    }, 50);
+  }
+
   fetchImage (url) {
     const validUrl = url && url !== 'null' && url !== 'undefined'
       ? url
@@ -143,8 +173,12 @@ export default class Processor {
           return blobToBase64(data);
         })
         .then((data) => {
-          this._images[validUrl] = data;
-          return data;
+          const date = Date.now();
+
+          this._images[validUrl] = { data, date };
+          this.saveImages();
+
+          return this._images[validUrl];
         })
         .catch((error) => {
           // Remove cached promise on error
@@ -153,7 +187,10 @@ export default class Processor {
         });
     }
 
-    return Promise.resolve(this._images[validUrl]);
+    return Promise.resolve(this._images[validUrl])
+      .then((cached) => {
+        return cached && cached.data || null;
+      });
   }
 
   processExtractions (extractions) {

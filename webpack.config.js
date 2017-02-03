@@ -32,7 +32,7 @@ const isProd = ENV === 'production';
 
 // Contruct the output directory and process
 // the Manifest file and write it
-const manifest = Shared.getManifest();
+const manifest = Shared.getManifest(isProd);
 manifest.run();
 
 const contentDir = path.resolve(__dirname, './content');

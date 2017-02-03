@@ -18,8 +18,8 @@ const path = require('path');
 const ChromeExtensionUtils = require('chrome-extension-utils');
 
 module.exports = {
-  getManifest: function getManifest () {
-    const output = process.env.NODE_ENV === 'production'
+  getManifest: function getManifest (isProd = false) {
+    const output = isProd
       ? 'release'
       : 'build';
 
@@ -27,6 +27,18 @@ module.exports = {
       manifest: path.resolve(__dirname, '../manifest.json'),
       output: path.resolve(__dirname, '../', output)
     };
+
+    // TODO [ToDr] Disabling augmentation and popup in production
+    if (isProd) {
+      manifestOptions.preProcess = (manifest) => {
+        const idx = manifest.content_scripts.map(x => x.augmentation).indexOf(true);
+        if (idx !== -1) {
+          manifest.content_scripts.splice(idx, 1);
+        }
+        delete manifest.browser_action;
+        return manifest;
+      };
+    }
 
     return new ChromeExtensionUtils.Manifest(manifestOptions);
   }

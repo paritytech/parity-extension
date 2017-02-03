@@ -62,7 +62,7 @@ export default class App extends Component {
     return (
       <div className={ styles.container }>
         <div className={ styles.header }>
-          <h1 className={ styles.title }>Parity Integration</h1>
+          <h1 className={ styles.title }>Web3 Injection</h1>
           <CheckBox
             checked={ enabled }
             className={ styles.check }

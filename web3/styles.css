@@ -26,7 +26,7 @@
   animation: .4s ease-out 2s;
   animation-name: fadeIn;
   animation-fill-mode: forwards;
-  width: 300px;
+  width: 350px;
   height: 100px;
   z-index: 9999999999;
 }

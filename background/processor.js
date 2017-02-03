@@ -85,9 +85,10 @@ export default class Processor {
   }
 
   saveImages () {
-    const data = this.cleanImages(this._images);
-
-    chrome.storage.local.set({ [ IMAGES_STORAGE_KEY ]: data }, () => {});
+    setTimeout(() => {
+      const data = this.cleanImages(this._images);
+      chrome.storage.local.set({ [ IMAGES_STORAGE_KEY ]: data }, () => {});
+    }, 50);
   }
 
   fetchImage (url) {

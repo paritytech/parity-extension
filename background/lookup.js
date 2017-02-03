@@ -60,14 +60,16 @@ export default class Lookup {
   }
 
   save () {
-    const data = this.clean({
-      addresses: this._addresses,
-      githubs: this._githubs,
-      emails: this._emails,
-      names: this._names
-    });
+    setTimeout(() => {
+      const data = this.clean({
+        addresses: this._addresses,
+        githubs: this._githubs,
+        emails: this._emails,
+        names: this._names
+      });
 
-    chrome.storage.local.set({ [ LOOKUP_STORAGE_KEY ]: data }, () => {});
+      chrome.storage.local.set({ [ LOOKUP_STORAGE_KEY ]: data }, () => {});
+    }, 50);
   }
 
   load () {

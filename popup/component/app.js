@@ -42,6 +42,15 @@ export default class App extends Component {
         this.setState({ enabled });
       });
 
+    this.getExtractions();
+
+    // Trigger when the pop-up is open
+    window.onload = () => {
+      this.getExtractions();
+    };
+  }
+
+  getExtractions () {
     chrome.runtime.sendMessage({ action: 'getExtractions' }, (extractions) => {
       this.setState({ extractions });
     });

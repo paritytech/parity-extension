@@ -67,15 +67,27 @@ export default class Extractions extends Component {
 
     if (!extractions || extractions.length === 0) {
       return (
-        <p>No accounts has been extracted</p>
+        <p>No accounts have been extracted</p>
       );
     }
 
     return (
       <div className={ styles.extractions }>
-        <p>{ extractions.length } accounts have been extracted</p>
+        { this.renderDesc(extractions.length) }
         { this.renderAccounts(extractions) }
       </div>
+    );
+  }
+
+  renderDesc (n) {
+    if (n > 1) {
+      return (
+        <p>{ n } accounts have been extracted</p>
+      );
+    }
+
+    return (
+      <p>{ n } account has been extracted</p>
     );
   }
 

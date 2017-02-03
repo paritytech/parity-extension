@@ -31,7 +31,10 @@ module.exports = {
     // TODO [ToDr] Disabling augmentation and popup in production
     if (isProd) {
       manifestOptions.preProcess = (manifest) => {
-        manifest.content_scripts.pop();
+        const idx = manifest.content_scripts.map(x => x.augmentation).indexOf(true);
+        if (idx !== -1) {
+          manifest.content_scripts.splice(idx, 1);
+        }
         delete manifest.browser_action;
         return manifest;
       };

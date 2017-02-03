@@ -11,6 +11,7 @@
       "run_at": "document_start"
     },
     {
+      "augmentation": true,
       "matches": ["<all_urls>"],
       "js": ["content/index.js"]
     }

@@ -23,12 +23,15 @@ import 'material-design-lite/material';
 
 import Config from '../../background/config';
 
+import Extractions from './extractions';
+
 import styles from './app.css';
 
 export default class App extends Component {
 
   state = {
-    enabled: true
+    enabled: true,
+    extractions: []
   };
 
   componentWillMount () {
@@ -38,10 +41,23 @@ export default class App extends Component {
 
         this.setState({ enabled });
       });
+
+    this.getExtractions();
+
+    // Trigger when the pop-up is open
+    window.onload = () => {
+      this.getExtractions();
+    };
+  }
+
+  getExtractions () {
+    chrome.runtime.sendMessage({ action: 'getExtractions' }, (extractions) => {
+      this.setState({ extractions });
+    });
   }
 
   render () {
-    const { enabled } = this.state;
+    const { enabled, extractions } = this.state;
 
     return (
       <div className={ styles.container }>
@@ -53,6 +69,10 @@ export default class App extends Component {
             onChange={ this.handleChange }
           />
         </div>
+
+        <Extractions
+          extractions={ extractions }
+        />
       </div>
     );
   }

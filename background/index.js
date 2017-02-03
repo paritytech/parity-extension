@@ -20,7 +20,7 @@ import secureApiMessage from './transport';
 import web3Message from './web3';
 import Config from './config';
 
-const processor = new Processor();
+const processor = Processor.get();
 
 chrome.runtime.onConnect.addListener((port) => {
   if (port.name === 'secureApi') {
@@ -57,6 +57,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
           sendResponse(enabled);
         });
+
+      return true;
+
+    case 'getExtractions':
+      chrome.tabs.query({ currentWindow: true, active: true }, (tabs) => {
+        const extractions = processor.getExtractions(tabs[0]);
+        sendResponse(extractions);
+      });
 
       return true;
   }

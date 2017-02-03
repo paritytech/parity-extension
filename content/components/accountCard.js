@@ -14,73 +14,35 @@
 // You should have received a copy of the GNU General Public License
 // along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 
-import classnames from 'classnames';
 import { bind } from 'decko';
 import { noop } from 'lodash';
 import { h, Component } from 'preact';
 
 import IdentityIcon from './identityIcon';
 import Token from './token';
-import { positionToStyle } from '../util/style';
 
 import styles from './accountCard.css';
-
-const DEFAULT_SCALE = 0.05;
 
 export default class AccountCard extends Component {
 
   clickTimeout = null;
 
-  state = {
-    open: this.props.open,
-    position: {},
-    style: {}
-  };
-
-  componentWillMount () {
-    this.handleToggleOpen(false);
-  }
-
-  componentWillReceiveProps (nextProps) {
-    if (!this.props.origin && nextProps.origin) {
-      this.center(nextProps);
-    }
-
-    if (nextProps.open !== this.props.open) {
-      this.handleToggleOpen(nextProps.open);
-    }
-  }
-
   render () {
-    const { address, badges, name, safe, size, tokens } = this.props;
-    const { open, style } = this.state;
-
-    const className = classnames({
-      [styles.card]: true,
-      [styles.open]: open
-    });
-
-    const containerStyle = {
-      ...style,
-      top: size / 2,
-      left: size / 2
-    };
+    const { address, badges, className, email, name, safe, tokens } = this.props;
 
     return (
       <span
-        className={ className }
-        ref={ this.handleRef }
-        style={ containerStyle }
+        className={ [ styles.card, className ].join(' ') }
       >
         <span className={ styles.header }>
           <IdentityIcon
             address={ address }
-            size={ 48 }
+            size={ 44 }
           />
 
           <span className={ styles.title }>
             <span className={ styles.name }>
-              { name }
+              { name || email }
             </span>
             { this.renderAddress(address) }
           </span>
@@ -162,9 +124,9 @@ export default class AccountCard extends Component {
 
     return (
       <p className={ styles.warning }>
-        This account have been matched against the
+        This account has been matched against the
         Registry record <code>{ name }</code>.
-        It have not been verified and could be a false positive.
+        It has not been verified and could be a false positive.
       </p>
     );
   }
@@ -197,99 +159,4 @@ export default class AccountCard extends Component {
     return event;
   }
 
-  @bind
-  handleRef (element) {
-    if (this.state.containerElement) {
-      return;
-    }
-
-    this.setState({ containerElement: element }, this.center);
-  }
-
-  @bind
-  handleToggleOpen (open) {
-    const { position } = this.state;
-
-    if (!open) {
-      const style = positionToStyle({ scale: DEFAULT_SCALE, position });
-      return this.setState({ open, style });
-    }
-
-    const nextPosition = getPosition(this.state.containerElement, 1 / DEFAULT_SCALE, position);
-    const style = positionToStyle({ scale: 1, position: nextPosition });
-    return this.setState({ open, position: nextPosition, style });
-  }
-
-}
-
-/**
- * Returns the best position for the given
- * node (with optional future scaling)
- * as an Object { x, y } x for horizontal
- * and y for vertical
- */
-function getPosition (node, scale = 1, position = {}) {
-  const offset = getOffset(node, scale, position);
-
-  let x = 'center';
-  let y = 'center';
-
-  if (offset.top < 0) {
-    y = 'bottom';
-  }
-
-  if (offset.bottom < 0) {
-    y = 'top';
-  }
-
-  if (offset.right < 0) {
-    x = 'left';
-  }
-
-  if (offset.left < 0) {
-    x = 'right';
-  }
-
-  return { x, y };
-}
-
-function getOffset (node, scale = 1, position = {}) {
-  const { x = 'center', y = 'center' } = position;
-  const { left, top, right, bottom, width, height } = node.getBoundingClientRect();
-  const { clientHeight, clientWidth } = document.documentElement;
-
-  const offset = {
-    x: 0,
-    y: 0
-  };
-
-  if (x === 'left') {
-    offset.x = -width;
-  }
-
-  if (x === 'right') {
-    offset.x = width;
-  }
-
-  if (y === 'top') {
-    offset.y = -height;
-  }
-
-  if (y === 'bottom') {
-    offset.y = height;
-  }
-
-  const center = {
-    left: left + width / 2 - offset.x,
-    top: top + height / 2 - offset.y,
-    right: clientWidth - right + width / 2 + offset.x,
-    bottom: clientHeight - bottom + height / 2 + offset.y
-  };
-
-  return {
-    top: center.top - height / 2 * scale,
-    left: center.left - width / 2 * scale,
-    right: center.right - width / 2 * scale,
-    bottom: center.bottom - height / 2 * scale
-  };
 }

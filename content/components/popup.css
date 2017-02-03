@@ -1,4 +1,4 @@
-/* Copyright 2015-2017 Parity Technologies (UK) Ltd.
+/* Copyright 2015, 2016 Parity Technologies (UK) Ltd.
 /* This file is part of Parity.
 /*
 /* Parity is free software: you can redistribute it and/or modify
@@ -15,28 +15,25 @@
 /* along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-@import url('https://fonts.googleapis.com/icon?family=Material+Icons');
+@import "../styles.css";
 
 .container {
-  padding: 0.5em 1em;
-  width: 30em;
-  display: flex;
-  flex-direction: column;
+  position: relative;
 }
 
+.card {
+  transition-property: var(--transition-property);
+  transition-duration: var(--transition-duration);
+  transition-timing-function: var(--transition-timing-function);
 
-.header {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
+  position: absolute;
+  transform-origin: top left;
 
-  .title {
-    font-size: 1.5em;
-    margin: 0.5em 0;
-    flex: 1;
-  }
+  opacity: 0;
+  z-index: -1;
+}
 
-  .check {
-    flex: 0;
-  }
+.card.open {
+  opacity: 1;
+  z-index: 9999;
 }

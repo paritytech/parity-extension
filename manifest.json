@@ -33,7 +33,8 @@
   },
   "permissions": [
     "storage",
-    "tabs"
+    "tabs",
+    "<all_urls>"
   ],
   "icons": {
     "16": "icons/icon-16.png",

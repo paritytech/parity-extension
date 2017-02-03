@@ -32,16 +32,11 @@
 }
 
 .card {
-  position: absolute;
   font-size: 1rem;
-
-  opacity: 0;
-  z-index: -1;
-
-  transform-origin: top left;
 
   flex-direction: column;
   align-items: flex-start;
+  flex: 1 0 auto;
 
   background-color: rgba(40, 40, 40, 0.9);
   color: rgb(200, 200, 200);
@@ -59,30 +54,43 @@
   }
 }
 
-.card.open {
-  opacity: 1;
-  z-index: 9999;
-}
-
 .header {
   display: flex;
   flex-direction: row;
   align-items: center;
   margin-bottom: 0.5em;
+  width: 100%;
 
   .title {
     margin-left: 1em;
-    font-size: 1.15em;
+    min-width: 0;
+
+    display: flex;
+    flex-direction: column;
 
     span {
       display: block;
       margin: 0.25em 0;
+
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     .name {
-      font-size: 0.75em;
+      font-size: 1.25rem;
+      margin-bottom: 0.15rem;
+    }
+
+    .address {
+      font-size: 0.95rem;
+      margin-top: 0.15rem;
     }
   }
+}
+
+.tokens {
+  flex-wrap: wrap;
 }
 
 .warning {

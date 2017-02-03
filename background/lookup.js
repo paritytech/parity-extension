@@ -86,6 +86,10 @@ export default class Lookup {
     });
   }
 
+  find (address) {
+    return this._addresses[address];
+  }
+
   static get () {
     if (!instance) {
       return new Lookup();
@@ -157,14 +161,14 @@ export default class Lookup {
 
   _reverseEmail (input) {
     const hash = sha3(input);
-    return this._reverse('_emails', 'emailHash', `0x${hash}`);
+    return this._reverse('_emails', 'emailHash', `0x${hash}`, { email: input });
   }
 
   _reverseName (name) {
-    return this._reverse('_names', 'name', name);
+    return this._reverse('_names', 'name', name, { name });
   }
 
-  _reverse (cacheKey, method, input) {
+  _reverse (cacheKey, method, input, extras = {}) {
     if (!this[cacheKey][input]) {
       this[cacheKey][input] = fetch(`https://id.parity.io:8443/?${method}=${input}`)
         .then((response) => response.json())
@@ -185,10 +189,10 @@ export default class Lookup {
           const date = Date.now();
 
           if (data) {
-            this[cacheKey][input] = { ...data, date };
+            this[cacheKey][input] = { ...data, date, ...extras };
 
             // Cache the address results
-            this._addresses[data.address] = { ...data, date };
+            this._addresses[data.address] = { ...data, date, ...extras };
           } else {
             this[cacheKey][input] = { date };
           }

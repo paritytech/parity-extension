@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 
-/* global chrome */
-
 import Ws from './ws';
+import State from './state';
 import { UI, TRANSPORT_UNINITIALIZED, EV_WEB3_ACCOUNTS_REQUEST, EV_TOKEN, getRetryTimeout } from '../shared';
+import Config from './config';
 
 let openedTabId = null;
 let transport = null;
@@ -66,6 +66,16 @@ function newTransport (token) {
     oldOrigins.forEach(origin => {
       fetchAccountsForCache(origin);
     });
+
+    // fetch version
+    transport.execute('web3_clientVersion')
+      .then(version => {
+        State.version = version;
+      });
+  });
+
+  transport.on('close', () => {
+    State.version = null;
   });
   return transport;
 }
@@ -125,19 +135,30 @@ chrome.runtime.onMessage.addListener((request, sender, callback) => {
 
     console.log('Extracted a token: ', request.token);
     console.log('Extracted backgroundSeed: ', request.backgroundSeed);
-    chrome.storage.local.set({
+
+    Config.set({
       'authToken': request.token,
       'backgroundSeed': request.backgroundSeed
-    }, () => {});
+    });
+
     transport = newTransport(request.token);
     return;
   }
 });
 
 function extractToken () {
-  chrome.storage.local.get('authToken', (token) => {
-    if (!token.authToken) {
-      fetch(`http://${UI}`)
+  return Config.get()
+    .then((config) => {
+      if (config.authToken) {
+        if (transport) {
+          transport.close();
+        }
+
+        transport = newTransport(config.authToken);
+        return;
+      }
+
+      return fetch(`http://${UI}`)
         .then(() => {
           // Open a UI to extract the token from it
           chrome.tabs.create({
@@ -153,13 +174,6 @@ function extractToken () {
           extractToken.retries += 1;
           setTimeout(() => extractToken(), getRetryTimeout(extractToken.retries));
         });
-      return;
-    }
-
-    if (transport) {
-      transport.close();
-    }
-    transport = newTransport(token.authToken);
-  });
+    });
 }
 extractToken.retries = 0;

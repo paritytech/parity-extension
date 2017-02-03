@@ -23,6 +23,7 @@ import Portal from 'preact-portal';
 import AccountCard from './accountCard';
 import Badge from './badge';
 import IdentityIcon from './identityIcon';
+import Popup from './popup';
 
 import styles from './augmentedIcon.css';
 
@@ -54,7 +55,7 @@ export default class AugmentedIcon extends Component {
   }
 
   render () {
-    const { address, badges, height, name, safe, tokens } = this.props;
+    const { address, badges, email, height, name, safe, tokens } = this.props;
     const { badgesStyle, containerStyle, hover, open } = this.state;
 
     const containerClass = classnames({
@@ -107,17 +108,21 @@ export default class AugmentedIcon extends Component {
               />
             </span>
 
-            <AccountCard
-              address={ address }
-              badges={ badges }
-              name={ name }
+            <Popup
               open={ open }
-              safe={ safe }
               size={ height }
-              tokens={ tokens }
+            >
+              <AccountCard
+                address={ address }
+                badges={ badges }
+                email={ email }
+                name={ name }
+                safe={ safe }
+                tokens={ tokens }
 
-              onClose={ this.handleClose }
-            />
+                onClose={ this.handleClose }
+              />
+            </Popup>
           </div>
         </Portal>
       </span>

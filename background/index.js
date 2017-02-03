@@ -14,14 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 
-/* global chrome */
-
 import Processor from './processor';
 import loadScripts from './loadScripts';
 import secureApiMessage from './transport';
 import web3Message from './web3';
+import Config from './config';
 
-const processor = new Processor();
+const processor = Processor.get();
+
 chrome.runtime.onConnect.addListener((port) => {
   if (port.name === 'secureApi') {
     port.onMessage.addListener(secureApiMessage(port));
@@ -44,4 +44,28 @@ chrome.runtime.onConnect.addListener((port) => {
   }
 
   throw new Error(`Unrecognized port: ${port.name}`);
+});
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  const { action } = message;
+
+  switch (action) {
+    case 'isEnabled':
+      Config.get()
+        .then((config) => {
+          const { enabled = true } = config;
+
+          sendResponse(enabled);
+        });
+
+      return true;
+
+    case 'getExtractions':
+      chrome.tabs.query({ currentWindow: true, active: true }, (tabs) => {
+        const extractions = processor.getExtractions(tabs[0]);
+        sendResponse(extractions);
+      });
+
+      return true;
+  }
 });

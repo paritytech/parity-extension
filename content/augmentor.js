@@ -114,7 +114,7 @@ export default class Augmentor {
 
     return Augmentor.fetchImages(data)
       .then(([ badges, tokens ]) => {
-        const { address, name } = data;
+        const { address, email, name } = data;
 
         // Compute the height of the text, which should be the
         // height of the element minus the paddings
@@ -153,6 +153,7 @@ export default class Augmentor {
           <AugmentedIcon
             address={ address }
             badges={ badges }
+            email={ email }
             height={ iconHeight }
             name={ displayName }
             safe={ safe }

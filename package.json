@@ -35,8 +35,7 @@
     "babel-runtime": "6.22.0",
     "case-sensitive-paths-webpack-plugin": "1.1.4",
     "chai": "3.5.0",
-    "chrome-extension-utils":
-    "https://github.com/ngotchac/create-chrome-extension.git#b37925d08dbb25762a476a03249e22b7b91f0692",
+    "chrome-extension-utils": "https://github.com/ngotchac/create-chrome-extension.git#d54972f2bf869f207e45f82b5c53b1559d911602",
     "css-loader": "0.26.1",
     "eslint": "3.11.1",
     "eslint-config-semistandard": "7.0.0",

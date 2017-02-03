@@ -21,7 +21,7 @@ const ChromeExtensionUtils = require('chrome-extension-utils');
 const Shared = require('./shared');
 const WebpackConfig = require('../webpack.config');
 
-const manifest = Shared.getManifest();
+const manifest = Shared.getManifest(process.env.NODE_ENV === 'production');
 const compiler = webpack(WebpackConfig);
 
 compiler.run(function handler (err, stats) {

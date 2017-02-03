@@ -59,13 +59,13 @@ class Web3FrameProvider {
       }
 
       if (ev.data.err === TRANSPORT_UNINITIALIZED) {
-        if (this.isConnected) {
+        if (this.isConnected()) {
           // re-fetch accounts in case it's disconnected
           this.initializeMainAccount();
         }
-        this.isConnected = false;
+        this._isConnected = false;
       } else {
-        this.isConnected = true;
+        this._isConnected = true;
       }
 
       const { id, err, payload } = ev.data;

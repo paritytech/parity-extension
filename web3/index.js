@@ -62,7 +62,7 @@ function loadScripts () {
       const $link = document.createElement('a');
       $link.href = `${code.ui}/#/signer`;
       $link.target = '_blank';
-      $link.innerHTML = 'Your Parity version is older than 1.5. <br />You need to open UI to sign transactions.';
+      $link.innerHTML = 'Your Parity version is older than 1.5. <br />You need to open the UI to sign transactions.';
 
       $loading.classList.add('version');
       $loading.innerHTML = '';

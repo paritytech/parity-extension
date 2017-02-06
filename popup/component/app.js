@@ -73,6 +73,10 @@ export default class App extends Component {
         <Extractions
           extractions={ extractions }
         />
+
+        <div className={ styles.status }>
+          Connected to http://localhost:8545/
+        </div>
       </div>
     );
   }

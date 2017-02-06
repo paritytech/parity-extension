@@ -19,7 +19,17 @@
   display: flex;
   flex-direction: column;
   flex: 1;
+
+  p {
+    margin-bottom: 0.5rem;
+  }
+}
+
+.accounts {
   overflow: auto;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
 
   > * {
     margin-bottom: 0.5rem;
@@ -31,4 +41,11 @@
 }
 
 .accountCard {
+  display: flex;
+  flex: 1 0 auto;
+  flex-direction: column;
+
+  & *:hover {
+    cursor: pointer !important;
+  }
 }

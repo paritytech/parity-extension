@@ -42,6 +42,7 @@
   color: rgb(200, 200, 200);
 
   padding: 0.75em 1em;
+  overflow: hidden;
 
   * {
     font-family: 'Roboto', sans-serif !important;
@@ -51,6 +52,25 @@
 
   .address {
     cursor: text;
+  }
+}
+
+.content {
+  transition-property: max-height, opacity;
+  transition-duration: var(--transition-duration);
+  transition-timing-function: var(--transition-timing-function);
+
+  height: auto;
+  max-height: 300px;
+  opacity: 1;
+
+  &.small {
+    transition-property: max-height, opacity;
+    transition-duration: var(--transition-duration);
+    transition-timing-function: var(--transition-timing-function);
+
+    max-height: 0;
+    opacity: 0;
   }
 }
 

@@ -40,3 +40,11 @@
     flex: 0;
   }
 }
+
+.status {
+  border-top: 1px dashed #ddd;
+  margin-top: 0.75rem;
+  padding-top: 0.5rem;
+  text-align: center;
+  color: #444
+}

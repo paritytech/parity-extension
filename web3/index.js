@@ -71,12 +71,8 @@ function loadScripts () {
     }
 
     const $script = document.createElement('script');
-    const $styles = document.createElement('link');
 
     $script.src = code.scripts;
-    $styles.rel = 'stylesheet';
-    $styles.href = code.styles;
-    document.head.appendChild($styles);
     document.body.appendChild($script);
 
     port.disconnect();

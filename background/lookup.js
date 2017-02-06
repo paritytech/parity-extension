@@ -18,6 +18,9 @@
 
 import { keccak_256 as sha3 } from 'js-sha3';
 import { omitBy } from 'lodash';
+import ParityLookup from 'lookup';
+import { getTransport } from './transport';
+import { Api } from '@parity/parity.js';
 
 const LOOKUP_STORAGE_KEY = 'parity::lookup_cache';
 // Time To Live for Lookup data (in ms : 1 day)
@@ -161,7 +164,7 @@ export default class Lookup {
 
   _reverseEmail (input) {
     const hash = sha3(input);
-    return this._reverse('_emails', 'emailHash', `0x${hash}`, { email: input });
+    return this._reverse('_emails', 'email', `0x${hash}`, { email: input });
   }
 
   _reverseName (name) {
@@ -170,8 +173,7 @@ export default class Lookup {
 
   _reverse (cacheKey, method, input, extras = {}) {
     if (!this[cacheKey][input]) {
-      this[cacheKey][input] = fetch(`https://id.parity.io:8443/?${method}=${input}`)
-        .then((response) => response.json())
+      this[cacheKey][input] = this.fetch(method, input)
         .then((data) => {
           if (!data || data.status === 'error') {
             return null;
@@ -211,6 +213,37 @@ export default class Lookup {
     }
 
     return Promise.resolve(this[cacheKey][input]);
+  }
+
+  /**
+   * Fetch from the lookup server or from the local node
+   * if available.
+   *
+   * Method is in ['name', 'email']
+   */
+  fetch (method, input) {
+    const transport = getTransport();
+
+    if (!transport || !transport.isConnected) {
+      const lookupMethod = method === 'email'
+        ? 'emailHash'
+        : method;
+
+      return fetch(`https://id.parity.io:8443/?${lookupMethod}=${input}`)
+        .then((response) => response.json());
+    }
+
+    const api = new Api(transport);
+    const lookup = ParityLookup(api);
+
+    switch (method) {
+      case 'email':
+        return lookup.byEmail(input);
+
+      case 'name':
+      default:
+        return lookup.byName(input);
+    }
   }
 
 }

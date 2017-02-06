@@ -24,6 +24,10 @@ let transport = null;
 // Attempt to extract token on start if not available.
 extractToken();
 
+export const getTransport = () => {
+  return transport;
+};
+
 export default function secureApiMessage (port) {
   return (msg) => {
     const { id, payload } = msg;

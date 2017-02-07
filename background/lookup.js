@@ -19,8 +19,6 @@
 import { keccak_256 as sha3 } from 'js-sha3';
 import { omitBy } from 'lodash';
 import ParityLookup from 'lookup';
-import { getTransport } from './transport';
-import { Api } from '@parity/parity.js';
 
 const LOOKUP_STORAGE_KEY = 'parity::lookup_cache';
 
@@ -234,7 +232,7 @@ export default class Lookup {
    * Method is in ['name', 'email']
    */
   fetch (method, input) {
-    const transport = getTransport();
+    const { transport } = this.store;
 
     if (!transport || !transport.isConnected) {
       const lookupMethod = method === 'email'
@@ -245,8 +243,7 @@ export default class Lookup {
         .then((response) => response.json());
     }
 
-    const api = new Api(transport);
-    const lookup = ParityLookup(api);
+    const lookup = ParityLookup(transport.api);
 
     switch (method) {
       case 'email':

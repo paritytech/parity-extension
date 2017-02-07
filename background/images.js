@@ -66,6 +66,15 @@ export default class Images {
     }, 50);
   }
 
+  /**
+   * Fetch and cache any image from the given URL.
+   * Returns a Promise that gets resolved with a
+   * string, the base64 of the image / or null.
+   *
+   * @param  {String} url   - The URL of the Image to fetch
+   * @return {Promise}      - Promise resolved with the base64 of
+   *                          the image
+   */
   fetchImage (url) {
     const validUrl = url && url !== 'null' && url !== 'undefined'
       ? url

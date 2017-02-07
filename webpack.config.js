@@ -64,7 +64,10 @@ module.exports = {
   cache: !isProd,
   devtool: isProd ? '#hidden-source-map' : '#source-map',
 
-  entry: manifest.entries,
+  entry: Object.assign({},
+    manifest.entries,
+    { 'options/index': './options/index.js' }
+  ),
   output: {
     path: manifest.buildPath,
     filename: '[name].js',

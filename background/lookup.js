@@ -23,8 +23,12 @@ import { getTransport } from './transport';
 import { Api } from '@parity/parity.js';
 
 const LOOKUP_STORAGE_KEY = 'parity::lookup_cache';
-// Time To Live for Lookup data (in ms : 1 day)
-const TTL = 1000 * 3600 * 24;
+// Time To Live for Lookup data (in ms : 1h for valid response,
+// 30 minutes for invalid ones)
+const TTLs = {
+  success: 1000 * 3600,
+  error: 1000 * 60 * 30
+};
 
 let instance = null;
 
@@ -49,7 +53,7 @@ export default class Lookup {
     const { addresses = {}, githubs = {}, emails = {}, names = {} } = data;
 
     const omit = (data) => {
-      return data instanceof Promise || (Date.now() - data.date) > TTL;
+      return data instanceof Promise || (Date.now() > data.expires);
     };
 
     const cleanData = {
@@ -111,21 +115,21 @@ export default class Lookup {
         .then((response) => response.json())
         .then((data) => data && data.email)
         .then((email) => {
-          const date = Date.now();
+          const expires = Date.now() + TTLs.success;
 
           if (!email) {
-            this._githubs[handle] = { date };
+            this._githubs[handle] = { expires };
             return;
           }
 
-          this._githubs[handle] = { date, email };
+          this._githubs[handle] = { expires, email };
           return this._githubs[handle];
         })
         .catch((error) => {
-          const date = Date.now();
+          const expires = Date.now() + TTLs.error;
 
           console.error('github', handle, error);
-          this._githubs[handle] = { date, error };
+          this._githubs[handle] = { expires, error };
         });
     }
 
@@ -188,23 +192,23 @@ export default class Lookup {
           return { address, ...other };
         })
         .then((data) => {
-          const date = Date.now();
+          const expires = Date.now() + TTLs.success;
 
           if (data) {
-            this[cacheKey][input] = { ...data, date, ...extras };
+            this[cacheKey][input] = { ...data, expires, ...extras };
 
             // Cache the address results
-            this._addresses[data.address] = { ...data, date, ...extras };
+            this._addresses[data.address] = { ...data, expires, ...extras };
           } else {
-            this[cacheKey][input] = { date };
+            this[cacheKey][input] = { expires };
           }
         })
         .catch((error) => {
-          const date = Date.now();
+          const expires = Date.now() + TTLs.error;
 
           console.error('reverse', cacheKey, method, input, error);
 
-          this[cacheKey][input] = { date, error };
+          this[cacheKey][input] = { expires, error };
         })
         .then(() => {
           this.save();

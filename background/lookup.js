@@ -74,8 +74,6 @@ export default class Lookup {
     this._emails = cleanData.emails;
     this._names = cleanData.names;
 
-   console.warn('cleaned data', cleanData);
-
     return cleanData;
   }
 

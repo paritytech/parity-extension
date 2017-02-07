@@ -14,14 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 
-import { bind } from 'decko';
 import { h, Component } from 'preact';
-import { CheckBox } from 'preact-mdl';
 
 import 'material-design-lite/material.css';
 import 'material-design-lite/material';
-
-import Config from '../../background/config';
 
 import Extractions from './extractions';
 
@@ -30,18 +26,10 @@ import styles from './app.css';
 export default class App extends Component {
 
   state = {
-    enabled: true,
     extractions: []
   };
 
   componentWillMount () {
-    Config.get()
-      .then((config) => {
-        const { enabled = true } = config;
-
-        this.setState({ enabled });
-      });
-
     this.getExtractions();
 
     // Trigger when the pop-up is open
@@ -57,17 +45,12 @@ export default class App extends Component {
   }
 
   render () {
-    const { enabled, extractions } = this.state;
+    const { extractions } = this.state;
 
     return (
       <div className={ styles.container }>
         <div className={ styles.header }>
           <h1 className={ styles.title }>Web3 Injection</h1>
-          <CheckBox
-            checked={ enabled }
-            className={ styles.check }
-            onChange={ this.handleChange }
-          />
         </div>
 
         <Extractions
@@ -79,16 +62,6 @@ export default class App extends Component {
         </div>
       </div>
     );
-  }
-
-  @bind
-  handleChange (event) {
-    const { checked } = event.target;
-
-    Config.set({ enabled: checked })
-      .then(() => {
-        this.setState({ enabled: checked });
-      });
   }
 
 }

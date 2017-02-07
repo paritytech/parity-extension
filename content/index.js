@@ -16,7 +16,7 @@
 
 /* global NodeFilter,MutationObserver */
 import Extractor from './extractor';
-import { isEnabled } from '../shared';
+import { isAugmentationEnabled } from '../shared';
 
 function main () {
   // Process the page in stages.
@@ -55,7 +55,7 @@ function main () {
   extract();
 }
 
-isEnabled()
+isAugmentationEnabled()
   .then((enabled) => {
     if (enabled) {
       main();

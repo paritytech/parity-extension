@@ -35,10 +35,6 @@
     margin: 0.5em 0;
     flex: 1;
   }
-
-  .check {
-    flex: 0;
-  }
 }
 
 .status {

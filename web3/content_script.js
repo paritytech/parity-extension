@@ -26,10 +26,10 @@ import {
   EV_WEB3_REQUEST, EV_WEB3_RESPONSE,
   EV_WEB3_ACCOUNTS_REQUEST, EV_WEB3_ACCOUNTS_RESPONSE,
   EV_TOKEN, EV_SIGNER_BAR,
-  isEnabled
+  isIntegrationEnabled
 } from '../shared';
 
-isEnabled()
+isIntegrationEnabled()
   .then((enabled) => {
     if (enabled) {
       main();

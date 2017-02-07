@@ -50,12 +50,22 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   const { action } = message;
 
   switch (action) {
-    case 'isEnabled':
+    case 'isAugmentationEnabled':
       Config.get()
         .then((config) => {
-          const { enabled = true } = config;
+          const { augmentationEnabled = true } = config;
 
-          sendResponse(enabled);
+          sendResponse(augmentationEnabled);
+        });
+
+      return true;
+
+    case 'isIntegrationEnabled':
+      Config.get()
+        .then((config) => {
+          const { integrationEnabled = true } = config;
+
+          sendResponse(integrationEnabled);
         });
 
       return true;

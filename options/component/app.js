@@ -16,7 +16,7 @@
 
 import { bind } from 'decko';
 import { h, Component } from 'preact';
-import { CheckBox } from 'preact-mdl';
+import { Switch } from 'preact-mdl';
 
 import Config from '../../background/config';
 
@@ -28,33 +28,47 @@ import styles from './app.css';
 export default class App extends Component {
 
   state = {
-    enabled: true
+    augmentationEnabled: true,
+    integrationEnabled: true
   };
 
   componentWillMount () {
     Config.get()
       .then((config) => {
-        const { enabled = true } = config;
+        const { augmentationEnabled = true, integrationEnabled = true } = config;
 
-        this.setState({ enabled });
+        this.setState({ augmentationEnabled, integrationEnabled });
       });
   }
 
   render () {
-    const { enabled } = this.state;
+    const { augmentationEnabled, integrationEnabled } = this.state;
 
     return (
       <div className={ styles.options }>
         <div className={ styles.option }>
-          <div className={ styles.asd }>
-            <CheckBox
-              checked={ enabled }
+          <div className={ styles.switch }>
+            <Switch
+              checked={ integrationEnabled }
               className={ styles.check }
-              onChange={ this.handleChange }
+              onChange={ this.handleToggleIntegration }
             />
           </div>
           <div>
-            Enable
+            Parity Integration
+          </div>
+        </div>
+
+        <div className={ styles.option }>
+          <div className={ styles.switch }>
+            <Switch
+              checked={ augmentationEnabled }
+              className={ styles.check }
+              onChange={ this.handleToggleAugmentation }
+            />
+          </div>
+          <div>
+            Identity Augmentation
           </div>
         </div>
       </div>
@@ -62,12 +76,22 @@ export default class App extends Component {
   }
 
   @bind
-  handleChange (event) {
+  handleToggleAugmentation (event) {
     const { checked } = event.target;
 
-    Config.set({ enabled: checked })
+    Config.set({ augmentationEnabled: checked })
       .then(() => {
-        this.setState({ enabled: checked });
+        this.setState({ augmentationEnabled: checked });
+      });
+  }
+
+  @bind
+  handleToggleIntegration (event) {
+    const { checked } = event.target;
+
+    Config.set({ integrationEnabled: checked })
+      .then(() => {
+        this.setState({ integrationEnabled: checked });
       });
   }
 

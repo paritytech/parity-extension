@@ -26,4 +26,14 @@
   display: flex;
   flex-direction: row;
   align-items: center;
+
+  margin-bottom: 1rem;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.switch {
+  width: 4rem;
 }

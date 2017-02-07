@@ -30,9 +30,17 @@ export function getRetryTimeout (retries) {
   return Math.min(R * T * Math.pow(F, N), M);
 }
 
-export function isEnabled () {
+export function isAugmentationEnabled () {
   return new Promise((resolve) => {
-    chrome.runtime.sendMessage({ action: 'isEnabled' }, (enabled) => {
+    chrome.runtime.sendMessage({ action: 'isAugmentationEnabled' }, (enabled) => {
+      resolve(enabled);
+    });
+  });
+}
+
+export function isIntegrationEnabled () {
+  return new Promise((resolve) => {
+    chrome.runtime.sendMessage({ action: 'isIntegrationEnabled' }, (enabled) => {
       resolve(enabled);
     });
   });

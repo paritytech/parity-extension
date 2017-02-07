@@ -16,8 +16,6 @@
 
 import { h, Component } from 'preact';
 
-import Augmentor from '../../content/augmentor';
-
 import AccountCard from '../../content/components/accountCard';
 
 import styles from './extractions.css';
@@ -30,9 +28,10 @@ class Account extends Component {
   };
 
   componentWillMount () {
-    const { badges, tokens } = this.props.account;
+    const { account, store } = this.props;
+    const { badges, tokens } = account;
 
-    return Augmentor.fetchImages({ badges, tokens })
+    return store.augmentor.fetchImages({ badges, tokens })
       .then(([ badges, tokens ]) => {
         this.setState({ badges, tokens });
       });
@@ -63,7 +62,7 @@ class Account extends Component {
 export default class Extractions extends Component {
 
   render () {
-    const { extractions } = this.props;
+    const { extractions, store } = this.props;
 
     if (!extractions || extractions.length === 0) {
       return (
@@ -74,7 +73,7 @@ export default class Extractions extends Component {
     return (
       <div className={ styles.extractions }>
         { this.renderDesc(extractions.length) }
-        { this.renderAccounts(extractions) }
+        { this.renderAccounts(extractions, store) }
       </div>
     );
   }
@@ -91,10 +90,13 @@ export default class Extractions extends Component {
     );
   }
 
-  renderAccounts (accounts) {
+  renderAccounts (accounts, store) {
     return accounts.map((account) => {
       return (
-        <Account account={ account } />
+        <Account
+          account={ account }
+          store={ store }
+        />
       );
     });
   }

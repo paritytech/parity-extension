@@ -16,22 +16,27 @@
 
 // Given DOM element returns array of possible id-links to resolve.
 
-import Augmentor, { AUGMENTED_NODE_ATTRIBUTE } from './augmentor';
-import Accounts from './accounts';
+import { AUGMENTED_NODE_ATTRIBUTE } from './augmentor';
 import Extractions, { TAGS_BLACKLIST } from './extractions';
 
 export default class Extractor {
+
+  store = null;
+
+  constructor (store) {
+    this.store = store;
+  }
 
   /**
    * First try to find a match from the nodes
    * attributes, then from the nodes text content
    */
-  static run (root = document.body) {
-    Extractor.processAttributeNodes(root)
-      .then(() => Extractor.processTextNodes(root));
+  run (root = document.body) {
+    this.processAttributeNodes(root)
+      .then(() => this.processTextNodes(root));
   }
 
-  static processAttributeNodes (root = document.body) {
+  processAttributeNodes (root = document.body) {
     const treeWalker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT);
     const promises = [];
 
@@ -51,7 +56,7 @@ export default class Extractor {
         continue;
       }
 
-      const promise = Accounts.processExtractions(extractions)
+      const promise = this.store.accounts.processExtractions(extractions)
         .then(() => {
           // Find the first extraction with a result,
           // sorted by priority
@@ -61,7 +66,7 @@ export default class Extractor {
             return null;
           }
 
-          return Augmentor.augmentNode(extraction, node);
+          return this.store.augmentor.augmentNode(extraction, node);
         });
 
       promises.push(promise);
@@ -70,7 +75,7 @@ export default class Extractor {
     return Promise.all(promises);
   }
 
-  static processTextNodes (root = document.body) {
+  processTextNodes (root = document.body) {
     const treeWalker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
     const promises = [];
 
@@ -96,14 +101,14 @@ export default class Extractor {
         continue;
       }
 
-      const promise = Accounts.processExtractions(extractions)
+      const promise = this.store.accounts.processExtractions(extractions)
         .then(() => {
           // Get all the matching extractions
           return extractions.all().map((extraction) => {
-            const safeNodes = Augmentor.getSafeNodes(extraction, parentNode);
+            const safeNodes = this.store.augmentor.getSafeNodes(extraction, parentNode);
 
             return safeNodes.map((safeNode) => {
-              return Augmentor.augmentNode(extraction, safeNode);
+              return this.store.augmentor.augmentNode(extraction, safeNode);
             });
           });
         });

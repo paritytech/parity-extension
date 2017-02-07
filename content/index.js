@@ -15,8 +15,20 @@
 // along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 
 /* global NodeFilter,MutationObserver */
+import Accounts from './accounts';
+import Augmentor from './augmentor';
 import Extractor from './extractor';
+import Runner from './runner';
+import Store from './store';
+
 import { isEnabled } from '../shared';
+
+const store = new Store();
+
+store.accounts = new Accounts(store);
+store.augmentor = new Augmentor(store);
+store.extractor = new Extractor(store);
+store.runner = new Runner(store);
 
 function main () {
   // Process the page in stages.
@@ -25,7 +37,7 @@ function main () {
   // 2. Then we process all text nodes
 
   function extract (root = document.body) {
-    Extractor.run(root);
+    store.extractor.run(root);
   }
 
   // Observe later changes

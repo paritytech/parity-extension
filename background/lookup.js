@@ -23,14 +23,13 @@ import { getTransport } from './transport';
 import { Api } from '@parity/parity.js';
 
 const LOOKUP_STORAGE_KEY = 'parity::lookup_cache';
+
 // Time To Live for Lookup data (in ms : 1h for valid response,
 // 5 minutes for invalid ones)
 const TTLs = {
   success: 1000 * 3600,
   error: 1000 * 60 * 5
 };
-
-let instance = null;
 
 export default class Lookup {
 
@@ -39,8 +38,10 @@ export default class Lookup {
   _emails = {};
   _names = {};
 
-  constructor () {
-    instance = this;
+  store = null;
+
+  constructor (store) {
+    this.store = store;
 
     this.load();
   }
@@ -98,14 +99,6 @@ export default class Lookup {
 
   find (address) {
     return this._addresses[address];
-  }
-
-  static get () {
-    if (!instance) {
-      return new Lookup();
-    }
-
-    return instance;
   }
 
   address (address) {
@@ -226,7 +219,7 @@ export default class Lookup {
 
     return Promise.resolve(this[cacheKey][input])
       .then((data) => {
-        if (data.expires < Date.now()) {
+        if (data && data.expires < Date.now()) {
           return this.load().then(() => this._reverse(cacheKey, method, input, extras));
         }
 
@@ -266,5 +259,3 @@ export default class Lookup {
   }
 
 }
-
-Lookup.get();

@@ -33,7 +33,7 @@
   },
    "options_ui": {
     "page": "options/index.html",
-    "chrome_style": true
+    "chrome_style": false
   },
   "background": {
     "scripts": ["background/index.js"]

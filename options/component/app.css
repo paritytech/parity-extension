@@ -16,16 +16,18 @@
 */
 
 .options {
-  padding: 1rem 1.5rem;
+  padding: 1.75rem 1.5rem 1rem;
 
   display: flex;
   flex-direction: column;
+  flex: 1;
 }
 
 .option {
   display: flex;
   flex-direction: row;
   align-items: center;
+  width: 100%;
 
   margin-bottom: 1rem;
 
@@ -36,4 +38,12 @@
 
 .switch {
   width: 4rem;
+}
+
+.input {
+  width: 100%;
+
+  > * {
+    width: 100%;
+  }
 }

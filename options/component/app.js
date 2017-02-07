@@ -16,7 +16,7 @@
 
 import { bind } from 'decko';
 import { h, Component } from 'preact';
-import { Switch } from 'preact-mdl';
+import { Switch, TextField } from 'preact-mdl';
 
 import Config from '../../background/config';
 
@@ -29,20 +29,21 @@ export default class App extends Component {
 
   state = {
     augmentationEnabled: true,
-    integrationEnabled: true
+    integrationEnabled: true,
+    nodeURL: ''
   };
 
   componentWillMount () {
     Config.get()
       .then((config) => {
-        const { augmentationEnabled = true, integrationEnabled = true } = config;
+        const { augmentationEnabled = true, integrationEnabled = true, nodeURL = '' } = config;
 
-        this.setState({ augmentationEnabled, integrationEnabled });
+        this.setState({ augmentationEnabled, integrationEnabled, nodeURL });
       });
   }
 
   render () {
-    const { augmentationEnabled, integrationEnabled } = this.state;
+    const { augmentationEnabled, integrationEnabled, nodeURL } = this.state;
 
     return (
       <div className={ styles.options }>
@@ -71,6 +72,17 @@ export default class App extends Component {
             Identity Augmentation
           </div>
         </div>
+
+        <div className={ styles.option }>
+          <div className={ styles.input }>
+            <TextField
+              floatingLabel
+              label='Node URL'
+              onChange={ this.handleChangeURL }
+              value={ nodeURL }
+            />
+          </div>
+        </div>
       </div>
     );
   }
@@ -92,6 +104,16 @@ export default class App extends Component {
     Config.set({ integrationEnabled: checked })
       .then(() => {
         this.setState({ integrationEnabled: checked });
+      });
+  }
+
+  @bind
+  handleChangeURL (event) {
+    const { value } = event.target;
+
+    Config.set({ nodeURL: value })
+      .then(() => {
+        this.setState({ nodeURL: value });
       });
   }
 

@@ -24,10 +24,10 @@ import { Api } from '@parity/parity.js';
 
 const LOOKUP_STORAGE_KEY = 'parity::lookup_cache';
 // Time To Live for Lookup data (in ms : 1h for valid response,
-// 30 minutes for invalid ones)
+// 5 minutes for invalid ones)
 const TTLs = {
   success: 1000 * 3600,
-  error: 1000 * 60 * 30
+  error: 1000 * 60 * 5
 };
 
 let instance = null;
@@ -50,7 +50,12 @@ export default class Lookup {
    * all the old data
    */
   clean (data = {}) {
-    const { addresses = {}, githubs = {}, emails = {}, names = {} } = data;
+    const {
+      addresses = { ...this._addresses },
+      githubs = { ...this._githubs },
+      emails = { ...this._emails },
+      names = { ...this._names }
+    } = data;
 
     const omit = (data) => {
       return data instanceof Promise || (Date.now() > data.expires);
@@ -63,33 +68,33 @@ export default class Lookup {
       names: omitBy(names, omit)
     };
 
+    // Load the saved data, omitting the old data
+    this._addresses = cleanData.addresses;
+    this._githubs = cleanData.githubs;
+    this._emails = cleanData.emails;
+    this._names = cleanData.names;
+
+   console.warn('cleaned data', cleanData);
+
     return cleanData;
   }
 
   save () {
     setTimeout(() => {
-      const data = this.clean({
-        addresses: this._addresses,
-        githubs: this._githubs,
-        emails: this._emails,
-        names: this._names
-      });
-
-      chrome.storage.local.set({ [ LOOKUP_STORAGE_KEY ]: data }, () => {});
+      const cleanData = this.clean();
+      chrome.storage.local.set({ [ LOOKUP_STORAGE_KEY ]: cleanData }, () => {});
     }, 50);
   }
 
   load () {
-    chrome.storage.local.get(LOOKUP_STORAGE_KEY, (storage = {}) => {
-      const data = this.clean(storage[LOOKUP_STORAGE_KEY]);
+    return new Promise((resolve) => {
+      chrome.storage.local.get(LOOKUP_STORAGE_KEY, (storage = {}) => {
+        const data = storage[LOOKUP_STORAGE_KEY];
 
-      // Load the saved data, omitting the old data
-      this._addresses = data.addresses;
-      this._githubs = data.githubs;
-      this._emails = data.emails;
-      this._names = data.names;
-
-      this.save();
+        this.clean(data);
+        this.save();
+        resolve();
+      });
     });
   }
 
@@ -136,7 +141,12 @@ export default class Lookup {
     return Promise
       .resolve(this._githubs[handle])
       .then((data = {}) => {
-        const { email } = data;
+        const { email, expires } = data;
+
+        // Re-loaded the data if it's too old
+        if (expires < Date.now()) {
+          return this.load().then(() => this.github(handle));
+        }
 
         if (!email) {
           return { ...data };
@@ -216,7 +226,14 @@ export default class Lookup {
         });
     }
 
-    return Promise.resolve(this[cacheKey][input]);
+    return Promise.resolve(this[cacheKey][input])
+      .then((data) => {
+        if (data.expires < Date.now()) {
+          return this.load().then(() => this._reverse(cacheKey, method, input, extras));
+        }
+
+        return data;
+      });
   }
 
   /**

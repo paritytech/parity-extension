@@ -86,5 +86,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       });
 
       return true;
+
+    case 'getNodeStatus':
+      sendResponse(store.transport.status);
+      return true;
+
+    case 'getNodeURL':
+      sendResponse(store.transport.url);
+      return true;
   }
 });

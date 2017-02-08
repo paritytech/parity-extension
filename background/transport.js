@@ -38,6 +38,22 @@ export default class Transport {
     return this.transport.isConnected;
   }
 
+  get status () {
+    if (this.transport.isConnected) {
+      return 'connected';
+    }
+
+    if (this.transport.isConnecting) {
+      return 'connecting';
+    }
+
+    return 'disconnected';
+  }
+
+  get url () {
+    return this.transport.url;
+  }
+
   constructor (store) {
     this.store = store;
 

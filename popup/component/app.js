@@ -22,6 +22,7 @@ import 'material-design-lite/material';
 
 import Config from '../../background/config';
 import Extractions from './extractions';
+import { getNodeStatus, getNodeURL } from '../../shared';
 
 import styles from './app.css';
 
@@ -29,7 +30,9 @@ export default class App extends Component {
 
   state = {
     augmentationEnabled: true,
-    extractions: []
+    extractions: [],
+    status: '',
+    url: ''
   };
 
   componentWillMount () {
@@ -46,6 +49,12 @@ export default class App extends Component {
     window.onload = () => {
       this.getExtractions();
     };
+
+    getNodeStatus()
+      .then((status) => this.setState({ status }));
+
+    getNodeURL()
+      .then((url) => this.setState({ url }));
   }
 
   getExtractions () {
@@ -56,10 +65,7 @@ export default class App extends Component {
 
   render () {
     const { store } = this.props;
-    const { augmentationEnabled, extractions } = this.state;
-
-    const status = 'disconnected';
-    const url = 'http://localhost:8545/';
+    const { augmentationEnabled, extractions, status, url } = this.state;
 
     return (
       <div className={ styles.container }>

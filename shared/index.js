@@ -45,3 +45,19 @@ export function isIntegrationEnabled () {
     });
   });
 }
+
+export function getNodeStatus () {
+  return new Promise((resolve) => {
+    chrome.runtime.sendMessage({ action: 'getNodeStatus' }, (status) => {
+      resolve(status);
+    });
+  });
+}
+
+export function getNodeURL () {
+  return new Promise((resolve) => {
+    chrome.runtime.sendMessage({ action: 'getNodeURL' }, (url) => {
+      resolve(url);
+    });
+  });
+}

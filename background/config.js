@@ -16,12 +16,20 @@
 
 const CONFIG_KEY = 'parity::config';
 
+export const DEFAULT_CONFIG = {
+  augmentationEnabled: true,
+  integrationEnabled: true,
+  lookupURL: 'https://id.parity.io/',
+  nodeURL: 'http://localhost:8545/'
+};
+
 export default class Config {
 
   static set (data) {
     return Config.get()
       .then((config) => {
         const nextConfig = {
+          ...DEFAULT_CONFIG,
           ...config,
           ...data
         };
@@ -39,7 +47,12 @@ export default class Config {
   static get () {
     return new Promise((resolve) => {
       chrome.storage.local.get(CONFIG_KEY, (data = {}) => {
-        resolve(data[CONFIG_KEY] || {});
+        const config = data[CONFIG_KEY] || {};
+
+        resolve({
+          ...DEFAULT_CONFIG,
+          ...config
+        });
       });
     });
   }

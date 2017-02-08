@@ -34,10 +34,15 @@
   &:last-child {
     margin-bottom: 0;
   }
+
+  &.optionInput {
+    margin-bottom: 0;
+  }
 }
 
 .switch {
-  width: 4rem;
+  width: 5rem;
+  margin-left: 1rem;
 }
 
 .input {

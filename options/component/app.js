@@ -15,10 +15,11 @@
 // along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 
 import { bind } from 'decko';
+import { isEqual } from 'lodash';
 import { h, Component } from 'preact';
-import { Switch, TextField } from 'preact-mdl';
+import { Button, Switch, TextField } from 'preact-mdl';
 
-import Config from '../../background/config';
+import Config, { DEFAULT_CONFIG } from '../../background/config';
 
 import 'material-design-lite/material.css';
 import 'material-design-lite/material';
@@ -30,23 +31,31 @@ export default class App extends Component {
   state = {
     augmentationEnabled: true,
     integrationEnabled: true,
-    nodeURL: ''
+    isPristine: true,
+    lookupURL: '',
+    nodeURL: '',
+    savedConf: {}
   };
 
   componentWillMount () {
     Config.get()
       .then((config) => {
-        const { augmentationEnabled = true, integrationEnabled = true, nodeURL = '' } = config;
+        const { augmentationEnabled = true, integrationEnabled = true, lookupURL = '', nodeURL = '' } = config;
+        const conf = { augmentationEnabled, integrationEnabled, lookupURL, nodeURL };
 
-        this.setState({ augmentationEnabled, integrationEnabled, nodeURL });
+        this.setState({ ...conf, savedConf: conf });
       });
   }
 
   render () {
-    const { augmentationEnabled, integrationEnabled, nodeURL } = this.state;
+    const { augmentationEnabled, integrationEnabled, isPristine, lookupURL, nodeURL } = this.state;
 
     return (
       <div className={ styles.options }>
+        <p>
+          Integrate the Parity Ethereum client with the Chrome browser
+        </p>
+
         <div className={ styles.option }>
           <div className={ styles.switch }>
             <Switch
@@ -56,7 +65,7 @@ export default class App extends Component {
             />
           </div>
           <div>
-            Parity Integration
+            Web3 Integration
           </div>
         </div>
 
@@ -73,48 +82,101 @@ export default class App extends Component {
           </div>
         </div>
 
-        <div className={ styles.option }>
+        <div className={ [ styles.option, styles.optionInput ].join(' ') }>
           <div className={ styles.input }>
             <TextField
-              floatingLabel
-              label='Node URL'
+              floating-label
+              label='Parity node URL'
               onChange={ this.handleChangeURL }
               value={ nodeURL }
             />
           </div>
         </div>
+
+        <div className={ [ styles.option, styles.optionInput ].join(' ') }>
+          <div className={ styles.input }>
+            <TextField
+              floating-label
+              label='Lookup service URL (fallback)'
+              onChange={ this.handleChangeLookupURL }
+              value={ lookupURL }
+            />
+          </div>
+        </div>
+
+        <div>
+          <Button
+            disabled={ isPristine }
+            onClick={ this.handleSave }
+          >
+            SAVE
+          </Button>
+
+          <Button onClick={ this.handleReset }>
+            RESET
+          </Button>
+        </div>
       </div>
     );
+  }
+
+  saveState (partialNextConf) {
+    const { augmentationEnabled, integrationEnabled, lookupURL, nodeURL, savedConf } = this.state;
+    const prevConf = { augmentationEnabled, integrationEnabled, lookupURL, nodeURL };
+    const nextConf = {
+      ...prevConf,
+      ...partialNextConf
+    };
+
+    const isPristine = isEqual(savedConf, nextConf);
+
+    this.setState({ ...partialNextConf, isPristine });
+  }
+
+  @bind
+  handleSave () {
+    const { augmentationEnabled, integrationEnabled, lookupURL, nodeURL } = this.state;
+    const conf = { augmentationEnabled, integrationEnabled, lookupURL, nodeURL };
+
+    Config.set(conf);
+    this.setState({ isPristine: true, savedConf: conf });
+  }
+
+  @bind
+  handleReset () {
+    const { augmentationEnabled, integrationEnabled, lookupURL, nodeURL } = DEFAULT_CONFIG;
+
+    this.saveState({
+      augmentationEnabled, integrationEnabled, lookupURL, nodeURL
+    });
   }
 
   @bind
   handleToggleAugmentation (event) {
     const { checked } = event.target;
 
-    Config.set({ augmentationEnabled: checked })
-      .then(() => {
-        this.setState({ augmentationEnabled: checked });
-      });
+    this.saveState({ augmentationEnabled: checked });
   }
 
   @bind
   handleToggleIntegration (event) {
     const { checked } = event.target;
 
-    Config.set({ integrationEnabled: checked })
-      .then(() => {
-        this.setState({ integrationEnabled: checked });
-      });
+    this.saveState({ integrationEnabled: checked });
   }
 
   @bind
   handleChangeURL (event) {
     const { value } = event.target;
 
-    Config.set({ nodeURL: value })
-      .then(() => {
-        this.setState({ nodeURL: value });
-      });
+    this.saveState({ nodeURL: value });
+  }
+
+  @bind
+  handleChangeLookupURL (event) {
+    const { value } = event.target;
+
+    this.saveState({ lookupURL: value });
   }
 
 }

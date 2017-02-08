@@ -15,24 +15,18 @@
 // along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 
 let currentID = 0;
-let instance = null;
 
 export default class Runner {
 
   message = {};
   port = null;
 
-  constructor () {
+  store = null;
+
+  constructor (store) {
+    this.store = store;
+
     this.setup();
-    instance = this;
-  }
-
-  static get () {
-    if (!instance) {
-      return new Runner();
-    }
-
-    return instance;
   }
 
   setup () {
@@ -42,10 +36,6 @@ export default class Runner {
 
     // Listen for responses
     this.port.onMessage.addListener((msg) => this.handleIncomingMessage(msg));
-  }
-
-  static execute (task, data) {
-    return Runner.get().execute(task, data);
   }
 
   execute (task, input) {

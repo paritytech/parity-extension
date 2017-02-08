@@ -14,25 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 
-import { h, render } from 'preact';
+export default class Store {
 
-import './index.html';
-import App from './component/app';
+  images = null;
+  lookup = null;
+  processor = null;
 
-import Accounts from '../content/accounts';
-import Augmentor from '../content/augmentor';
-import Runner from '../content/runner';
-
-import Store from '../content/store';
-
-const store = new Store();
-
-store.accounts = new Accounts(store);
-store.augmentor = new Augmentor(store);
-// store.extractor = new Extractor(store);
-store.runner = new Runner(store);
-
-const app = render(<App store={ store } />);
-
-document.body.appendChild(app);
-document.body.removeChild(document.getElementById('container'));
+}

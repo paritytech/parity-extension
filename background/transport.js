@@ -70,10 +70,49 @@ export default class Transport {
     return this.secureApiMessage(port);
   }
 
+  setIcon (status) {
+    console.log('setting icon to ', status);
+    const ctx = document.createElement('canvas').getContext('2d');
+    const image = new Image();
+
+    const size = 76;
+
+    image.onload = () => {
+      ctx.drawImage(image, 0, 0);
+
+      switch (status) {
+        case 'connected':
+          ctx.fillStyle = 'rgba(46, 204, 113, 0.5)';
+          break;
+
+        case 'disconnected':
+        default:
+          ctx.fillStyle = 'rgba(231, 76, 60, 0.25)';
+          break;
+      }
+
+      ctx.strokeStyle = 'white';
+      ctx.beginPath();
+      ctx.arc(20, size - 20, 20, 0, 2 * Math.PI);
+      ctx.fill();
+      ctx.stroke();
+
+      const pixels = ctx.getImageData(0, 0, size, size);
+
+      chrome.browserAction.setIcon({ imageData: pixels });
+    };
+
+    image.src = chrome.extension.getURL(`$assets/icon-${size}.png`);
+  }
+
   initiate (token) {
     const transport = new Ws(`ws://${this.UI}`, token, true);
 
+    this.setIcon('disconnected');
+
     transport.on('open', () => {
+      this.setIcon('connected');
+
       const oldOrigins = Object.keys(this.accountsCache);
 
       this.accountsCache = {};
@@ -91,6 +130,7 @@ export default class Transport {
     });
 
     transport.on('close', () => {
+      this.setIcon('disconnected');
       State.version = null;
     });
 

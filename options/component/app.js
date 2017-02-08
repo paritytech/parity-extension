@@ -17,9 +17,10 @@
 import { bind } from 'decko';
 import { isEqual } from 'lodash';
 import { h, Component } from 'preact';
-import { Button, Switch, TextField } from 'preact-mdl';
+import { Button, CheckBox, Switch, TextField } from 'preact-mdl';
 
 import Config, { DEFAULT_CONFIG } from '../../background/config';
+import { clearCache } from '../../shared';
 
 import 'material-design-lite/material.css';
 import 'material-design-lite/material';
@@ -30,25 +31,27 @@ export default class App extends Component {
 
   state = {
     augmentationEnabled: true,
+    DAPPS: '',
     integrationEnabled: true,
     isPristine: true,
     lookupURL: '',
     savedConf: {},
+    showAdvanced: false,
     UI: ''
   };
 
   componentWillMount () {
     Config.get()
       .then((config) => {
-        const { augmentationEnabled, integrationEnabled, lookupURL, UI } = config;
-        const conf = { augmentationEnabled, integrationEnabled, lookupURL, UI };
+        const { augmentationEnabled, DAPPS, integrationEnabled, lookupURL, UI } = config;
+        const conf = { augmentationEnabled, DAPPS, integrationEnabled, lookupURL, UI };
 
         this.setState({ ...conf, savedConf: conf });
       });
   }
 
   render () {
-    const { augmentationEnabled, integrationEnabled, isPristine, lookupURL, UI } = this.state;
+    const { augmentationEnabled, integrationEnabled, isPristine, showAdvanced } = this.state;
 
     return (
       <div className={ styles.options }>
@@ -82,6 +85,56 @@ export default class App extends Component {
           </div>
         </div>
 
+        <br />
+
+        <div className={ styles.option }>
+          <div className={ styles.checkbox }>
+            <CheckBox
+              checked={ showAdvanced }
+              className={ styles.check }
+              onChange={ this.handleToggleAdvanced }
+            />
+          </div>
+          <div>
+            Show Advanced Options
+          </div>
+        </div>
+
+        { showAdvanced ? this.renderAdvancedOptions() : null }
+
+        <div className={ styles.buttons }>
+          <Button
+            disabled={ isPristine }
+            onClick={ this.handleSave }
+            primary
+          >
+            SAVE
+          </Button>
+
+          { showAdvanced ? this.renderAdvancedButtons() : null }
+        </div>
+      </div>
+    );
+  }
+
+  renderAdvancedButtons () {
+    return (
+      <div className={ styles.buttons }>
+        <Button onClick={ this.handleReset }>
+            DEFAULT
+          </Button>
+        <Button accent onClick={ this.handleClearCache }>
+          CLEAR CACHE
+        </Button>
+      </div>
+    );
+  }
+
+  renderAdvancedOptions () {
+    const { DAPPS, lookupURL, UI } = this.state;
+
+    return (
+      <div className={ styles.advanced }>
         <div className={ [ styles.option, styles.optionInput ].join(' ') }>
           <div className={ styles.input }>
             <TextField
@@ -97,32 +150,30 @@ export default class App extends Component {
           <div className={ styles.input }>
             <TextField
               floating-label
+              label='Parity dapps URL'
+              onChange={ this.handleChangeDappsURL }
+              value={ DAPPS }
+            />
+          </div>
+        </div>
+
+        <div className={ [ styles.option, styles.optionInput ].join(' ') }>
+          <div className={ styles.input }>
+            <TextField
+              floating-label
               label='Lookup service URL (fallback)'
               onChange={ this.handleChangeLookupURL }
               value={ lookupURL }
             />
           </div>
         </div>
-
-        <div>
-          <Button
-            disabled={ isPristine }
-            onClick={ this.handleSave }
-          >
-            SAVE
-          </Button>
-
-          <Button onClick={ this.handleReset }>
-            RESET
-          </Button>
-        </div>
       </div>
     );
   }
 
   saveState (partialNextConf) {
-    const { augmentationEnabled, integrationEnabled, lookupURL, savedConf, UI } = this.state;
-    const prevConf = { augmentationEnabled, integrationEnabled, lookupURL, UI };
+    const { augmentationEnabled, DAPPS, integrationEnabled, lookupURL, savedConf, UI } = this.state;
+    const prevConf = { augmentationEnabled, DAPPS, integrationEnabled, lookupURL, UI };
     const nextConf = {
       ...prevConf,
       ...partialNextConf
@@ -134,9 +185,14 @@ export default class App extends Component {
   }
 
   @bind
+  handleToggleAdvanced () {
+    this.setState({ showAdvanced: !this.state.showAdvanced });
+  }
+
+  @bind
   handleSave () {
-    const { augmentationEnabled, integrationEnabled, lookupURL, UI } = this.state;
-    const conf = { augmentationEnabled, integrationEnabled, lookupURL, UI };
+    const { augmentationEnabled, DAPPS, integrationEnabled, lookupURL, UI } = this.state;
+    const conf = { augmentationEnabled, DAPPS, integrationEnabled, lookupURL, UI };
 
     Config.set(conf);
     this.setState({ isPristine: true, savedConf: conf });
@@ -144,11 +200,16 @@ export default class App extends Component {
 
   @bind
   handleReset () {
-    const { augmentationEnabled, integrationEnabled, lookupURL, UI } = DEFAULT_CONFIG;
+    const { augmentationEnabled, DAPPS, integrationEnabled, lookupURL, UI } = DEFAULT_CONFIG;
 
     this.saveState({
-      augmentationEnabled, integrationEnabled, lookupURL, UI
+      augmentationEnabled, DAPPS, integrationEnabled, lookupURL, UI
     });
+  }
+
+  @bind
+  handleClearCache () {
+    clearCache();
   }
 
   @bind
@@ -170,6 +231,13 @@ export default class App extends Component {
     const { value } = event.target;
 
     this.saveState({ UI: value });
+  }
+
+  @bind
+  handleChangeDappsURL (event) {
+    const { value } = event.target;
+
+    this.saveState({ DAPPS: value });
   }
 
   @bind

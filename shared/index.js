@@ -69,9 +69,16 @@ export function getUI () {
   });
 }
 
-export function reloadTransport () {
+export function reload () {
   return new Promise((resolve) => {
-    chrome.runtime.sendMessage({ action: 'reloadTransport' });
+    chrome.runtime.sendMessage({ action: 'reload' });
+    resolve();
+  });
+}
+
+export function clearCache () {
+  return new Promise((resolve) => {
+    chrome.runtime.sendMessage({ action: 'clearCache' });
     resolve();
   });
 }

@@ -20,6 +20,8 @@ import { keccak_256 as sha3 } from 'js-sha3';
 import { omitBy } from 'lodash';
 import ParityLookup from 'lookup';
 
+import Config, { DEFAULT_CONFIG } from './config';
+
 const LOOKUP_STORAGE_KEY = 'parity::lookup_cache';
 
 // Time To Live for Lookup data (in ms : 1h for valid response,
@@ -35,6 +37,7 @@ export default class Lookup {
   _githubs = {};
   _emails = {};
   _names = {};
+  lookupURL = DEFAULT_CONFIG.lookupURL;
 
   store = null;
 
@@ -42,6 +45,16 @@ export default class Lookup {
     this.store = store;
 
     this.load();
+    Config.get()
+      .then((config) => {
+        if (config.lookupURL) {
+          this.lookupURL = config.lookupURL;
+        }
+      });
+  }
+
+  clearCache () {
+    this.save({ addresses: {}, githubs: {}, emails: {}, names: {} });
   }
 
   /**
@@ -76,9 +89,9 @@ export default class Lookup {
     return cleanData;
   }
 
-  save () {
+  save (data) {
     setTimeout(() => {
-      const cleanData = this.clean();
+      const cleanData = this.clean(data);
       chrome.storage.local.set({ [ LOOKUP_STORAGE_KEY ]: cleanData }, () => {});
     }, 50);
   }
@@ -239,7 +252,7 @@ export default class Lookup {
         ? 'emailHash'
         : method;
 
-      return fetch(`https://id.parity.io:8443/?${lookupMethod}=${input}`)
+      return fetch(`${this.lookupURL}/?${lookupMethod}=${input}`.replace(/\/+/g, '/'))
         .then((response) => response.json());
     }
 

@@ -14,7 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 
-import { reloadTransport } from '../shared';
+import { isEqual } from 'lodash';
+
+import { reload } from '../shared';
 
 const CONFIG_KEY = 'parity::config';
 
@@ -41,8 +43,8 @@ export default class Config {
           ...data
         };
 
-        if (prevConfig.UI !== nextConfig.UI) {
-          reloadTransport();
+        if (!isEqual(prevConfig, nextConfig)) {
+          reload();
         }
 
         return new Promise((resolve) => {

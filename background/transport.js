@@ -137,6 +137,10 @@ export default class Transport {
     this.transport = transport;
   }
 
+  close () {
+    this.transport && this.transport.close();
+  }
+
   extractToken () {
     return Config.get()
       .then((config) => {
@@ -146,7 +150,7 @@ export default class Transport {
 
         if (config.authToken) {
           if (this.transport) {
-            this.transport.close();
+            this.close();
           }
 
           this.initiate(config.authToken);

@@ -14,13 +14,16 @@
 // You should have received a copy of the GNU General Public License
 // along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 
+import { reloadTransport } from '../shared';
+
 const CONFIG_KEY = 'parity::config';
 
 export const DEFAULT_CONFIG = {
   augmentationEnabled: true,
+  DAPPS: '127.0.0.1:8080',
   integrationEnabled: true,
   lookupURL: 'https://id.parity.io/',
-  nodeURL: 'http://localhost:8545/'
+  UI: '127.0.0.1:8180'
 };
 
 export default class Config {
@@ -28,11 +31,19 @@ export default class Config {
   static set (data) {
     return Config.get()
       .then((config) => {
-        const nextConfig = {
+        const prevConfig = {
           ...DEFAULT_CONFIG,
-          ...config,
+          ...config
+        };
+
+        const nextConfig = {
+          ...prevConfig,
           ...data
         };
+
+        if (prevConfig.UI !== nextConfig.UI) {
+          reloadTransport();
+        }
 
         return new Promise((resolve) => {
           chrome.storage.local.set({

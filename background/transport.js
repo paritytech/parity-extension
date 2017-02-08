@@ -18,8 +18,8 @@ import { Api } from '@parity/parity.js';
 
 import Ws from './ws';
 import State from './state';
-import { UI, TRANSPORT_UNINITIALIZED, EV_WEB3_ACCOUNTS_REQUEST, EV_TOKEN, getRetryTimeout } from '../shared';
-import Config from './config';
+import { TRANSPORT_UNINITIALIZED, EV_WEB3_ACCOUNTS_REQUEST, EV_TOKEN, getRetryTimeout } from '../shared';
+import Config, { DEFAULT_CONFIG } from './config';
 
 export default class Transport {
 
@@ -27,6 +27,7 @@ export default class Transport {
   extractTokenRetries = 0;
   openedTabId = null;
   transport = null;
+  UI = DEFAULT_CONFIG.UI;
 
   store = null;
 
@@ -70,7 +71,7 @@ export default class Transport {
   }
 
   initiate (token) {
-    const transport = new Ws(`ws://${UI}`, token, true);
+    const transport = new Ws(`ws://${this.UI}`, token, true);
 
     transport.on('open', () => {
       const oldOrigins = Object.keys(this.accountsCache);
@@ -99,6 +100,10 @@ export default class Transport {
   extractToken () {
     return Config.get()
       .then((config) => {
+        if (config.UI) {
+          this.UI = config.UI;
+        }
+
         if (config.authToken) {
           if (this.transport) {
             this.transport.close();
@@ -108,11 +113,11 @@ export default class Transport {
           return;
         }
 
-        return fetch(`http://${UI}`)
+        return fetch(`http://${this.UI}`)
           .then(() => {
             // Open a UI to extract the token from it
             chrome.tabs.create({
-              url: `http://${UI}`,
+              url: `http://${this.UI}/#/?from=` + chrome.runtime.id,
               active: false
             }, (tab) => {
               this.openedTabId = tab.id;

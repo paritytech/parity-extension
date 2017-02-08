@@ -14,40 +14,66 @@
 // You should have received a copy of the GNU General Public License
 // along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 
-import { DAPPS, TRANSPORT_UNINITIALIZED } from '../shared';
+import Config, { DEFAULT_CONFIG } from './config';
+import { TRANSPORT_UNINITIALIZED } from '../shared';
 
-export default function web3Message (port) {
-  return (msg) => {
-    const { id, payload, origin } = msg;
+export default class Web3 {
 
-    fetch(`http://${DAPPS}/rpc/`, {
-      method: 'POST',
-      mode: 'cors',
-      headers: new Headers({
-        'Content-Type': 'application/json',
-        'X-Parity-Origin': origin
-      }),
-      body: JSON.stringify(payload),
-      redirect: 'error',
-      referrerPolicy: 'origin'
-    })
-      .then(response => response.json())
-      .then(response => {
-        port.postMessage({
-          id,
-          err: null,
-          payload: response,
-          connected: true
-        });
-      })
-      .catch(error => {
-        const err = error.message === 'Failed to fetch' ? TRANSPORT_UNINITIALIZED : error.message;
-        port.postMessage({
-          id,
-          err,
-          payload: null
-        });
+  DAPPS = DEFAULT_CONFIG.DAPPS;
+
+  constructor (store) {
+    this.store = store;
+
+    Config.get()
+      .then((config) => {
+        if (config.DAPPS) {
+          this.DAPPS = config.DAPPS;
+        }
       });
-  };
-}
+  }
 
+  attachListener (port) {
+    return (msg) => {
+      const { id } = msg;
+
+      this.web3Message(msg)
+        .then((response) => {
+          port.postMessage({
+            id,
+            err: null,
+            payload: response,
+            connected: true
+          });
+        })
+        .catch((error) => {
+          const err = error.message === 'Failed to fetch' ? TRANSPORT_UNINITIALIZED : error.message;
+
+          port.postMessage({
+            id,
+            err,
+            payload: null
+          });
+        });
+    };
+  }
+
+  web3Message (msg) {
+    const { payload, origin } = msg;
+
+    return fetch(
+      `http://${this.DAPPS}/rpc/`,
+      {
+        method: 'POST',
+        mode: 'cors',
+        headers: new Headers({
+          'Content-Type': 'application/json',
+          'X-Parity-Origin': origin
+        }),
+        body: JSON.stringify(payload),
+        redirect: 'error',
+        referrerPolicy: 'origin'
+      }
+    ).then((response) => response.json());
+  }
+
+}

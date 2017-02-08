@@ -14,22 +14,24 @@
 // You should have received a copy of the GNU General Public License
 // along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 
-import Processor from './processor';
-import loadScripts from './loadScripts';
-import web3Message from './web3';
-
 import Config from './config';
+import Store from './store';
+
 import Images from './images';
 import Lookup from './lookup';
+import Processor from './processor';
 import Transport from './transport';
-import Store from './store';
+import ScriptsLoader from './scriptsLoader';
+import Web3 from './web3';
 
 const store = new Store();
 
 store.images = new Images(store);
 store.lookup = new Lookup(store);
 store.processor = new Processor(store);
+store.scriptsLoader = new ScriptsLoader(store);
 store.transport = new Transport(store);
+store.web3 = new Web3(store);
 
 chrome.runtime.onConnect.addListener((port) => {
   if (port.name === 'secureApi') {
@@ -38,12 +40,12 @@ chrome.runtime.onConnect.addListener((port) => {
   }
 
   if (port.name === 'barScripts') {
-    port.onMessage.addListener(loadScripts(port));
+    port.onMessage.addListener(store.scriptsLoader.attachListener(port));
     return;
   }
 
   if (port.name === 'web3') {
-    port.onMessage.addListener(web3Message(port));
+    port.onMessage.addListener(store.web3.attachListener(port));
     return;
   }
 
@@ -55,7 +57,7 @@ chrome.runtime.onConnect.addListener((port) => {
   throw new Error(`Unrecognized port: ${port.name}`);
 });
 
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((message = {}, sender, sendResponse) => {
   const { action } = message;
 
   switch (action) {
@@ -87,12 +89,24 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
       return true;
 
+    case 'reloadTransport':
+      store.transport.extractToken();
+      return true;
+
     case 'getNodeStatus':
       sendResponse(store.transport.status);
       return true;
 
     case 'getNodeURL':
       sendResponse(store.transport.url);
+      return true;
+
+    case 'getUI':
+      Config.get()
+        .then((config) => {
+          sendResponse(config.UI);
+        });
+
       return true;
   }
 });

@@ -33,22 +33,22 @@ export default class App extends Component {
     integrationEnabled: true,
     isPristine: true,
     lookupURL: '',
-    nodeURL: '',
-    savedConf: {}
+    savedConf: {},
+    UI: ''
   };
 
   componentWillMount () {
     Config.get()
       .then((config) => {
-        const { augmentationEnabled = true, integrationEnabled = true, lookupURL = '', nodeURL = '' } = config;
-        const conf = { augmentationEnabled, integrationEnabled, lookupURL, nodeURL };
+        const { augmentationEnabled, integrationEnabled, lookupURL, UI } = config;
+        const conf = { augmentationEnabled, integrationEnabled, lookupURL, UI };
 
         this.setState({ ...conf, savedConf: conf });
       });
   }
 
   render () {
-    const { augmentationEnabled, integrationEnabled, isPristine, lookupURL, nodeURL } = this.state;
+    const { augmentationEnabled, integrationEnabled, isPristine, lookupURL, UI } = this.state;
 
     return (
       <div className={ styles.options }>
@@ -88,7 +88,7 @@ export default class App extends Component {
               floating-label
               label='Parity node URL'
               onChange={ this.handleChangeURL }
-              value={ nodeURL }
+              value={ UI }
             />
           </div>
         </div>
@@ -121,8 +121,8 @@ export default class App extends Component {
   }
 
   saveState (partialNextConf) {
-    const { augmentationEnabled, integrationEnabled, lookupURL, nodeURL, savedConf } = this.state;
-    const prevConf = { augmentationEnabled, integrationEnabled, lookupURL, nodeURL };
+    const { augmentationEnabled, integrationEnabled, lookupURL, savedConf, UI } = this.state;
+    const prevConf = { augmentationEnabled, integrationEnabled, lookupURL, UI };
     const nextConf = {
       ...prevConf,
       ...partialNextConf
@@ -135,8 +135,8 @@ export default class App extends Component {
 
   @bind
   handleSave () {
-    const { augmentationEnabled, integrationEnabled, lookupURL, nodeURL } = this.state;
-    const conf = { augmentationEnabled, integrationEnabled, lookupURL, nodeURL };
+    const { augmentationEnabled, integrationEnabled, lookupURL, UI } = this.state;
+    const conf = { augmentationEnabled, integrationEnabled, lookupURL, UI };
 
     Config.set(conf);
     this.setState({ isPristine: true, savedConf: conf });
@@ -144,10 +144,10 @@ export default class App extends Component {
 
   @bind
   handleReset () {
-    const { augmentationEnabled, integrationEnabled, lookupURL, nodeURL } = DEFAULT_CONFIG;
+    const { augmentationEnabled, integrationEnabled, lookupURL, UI } = DEFAULT_CONFIG;
 
     this.saveState({
-      augmentationEnabled, integrationEnabled, lookupURL, nodeURL
+      augmentationEnabled, integrationEnabled, lookupURL, UI
     });
   }
 
@@ -169,7 +169,7 @@ export default class App extends Component {
   handleChangeURL (event) {
     const { value } = event.target;
 
-    this.saveState({ nodeURL: value });
+    this.saveState({ UI: value });
   }
 
   @bind

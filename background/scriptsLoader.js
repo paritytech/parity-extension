@@ -14,8 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 
+import Config, { DEFAULT_CONFIG } from './config';
 import State from './state';
-import { UI, EV_BAR_CODE, getRetryTimeout } from '../shared';
+import { EV_BAR_CODE, getRetryTimeout } from '../shared';
 
 class VersionMismatch extends Error {
   isVersionMismatch = true;
@@ -24,8 +25,67 @@ class VersionMismatch extends Error {
 let codeCache = null;
 let codeCacheVersion = null;
 
-export default function loadScripts (port) {
-  function checkResponseOk (response) {
+export default class ScriptsLoader {
+
+  retries = 0;
+  UI = DEFAULT_CONFIG.UI;
+
+  store = null;
+
+  constructor (store) {
+    this.store = store;
+
+    Config.get()
+      .then((config) => {
+        this.UI = config.UI;
+      });
+  }
+
+  attachListener (port) {
+    return (msg) => {
+      return this.retry(port, msg);
+    };
+  }
+
+  retry (port, msg) {
+    if (msg.type !== EV_BAR_CODE) {
+      return;
+    }
+
+    // Clear cache if parity was updated.
+    if (codeCacheVersion !== State.version) {
+      codeCache = null;
+    }
+
+    if (!codeCache) {
+      codeCacheVersion = State.version;
+      codeCache = this.fetchFromJSON().catch(() => this.fetchFromHTML());
+    }
+
+    return codeCache
+      .then(code => {
+        this.retries = 0;
+        port.postMessage(code);
+      })
+      .catch(err => {
+        // TODO [ToDr] For some reason we cannot check instanceof here.
+        if (err.isVersionMismatch) {
+          port.postMessage({
+            success: false,
+            error: err.message,
+            ui: `http://${this.UI}`
+          });
+        }
+
+        codeCache = null;
+        this.retries += 1;
+
+        console.error('Could not load ParityBar scripts. Retrying in a while..', err);
+        setTimeout(() => this.retry(port, msg), getRetryTimeout(this.retries));
+      });
+  }
+
+  checkResponseOk (response) {
     if (response.ok) {
       return response;
     }
@@ -33,9 +93,9 @@ export default function loadScripts (port) {
     throw new VersionMismatch('Expected successful response. Likely a version mismatch.');
   }
 
-  function fetchFromJSON () {
-    return fetch(`http://${UI}/embed.json`)
-      .then(checkResponseOk)
+  fetchFromJSON () {
+    return fetch(`http://${this.UI}/embed.json`)
+      .then((response) => this.checkResponseOk(response))
       .then((response) => response.json())
       .then((embed) => {
         const { assets } = embed;
@@ -48,7 +108,7 @@ export default function loadScripts (port) {
 
         const assetsPromises = filteredAssets
           .map((asset) => {
-            return fetch(`http://${UI}/${asset}`)
+            return fetch(`http://${this.UI}/${asset}`)
               .then((response) => response.blob())
               .then((blob) => {
                 if (/\.js$/.test(asset)) {
@@ -60,7 +120,7 @@ export default function loadScripts (port) {
               .then((url) => ({ path: asset, url }));
           });
 
-        const scriptPromise = fetch(`http://${UI}/${mainScript}`)
+        const scriptPromise = fetch(`http://${this.UI}/${mainScript}`)
           .then((response) => response.text());
 
         return Promise.all([ scriptPromise, Promise.all(assetsPromises) ]);
@@ -83,13 +143,13 @@ export default function loadScripts (port) {
       });
   }
 
-  function fetchFromHTML () {
-    const vendor = fetch(`http://${UI}/vendor.js`)
-      .then(checkResponseOk)
+  fetchFromHTML () {
+    const vendor = fetch(`http://${this.UI}/vendor.js`)
+      .then((response) => this.checkResponseOk(response))
       .then(response => response.blob());
 
-    const embed = fetch(`http://${UI}/embed.html`)
-      .then(checkResponseOk)
+    const embed = fetch(`http://${this.UI}/embed.html`)
+      .then((response) => this.checkResponseOk(response))
       .then(response => response.text())
       .then(page => ({
         styles: /styles\/embed\.([a-z0-9]{10})\.css/.exec(page),
@@ -97,8 +157,8 @@ export default function loadScripts (port) {
       }))
       .then(res => {
         return Promise.all([
-          fetch(`http://${UI}/${res.styles[0]}`).then(checkResponseOk),
-          fetch(`http://${UI}/${res.scripts[0]}`).then(checkResponseOk)
+          fetch(`http://${this.UI}/${res.styles[0]}`).then((response) => this.checkResponseOk(response)),
+          fetch(`http://${this.UI}/${res.scripts[0]}`).then((response) => this.checkResponseOk(response))
         ]);
       })
       .then(responses => Promise.all(responses.map(response => response.blob())));
@@ -119,44 +179,4 @@ export default function loadScripts (port) {
       });
   }
 
-  function retry (msg) {
-    if (msg.type !== EV_BAR_CODE) {
-      return;
-    }
-
-    // Clear cache if parity was updated.
-    if (codeCacheVersion !== State.version) {
-      codeCache = null;
-    }
-
-    if (!codeCache) {
-      codeCacheVersion = State.version;
-      codeCache = fetchFromJSON().catch(() => fetchFromHTML());
-    }
-
-    codeCache
-      .then(code => {
-        retry.retries = 0;
-        port.postMessage(code);
-      })
-      .catch(err => {
-        // TODO [ToDr] For some reason we cannot check instanceof here.
-        if (err.isVersionMismatch) {
-          port.postMessage({
-            success: false,
-            error: err.message,
-            ui: `http://${UI}`
-          });
-        }
-
-        codeCache = null;
-        retry.retries += 1;
-
-        console.error('Could not load ParityBar scripts. Retrying in a while..', err);
-        setTimeout(() => retry(msg), getRetryTimeout(retry.retries));
-      });
-  }
-
-  retry.retries = 0;
-  return retry;
 }

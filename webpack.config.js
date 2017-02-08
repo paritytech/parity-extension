@@ -123,6 +123,11 @@ module.exports = {
   },
 
   resolve: {
+    alias: {
+      'whatwg-fetch': 'null.js',
+      'node-fetch': 'null.js',
+      'vertx': 'null.js'
+    },
     modules: [
       path.join(__dirname, './'),
       path.join(__dirname, './node_modules')

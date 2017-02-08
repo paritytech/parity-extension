@@ -18,15 +18,19 @@ import { h, render } from 'preact';
 
 import { AugmentedIcon } from './components';
 import { EXTRACT_TYPE_HANDLE, EXTRACT_TYPE_GITHUB } from './extraction';
-import Accounts from './accounts';
-import Runner from './runner';
 import { FETCH_IMAGE } from '../background/processor';
 
 export const AUGMENTED_NODE_ATTRIBUTE = 'data-parity-touched';
 
 export default class Augmentor {
 
-  static getSafeNodes (extraction, node) {
+  store = null;
+
+  constructor (store) {
+    this.store = store;
+  }
+
+  getSafeNodes (extraction, node) {
     const { text } = extraction;
     const content = node.textContent || '';
 
@@ -36,17 +40,17 @@ export default class Augmentor {
     }
 
     const safeNodes = [];
-    let safeNode = Augmentor.getSafeNode(text, node);
+    let safeNode = this.getSafeNode(text, node);
 
     while (safeNode) {
       safeNodes.push(safeNode.node);
-      safeNode = Augmentor.getSafeNode(text, safeNode.after);
+      safeNode = this.getSafeNode(text, safeNode.after);
     }
 
     return safeNodes;
   }
 
-  static getSafeNode (value, node) {
+  getSafeNode (value, node) {
     const text = node.textContent || '';
 
     const valueIndex = text.indexOf(value);
@@ -61,7 +65,7 @@ export default class Augmentor {
         .apply(node.childNodes)
         .find((node) => node.textContent.includes(value));
 
-      const safeNode = Augmentor.getSafeNode(value, textNode);
+      const safeNode = this.getSafeNode(value, textNode);
       return safeNode && safeNode.node;
     }
 
@@ -92,7 +96,7 @@ export default class Augmentor {
     return { after: afterNode, node: safeNode };
   }
 
-  static augmentNode (extraction, node) {
+  augmentNode (extraction, node) {
     if (!node || node.hasAttribute(AUGMENTED_NODE_ATTRIBUTE)) {
       return;
     }
@@ -100,7 +104,7 @@ export default class Augmentor {
     const rawText = node.textContent;
     const text = (rawText || '').trim();
 
-    const data = Accounts.find(extraction.address);
+    const data = this.store.accounts.find(extraction.address);
     node.setAttribute(AUGMENTED_NODE_ATTRIBUTE, true);
 
     // Don't augment empty nodes
@@ -112,7 +116,7 @@ export default class Augmentor {
       return;
     }
 
-    return Augmentor.fetchImages(data)
+    return this.fetchImages(data)
       .then(([ badges, tokens ]) => {
         const { address, email, name } = data;
 
@@ -171,18 +175,19 @@ export default class Augmentor {
       });
   }
 
-  static fetchImages (data) {
+  fetchImages (data) {
     const { badges = [], tokens = [] } = data;
+    const { runner } = this.store;
 
     const badgesPromises = badges
       .map((badge) => {
-        return Runner.execute(FETCH_IMAGE, badge.img)
+        return runner.execute(FETCH_IMAGE, badge.img)
           .then((src) => ({ ...badge, src }));
       });
 
     const tokensPromises = tokens
       .map((token) => {
-        return Runner.execute(FETCH_IMAGE, token.img)
+        return runner.execute(FETCH_IMAGE, token.img)
           .then((src) => ({ ...token, src }));
       });
 

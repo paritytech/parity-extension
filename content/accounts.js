@@ -16,38 +16,27 @@
 
 import { PROCESS_EXTRACTIONS, FETCH_ADDRESS } from '../background/processor';
 import Extractions from './extractions';
-import Runner from './runner';
-
-let instance = null;
 
 export default class Accounts {
 
   accounts = {};
 
-  static get () {
-    if (!instance) {
-      instance = new Accounts();
-    }
+  store = null;
 
-    return instance;
+  constructor (store) {
+    this.store = store;
   }
 
-  static find (address) {
-    const self = Accounts.get();
-
-    return self.accounts[address];
+  find (address) {
+    return this.accounts[address];
   }
 
-  static fetch (address) {
-    const self = Accounts.get();
-
-    return self.fetchAddress(address);
+  fetch (address) {
+    return this.fetchAddress(address);
   }
 
-  static processExtractions (extractions) {
-    const self = Accounts.get();
-
-    return Runner.execute(PROCESS_EXTRACTIONS, extractions.toObject())
+  processExtractions (extractions) {
+    return this.store.runner.execute(PROCESS_EXTRACTIONS, extractions.toObject())
       .then((results) => {
         const nextExtractions = Extractions.fromObject(results);
         const addresses = nextExtractions.addresses;
@@ -56,7 +45,7 @@ export default class Accounts {
         extractions.replaceWith(nextExtractions);
 
         // Fetch addresses info
-        return self.fetchAddresses(addresses);
+        return this.fetchAddresses(addresses);
       });
   }
 
@@ -68,7 +57,7 @@ export default class Accounts {
 
   fetchAddress (address) {
     if (!this.accounts[address]) {
-      this.accounts[address] = Runner.execute(FETCH_ADDRESS, address)
+      this.accounts[address] = this.store.runner.execute(FETCH_ADDRESS, address)
         .then((data) => {
           this.accounts[address] = data;
           return data;

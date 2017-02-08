@@ -55,6 +55,7 @@ export default class App extends Component {
   }
 
   render () {
+    const { store } = this.props;
     const { augmentationEnabled, extractions } = this.state;
 
     const status = 'disconnected';
@@ -66,14 +67,14 @@ export default class App extends Component {
           <h1 className={ styles.title }>Web3 Injection</h1>
         </div>
 
-        { this.renderExtractions(augmentationEnabled, extractions) }
+        { this.renderExtractions(augmentationEnabled, extractions, store) }
 
         { this.renderStatus(status, url) }
       </div>
     );
   }
 
-  renderExtractions (augmentationEnabled, extractions) {
+  renderExtractions (augmentationEnabled, extractions, store) {
     if (!augmentationEnabled) {
       return null;
     }
@@ -81,6 +82,7 @@ export default class App extends Component {
     return (
       <Extractions
         extractions={ extractions }
+        store={ store }
       />
     );
   }

@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 
+import classnames from 'classnames';
 import { bind } from 'decko';
 import { isEqual } from 'lodash';
 import { h, Component } from 'preact';
@@ -36,6 +37,7 @@ export default class App extends Component {
     isPristine: true,
     lookupURL: '',
     savedConf: {},
+    statuses: {},
     showAdvanced: false,
     UI: ''
   };
@@ -128,11 +130,36 @@ export default class App extends Component {
   }
 
   renderAdvancedOptions () {
-    const { DAPPS, lookupURL, UI } = this.state;
+    const { DAPPS, lookupURL, statuses, UI } = this.state;
+
+    const nodeClassName = classnames({
+      [ styles.status ]: true,
+      [ styles.connected ]: statuses.node === 'connected',
+      [ styles.connecting ]: statuses.node === 'connecting',
+      [ styles.disconnected ]: statuses.node === 'disconnected'
+    });
+
+    const dappsClassName = classnames({
+      [ styles.status ]: true,
+      [ styles.connected ]: statuses.dapps === 'connected',
+      [ styles.connecting ]: statuses.dapps === 'connecting',
+      [ styles.disconnected ]: statuses.dapps === 'disconnected'
+    });
+
+    const lookupClassName = classnames({
+      [ styles.status ]: true,
+      [ styles.connected ]: statuses.lookup === 'connected',
+      [ styles.connecting ]: statuses.lookup === 'connecting',
+      [ styles.disconnected ]: statuses.lookup === 'disconnected'
+    });
 
     return (
       <div className={ styles.advanced }>
         <div className={ [ styles.option, styles.optionInput ].join(' ') }>
+          <div
+            className={ nodeClassName }
+            title={ statuses.node }
+          />
           <div className={ styles.input }>
             <TextField
               floating-label
@@ -144,6 +171,10 @@ export default class App extends Component {
         </div>
 
         <div className={ [ styles.option, styles.optionInput ].join(' ') }>
+          <div
+            className={ dappsClassName }
+            title={ statuses.dapps }
+          />
           <div className={ styles.input }>
             <TextField
               floating-label
@@ -155,6 +186,10 @@ export default class App extends Component {
         </div>
 
         <div className={ [ styles.option, styles.optionInput ].join(' ') }>
+          <div
+            className={ lookupClassName }
+            title={ statuses.lookup }
+          />
           <div className={ styles.input }>
             <TextField
               floating-label
@@ -168,6 +203,73 @@ export default class App extends Component {
     );
   }
 
+  checkStatuses (prevConf, nextConf) {
+    const prevNode = prevConf.UI;
+    const nextNode = nextConf.UI;
+
+    const prevDapps = prevConf.DAPPS;
+    const nextDapps = nextConf.DAPPS;
+
+    const prevLookup = prevConf.lookupURL;
+    const nextLookup = nextConf.lookupURL;
+
+    const promises = [];
+    const statuses = {};
+
+    if (prevNode !== nextNode) {
+      statuses.node = 'connecting';
+
+      const promise = fetch(`http://${nextNode}`)
+        .then(() => ({ key: 'node', status: 'connected' }))
+        .catch(() => ({ key: 'node', status: 'disconnected' }));
+
+      promises.push(promise);
+    }
+
+    if (prevDapps !== nextDapps) {
+      statuses.dapps = 'connecting';
+
+      const promise = fetch(`http://${nextDapps}`)
+        .then(() => ({ key: 'dapps', status: 'connected' }))
+        .catch(() => ({ key: 'dapps', status: 'disconnected' }));
+
+      promises.push(promise);
+    }
+
+    if (prevLookup !== nextLookup) {
+      statuses.lookup = 'connecting';
+
+      const promise = fetch(nextLookup)
+        .then(() => ({ key: 'lookup', status: 'connected' }))
+        .catch(() => ({ key: 'lookup', status: 'disconnected' }));
+
+      promises.push(promise);
+    }
+
+    if (!Object.keys(statuses)) {
+      return;
+    }
+
+    this.setState({ statuses: { ...this.state.statuses, ...statuses } });
+
+    return Promise.all(promises)
+      .then((newStatuses) => {
+        const prevStatuses = this.state.statuses;
+        const nextStatuses = newStatuses.reduce((obj, data) => {
+          obj[data.key] = data.status;
+
+          return obj;
+        }, {});
+
+        const statuses = {
+          ...prevStatuses,
+          ...nextStatuses
+        };
+
+        this.setState({ statuses });
+      });
+  }
+
   saveState (partialNextConf) {
     const { augmentationEnabled, DAPPS, integrationEnabled, lookupURL, savedConf, UI } = this.state;
     const prevConf = { augmentationEnabled, DAPPS, integrationEnabled, lookupURL, UI };
@@ -178,11 +280,15 @@ export default class App extends Component {
 
     const isPristine = isEqual(savedConf, nextConf);
 
-    this.setState({ ...partialNextConf, isPristine });
+    this.setState({ ...partialNextConf, isPristine }, () => this.checkStatuses(prevConf, nextConf));
   }
 
   @bind
   handleToggleAdvanced () {
+    if (!this.state.showAdvanced && Object.keys(this.state.statuses).length === 0) {
+      this.checkStatuses({}, this.state);
+    }
+
     this.setState({ showAdvanced: !this.state.showAdvanced });
   }
 

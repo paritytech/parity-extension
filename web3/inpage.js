@@ -168,6 +168,8 @@ if (!window.chrome || !window.chrome.extension) {
       // Else, add a full web3 instance
       if (!web3.injectedWeb3) {
         const Web3 = require('web3/lib/web3');
+
+        window.Web3 = Web3;
         web3.injectedWeb3 = new Web3(web3.currentProvider);
       }
 

@@ -16,15 +16,24 @@
 
 import Processor from './processor';
 import loadScripts from './loadScripts';
-import secureApiMessage from './transport';
 import web3Message from './web3';
-import Config from './config';
 
-const processor = Processor.get();
+import Config from './config';
+import Images from './images';
+import Lookup from './lookup';
+import Transport from './transport';
+import Store from './store';
+
+const store = new Store();
+
+store.images = new Images(store);
+store.lookup = new Lookup(store);
+store.processor = new Processor(store);
+store.transport = new Transport(store);
 
 chrome.runtime.onConnect.addListener((port) => {
   if (port.name === 'secureApi') {
-    port.onMessage.addListener(secureApiMessage(port));
+    port.onMessage.addListener(store.transport.attachListener(port));
     return;
   }
 
@@ -39,7 +48,7 @@ chrome.runtime.onConnect.addListener((port) => {
   }
 
   if (port.name === 'id') {
-    port.onMessage.addListener(processor.getHandler(port));
+    port.onMessage.addListener(store.processor.attachListener(port));
     return;
   }
 
@@ -62,7 +71,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
     case 'getExtractions':
       chrome.tabs.query({ currentWindow: true, active: true }, (tabs) => {
-        const extractions = processor.getExtractions(tabs[0]);
+        const extractions = store.processor.getExtractions(tabs[0]);
         sendResponse(extractions);
       });
 

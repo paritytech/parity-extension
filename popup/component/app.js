@@ -57,6 +57,7 @@ export default class App extends Component {
   }
 
   render () {
+    const { store } = this.props;
     const { enabled, extractions } = this.state;
 
     return (
@@ -72,6 +73,7 @@ export default class App extends Component {
 
         <Extractions
           extractions={ extractions }
+          store={ store }
         />
       </div>
     );

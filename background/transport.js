@@ -36,7 +36,7 @@ export default class Transport {
   }
 
   get isConnected () {
-    return this.transport.isConnected;
+    return this.transport && this.transport.isConnected;
   }
 
   get status () {

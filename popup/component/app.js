@@ -22,7 +22,7 @@ import 'material-design-lite/material';
 
 import Config from '../../background/config';
 import Extractions from './extractions';
-import { getNodeStatus, getNodeURL } from '../../shared';
+import { getNodeStatus } from '../../shared';
 
 import styles from './app.css';
 
@@ -31,8 +31,7 @@ export default class App extends Component {
   state = {
     augmentationEnabled: true,
     extractions: [],
-    status: '',
-    url: ''
+    status: ''
   };
 
   componentWillMount () {
@@ -52,9 +51,6 @@ export default class App extends Component {
 
     getNodeStatus()
       .then((status) => this.setState({ status }));
-
-    getNodeURL()
-      .then((url) => this.setState({ url }));
   }
 
   getExtractions () {
@@ -65,7 +61,7 @@ export default class App extends Component {
 
   render () {
     const { store } = this.props;
-    const { augmentationEnabled, extractions, status, url } = this.state;
+    const { augmentationEnabled, extractions, status } = this.state;
 
     return (
       <div className={ styles.container }>
@@ -73,9 +69,9 @@ export default class App extends Component {
           <h1 className={ styles.title }>Parity Ethereum Integration</h1>
         </div>
 
+        { this.renderHint(status) }
         { this.renderExtractions(augmentationEnabled, extractions, store) }
-
-        { this.renderStatus(status, url) }
+        { this.renderStatus(status) }
       </div>
     );
   }
@@ -93,7 +89,20 @@ export default class App extends Component {
     );
   }
 
-  renderStatus (status, url) {
+  renderHint (status) {
+    if (status === 'connected' || status === 'connecting') {
+      return null;
+    }
+
+    return (
+      <p className={ styles.error }>
+        You are not connected to a local Parity Node. Seemless integration
+        with the Ethereum network is thus not available.
+      </p>
+    );
+  }
+
+  renderStatus (status) {
     const iconClassName = classnames({
       [ styles.statusIcon ]: true,
       [ styles.connected ]: status === 'connected',
@@ -121,7 +130,7 @@ export default class App extends Component {
     return (
       <div className={ styles.status }>
         <span className={ iconClassName } />
-        <span>{ phrase } { url }</span>
+        <span>{ phrase } local node</span>
       </div>
     );
   }

@@ -22,8 +22,16 @@
   width: 30em;
   display: flex;
   flex-direction: column;
+
+  p {
+    margin: 0.5rem 0;
+  }
 }
 
+.error {
+  color: rgba(231, 76, 60, 0.75);
+  font-weight: 600 !important;
+}
 
 .header {
   display: flex;
@@ -51,7 +59,7 @@
 }
 
 .statusIcon {
-  background-color: gray;
+  background-color: rgba(231, 76, 60, 0.75);
   border-radius: 50%;
   display: inline-block;
   height: 1rem;
@@ -59,14 +67,14 @@
   margin-right: 0.5rem;
 
   &.connected {
-    background-color: green;
+    background-color: rgba(46, 204, 113, 0.95);
+  }
+
+  &.disconnected {
+    background-color: rgba(231, 76, 60, 0.75);
   }
 
   &.connecting {
     background-color: gold;
-  }
-
-  &.disconnected {
-    background-color: red;
   }
 }

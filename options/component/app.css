@@ -67,6 +67,7 @@
 }
 
 .status {
+  background-color: rgba(231, 76, 60, 0.75);
   border-radius: 50%;
   height: 1rem;
   width: 1rem;

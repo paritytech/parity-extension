@@ -82,18 +82,18 @@ export default class Transport {
 
       switch (status) {
         case 'connected':
-          ctx.fillStyle = 'rgba(46, 204, 113, 0.5)';
+          ctx.fillStyle = 'rgba(46, 204, 113, 0.95)';
           break;
 
         case 'disconnected':
         default:
-          ctx.fillStyle = 'rgba(231, 76, 60, 0.25)';
+          ctx.fillStyle = 'rgba(231, 76, 60, 0.75)';
           break;
       }
 
       ctx.strokeStyle = 'white';
       ctx.beginPath();
-      ctx.arc(20, size - 20, 20, 0, 2 * Math.PI);
+      ctx.arc(15, 20, 12, 0, 2 * Math.PI);
       ctx.fill();
       ctx.stroke();
 

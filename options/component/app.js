@@ -65,10 +65,9 @@ export default class App extends Component {
               checked={ integrationEnabled }
               className={ styles.check }
               onChange={ this.handleToggleIntegration }
-            />
-          </div>
-          <div>
-            Web3 Integration
+            >
+              Web3 Integration
+            </Switch>
           </div>
         </div>
 
@@ -78,10 +77,9 @@ export default class App extends Component {
               checked={ augmentationEnabled }
               className={ styles.check }
               onChange={ this.handleToggleAugmentation }
-            />
-          </div>
-          <div>
-            Identity Augmentation
+            >
+              Identity Augmentation
+            </Switch>
           </div>
         </div>
 
@@ -93,10 +91,9 @@ export default class App extends Component {
               checked={ showAdvanced }
               className={ styles.check }
               onChange={ this.handleToggleAdvanced }
-            />
-          </div>
-          <div>
-            Show Advanced Options
+            >
+              Show Advanced Options
+            </CheckBox>
           </div>
         </div>
 

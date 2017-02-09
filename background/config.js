@@ -24,7 +24,7 @@ export const DEFAULT_CONFIG = {
   augmentationEnabled: true,
   DAPPS: '127.0.0.1:8080',
   integrationEnabled: true,
-  lookupURL: 'https://id.parity.io/',
+  lookupURL: 'https://id.parity.io',
   UI: '127.0.0.1:8180'
 };
 
@@ -42,6 +42,10 @@ export default class Config {
           ...prevConfig,
           ...data
         };
+
+        if (config.lookupURL) {
+          nextConfig.lookupURL = nextConfig.lookupURL.replace(/\/+$/, '');
+        }
 
         if (!isEqual(prevConfig, nextConfig)) {
           reload();

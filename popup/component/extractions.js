@@ -80,7 +80,7 @@ export default class Extractions extends Component {
 
     if (!extractions || extractions.length === 0) {
       return (
-        <p>No accounts have been extracted</p>
+        <p>No identities have been found on the page.</p>
       );
     }
 
@@ -97,12 +97,12 @@ export default class Extractions extends Component {
   renderDesc (n) {
     if (n > 1) {
       return (
-        <p>{ n } accounts have been extracted</p>
+        <p>{ n } identities have been found</p>
       );
     }
 
     return (
-      <p>{ n } account has been extracted</p>
+      <p>{ n } identity has been found</p>
     );
   }
 

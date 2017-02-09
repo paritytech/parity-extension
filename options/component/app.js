@@ -139,7 +139,7 @@ export default class App extends Component {
           <div className={ styles.input }>
             <TextField
               floating-label
-              label='Parity node URL'
+              label='Parity local node'
               onChange={ this.handleChangeURL }
               value={ UI }
             />
@@ -150,7 +150,7 @@ export default class App extends Component {
           <div className={ styles.input }>
             <TextField
               floating-label
-              label='Parity dapps URL'
+              label='Parity dapps'
               onChange={ this.handleChangeDappsURL }
               value={ DAPPS }
             />

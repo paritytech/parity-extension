@@ -252,7 +252,7 @@ export default class Lookup {
         ? 'emailHash'
         : method;
 
-      return fetch(`${this.lookupURL}/?${lookupMethod}=${input}`.replace(/\/+/g, '/'))
+      return fetch(`${this.lookupURL}/?${lookupMethod}=${input}`)
         .then((response) => response.json());
     }
 

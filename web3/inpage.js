@@ -151,9 +151,32 @@ class Web3FrameProvider {
 
 if (!window.chrome || !window.chrome.extension) {
   console.log('Parity - Injecting Web3');
-  window.web3 = {
-    currentProvider: new Web3FrameProvider()
+
+  const web3 = {
+    currentProvider: new Web3FrameProvider(),
+    injectedWeb3: null
   };
+
+  const proxiedWeb3 = new Proxy(web3, {
+    get: (target, name, receiver) => {
+      // If the web3 object already has the
+      // requested value, return it (current provider)
+      if (target[name]) {
+        return target[name];
+      }
+
+      // Else, add a full web3 instance
+      if (!web3.injectedWeb3) {
+        const Web3 = require('web3/lib/web3');
+        web3.injectedWeb3 = new Web3(web3.currentProvider);
+      }
+
+      // And return the value from this web3 instance
+      return web3.injectedWeb3[name];
+    }
+  });
+
+  window.web3 = proxiedWeb3;
 
   // Extract token and background
   if (window.location.origin === `http://${UI}`) {

@@ -167,10 +167,11 @@ if (!window.chrome || !window.chrome.extension) {
 
       // Else, add a full web3 instance
       if (!web3.injectedWeb3) {
-        const Web3 = require('web3/lib/web3');
+        const rawWeb3 = require('web3/dist/web3.min.js');
+        eval(rawWeb3); // eslint-disable-line no-eval
 
-        window.Web3 = Web3;
-        web3.injectedWeb3 = new Web3(web3.currentProvider);
+        web3.injectedWeb3 = new window.Web3(web3.currentProvider);
+        window.web3 = proxiedWeb3;
       }
 
       // And return the value from this web3 instance

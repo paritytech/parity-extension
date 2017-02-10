@@ -37,6 +37,8 @@ export default class Lookup {
   _githubs = {};
   _emails = {};
   _names = {};
+
+  currentCacheKey = null;
   lookupURL = DEFAULT_CONFIG.lookupURL;
 
   store = null;
@@ -54,7 +56,30 @@ export default class Lookup {
   }
 
   clearCache () {
-    this.save({ addresses: {}, githubs: {}, emails: {}, names: {} });
+    this.clean();
+
+    setTimeout(() => {
+      chrome.storage.local.remove(LOOKUP_STORAGE_KEY, () => {});
+    }, 50);
+  }
+
+  getCacheKey () {
+    // From local node
+    if (this.store.transport.isConnected) {
+      return this.store.transport.getNetworkId()
+        .then((networkId = -1) => {
+          return `node_net::${networkId}`;
+        });
+    }
+
+    // From Lookup Service
+    return Config.get()
+      .then((config) => {
+        const { lookupURL } = config;
+        const hash = sha3(lookupURL);
+
+        return `lookup_url::${hash}`;
+      });
   }
 
   /**
@@ -89,23 +114,37 @@ export default class Lookup {
     return cleanData;
   }
 
-  save (data) {
+  save (data, cacheKey = this.currentCacheKey) {
     setTimeout(() => {
+    console.warn('save', cacheKey);
       const cleanData = this.clean(data);
-      chrome.storage.local.set({ [ LOOKUP_STORAGE_KEY ]: cleanData }, () => {});
+
+      chrome.storage.local.get(LOOKUP_STORAGE_KEY, (storage = {}) => {
+        const cache = storage[LOOKUP_STORAGE_KEY] || {};
+
+        cache[cacheKey] = cleanData;
+        chrome.storage.local.set({ [ LOOKUP_STORAGE_KEY ]: cache }, () => {});
+      });
     }, 50);
   }
 
   load () {
-    return new Promise((resolve) => {
-      chrome.storage.local.get(LOOKUP_STORAGE_KEY, (storage = {}) => {
-        const data = storage[LOOKUP_STORAGE_KEY];
+    return this.getCacheKey()
+      .then((cacheKey) => {
+      console.warn('load', cacheKey);
+        this.currentCacheKey = cacheKey;
 
-        this.clean(data);
-        this.save();
-        resolve();
+        return new Promise((resolve) => {
+          chrome.storage.local.get(LOOKUP_STORAGE_KEY, (storage = {}) => {
+            const cache = storage[LOOKUP_STORAGE_KEY] || {};
+            const data = cache[cacheKey];
+
+            this.clean(data);
+            this.save({}, cacheKey);
+            resolve();
+          });
+        });
       });
-    });
   }
 
   find (address) {

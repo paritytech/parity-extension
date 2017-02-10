@@ -29,11 +29,11 @@ main();
 function main () {
   const store = new Store();
 
+  store.transport = new Transport(store);
   store.images = new Images(store);
   store.lookup = new Lookup(store);
   store.processor = new Processor(store);
   store.scriptsLoader = new ScriptsLoader(store);
-  store.transport = new Transport(store);
   store.web3 = new Web3(store);
 
   chrome.runtime.onConnect.addListener(onConnectHandler);

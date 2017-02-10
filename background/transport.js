@@ -108,16 +108,27 @@ export default class Transport {
     return this.secureApiMessage(port);
   }
 
-  getChainName () {
+  getNetworkId () {
     if (!this.isConnected) {
-      return null;
+      return Promise.resolve(null);
     }
 
     return this.api.net.version()
       .then((netVersion) => {
         const version = parseInt(netVersion, 10);
 
-        switch (version) {
+        return version;
+      });
+  }
+
+  getChainName () {
+    if (!this.isConnected) {
+      return null;
+    }
+
+    return this.getNetworkId()
+      .then((networkId) => {
+        switch (networkId) {
           case 1:
             return 'Mainnet';
 
@@ -187,11 +198,15 @@ export default class Transport {
         .then(version => {
           State.version = version;
         });
+
+      this.store.lookup.load();
     });
 
     transport.on('close', () => {
       this.setIcon('disconnected');
       State.version = null;
+
+      this.store.lookup.load();
     });
 
     this.transport = transport;

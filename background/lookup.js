@@ -116,7 +116,6 @@ export default class Lookup {
 
   save (data, cacheKey = this.currentCacheKey) {
     setTimeout(() => {
-    console.warn('save', cacheKey);
       const cleanData = this.clean(data);
 
       chrome.storage.local.get(LOOKUP_STORAGE_KEY, (storage = {}) => {
@@ -131,7 +130,6 @@ export default class Lookup {
   load () {
     return this.getCacheKey()
       .then((cacheKey) => {
-      console.warn('load', cacheKey);
         this.currentCacheKey = cacheKey;
 
         return new Promise((resolve) => {

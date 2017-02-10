@@ -25,6 +25,7 @@ export default class Transport {
 
   accountsCache = {};
   extractTokenRetries = 0;
+  imageCanvas = null;
   openedTabId = null;
   transport = null;
   UI = DEFAULT_CONFIG.UI;
@@ -61,8 +62,45 @@ export default class Transport {
     // Attempt to extract token on start
     this.extractToken();
 
+    // Pre-create the image canvas
+    this.getImageCanvas(76);
+
     chrome.runtime.onMessage.addListener((request, sender, callback) => {
       return this.handleMessage(request, sender, callback);
+    });
+  }
+
+  cloneCanvas (oldCanvas) {
+    const newCanvas = document.createElement('canvas');
+    const context = newCanvas.getContext('2d');
+
+    newCanvas.width = oldCanvas.width;
+    newCanvas.height = oldCanvas.height;
+
+    context.drawImage(oldCanvas, 0, 0);
+
+    return newCanvas;
+  }
+
+  getImageCanvas (size) {
+    if (this.imageCanvas) {
+      const clonedCanvas = this.cloneCanvas(this.imageCanvas);
+      return Promise.resolve(clonedCanvas);
+    }
+
+    return new Promise((resolve) => {
+      const canvas = document.createElement('canvas');
+      const context = canvas.getContext('2d');
+      const image = new Image();
+
+      image.onload = () => {
+        context.drawImage(image, 0, 0);
+        this.imageCanvas = canvas;
+
+        return resolve(this.cloneCanvas(canvas));
+      };
+
+      image.src = chrome.extension.getURL(`$assets/icon-${size}.png`);
     });
   }
 
@@ -97,37 +135,34 @@ export default class Transport {
 
   setIcon (status) {
     console.log('setting icon to ', status);
-    const ctx = document.createElement('canvas').getContext('2d');
-    const image = new Image();
 
     const size = 76;
 
-    image.onload = () => {
-      ctx.drawImage(image, 0, 0);
+    this.getImageCanvas(size)
+      .then((canvas) => {
+        const ctx = canvas.getContext('2d');
 
-      switch (status) {
-        case 'connected':
-          ctx.fillStyle = 'rgba(46, 204, 113, 0.95)';
-          break;
+        switch (status) {
+          case 'connected':
+            ctx.fillStyle = 'rgba(46, 204, 113, 0.95)';
+            break;
 
-        case 'disconnected':
-        default:
-          ctx.fillStyle = 'rgba(231, 76, 60, 0.75)';
-          break;
-      }
+          case 'disconnected':
+          default:
+            ctx.fillStyle = 'rgba(231, 76, 60, 0.75)';
+            break;
+        }
 
-      ctx.strokeStyle = 'white';
-      ctx.beginPath();
-      ctx.arc(15, 20, 12, 0, 2 * Math.PI);
-      ctx.fill();
-      ctx.stroke();
+        ctx.strokeStyle = 'white';
+        ctx.beginPath();
+        ctx.arc(15, 20, 12, 0, 2 * Math.PI);
+        ctx.fill();
+        ctx.stroke();
 
-      const pixels = ctx.getImageData(0, 0, size, size);
+        const pixels = ctx.getImageData(0, 0, size, size);
 
-      chrome.browserAction.setIcon({ imageData: pixels });
-    };
-
-    image.src = chrome.extension.getURL(`$assets/icon-${size}.png`);
+        chrome.browserAction.setIcon({ imageData: pixels });
+      });
   }
 
   initiate (token) {

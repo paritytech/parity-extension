@@ -114,6 +114,18 @@ function main () {
         sendResponse(store.transport.url);
         return true;
 
+      case 'getChainName':
+        store.transport.getChainName()
+          .then((chainName) => {
+            sendResponse(chainName);
+          })
+          .catch((error) => {
+            console.error('getChainName', error);
+            sendResponse(null);
+          });
+
+        return true;
+
       case 'clearCache':
         store.lookup.clearCache();
         return true;

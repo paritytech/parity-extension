@@ -82,3 +82,11 @@ export function clearCache () {
     resolve();
   });
 }
+
+export function getChainName () {
+  return new Promise((resolve) => {
+    chrome.runtime.sendMessage({ action: 'getChainName' }, (chainName) => {
+      resolve(chainName);
+    });
+  });
+}

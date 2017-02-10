@@ -70,6 +70,31 @@ export default class Transport {
     return this.secureApiMessage(port);
   }
 
+  getChainName () {
+    if (!this.isConnected) {
+      return null;
+    }
+
+    return this.api.net.version()
+      .then((netVersion) => {
+        const version = parseInt(netVersion, 10);
+
+        switch (version) {
+          case 1:
+            return 'Mainnet';
+
+          case 2:
+            return 'Morden';
+
+          case 3:
+            return 'Ropsten';
+
+          default:
+            return null;
+        }
+      });
+  }
+
   setIcon (status) {
     console.log('setting icon to ', status);
     const ctx = document.createElement('canvas').getContext('2d');

@@ -74,6 +74,10 @@ module.exports = {
   module: {
     rules: [
       {
+        test: /node_modules\/web3.+\.js$/,
+        use: 'raw-loader'
+      },
+      {
         test: /\.js$/,
         exclude: /(node_modules)/,
         use: 'babel-loader'

@@ -124,23 +124,23 @@ export default class App extends Component {
 
     switch (status) {
       case 'connected':
-        phrase = 'Connected to';
+        phrase = `Connected to ${chainName}`;
         break;
 
       case 'connecting':
-        phrase = 'Connecting to';
+        phrase = 'Connecting...';
         break;
 
       case 'disconnected':
       default:
-        phrase = 'Not connected to';
+        phrase = 'Not connected to a local node';
         break;
     }
 
     return (
       <div className={ styles.status }>
         <span className={ iconClassName } />
-        <span>{ phrase } { chainName }</span>
+        <span>{ phrase }</span>
       </div>
     );
   }

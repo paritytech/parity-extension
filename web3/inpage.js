@@ -177,8 +177,11 @@ if (!window.chrome || !window.chrome.extension) {
         const rawWeb3 = require('web3/dist/web3.min.js');
         eval(rawWeb3); // eslint-disable-line no-eval
 
-        web3.injectedWeb3 = new window.Web3(web3.currentProvider);
-        window.web3 = proxiedWeb3;
+        const injectedWeb3 = new window.Web3(web3.currentProvider);
+        web3.injectedWeb3 = injectedWeb3;
+        // Expose object directly
+        window.web3 = injectedWeb3;
+        return injectedWeb3[name];
       }
 
       // And return the value from this web3 instance

@@ -50,7 +50,9 @@ class Web3FrameProvider {
       }
 
       if (ev.data.type === EV_WEB3_ACCOUNTS_RESPONSE && this.onAccounts) {
-        this.onAccounts(ev.data.err, ev.data.payload);
+        this.onAccounts(ev.data.err, {
+          result: ev.data.payload
+        });
         return;
       }
 
@@ -91,12 +93,17 @@ class Web3FrameProvider {
   }
 
   onAccounts (err, accounts) {
-    if (err) {
+    if (err || !accounts.result) {
       setTimeout(() => this.initializeMainAccount(), getRetryTimeout(this._retries));
       return;
     }
 
-    this.accounts = accounts;
+    this.accounts = accounts.result;
+
+    // Set default account for global object.
+    if (this.accounts[0] && global.web3 && 'eth' in global.web3) {
+      global.web3.eth.defaultAccount = this.accounts[0];
+    }
   }
 
   request (method, cb) {

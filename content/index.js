@@ -21,7 +21,7 @@ import Extractor from './extractor';
 import Runner from './runner';
 import Store from './store';
 
-import { isEnabled } from '../shared';
+import { isAugmentationEnabled } from '../shared';
 
 const store = new Store();
 
@@ -67,7 +67,7 @@ function main () {
   extract();
 }
 
-isEnabled()
+isAugmentationEnabled()
   .then((enabled) => {
     if (enabled) {
       main();

@@ -15,6 +15,7 @@
 // along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 
 import { h, Component } from 'preact';
+import { bind } from 'decko';
 
 import AccountCard from '../../content/components/accountCard';
 
@@ -24,6 +25,7 @@ class Account extends Component {
 
   state = {
     badges: [],
+    small: true,
     tokens: []
   };
 
@@ -39,22 +41,34 @@ class Account extends Component {
 
   render () {
     const { account } = this.props;
-    const { badges, tokens } = this.state;
+    const { badges, small, tokens } = this.state;
     const { address, email, name, size } = account;
 
     return (
-      <AccountCard
-        address={ address }
-        badges={ badges }
+      <div
         className={ styles.accountCard }
-        email={ email }
-        key={ address }
-        name={ name }
-        safe
-        size={ size }
-        tokens={ tokens }
-      />
+        onClick={ this.toggle }
+      >
+        <AccountCard
+          address={ address }
+          badges={ badges }
+          email={ email }
+          key={ address }
+          name={ name }
+          safe
+          size={ size }
+          small={ small }
+          tokens={ tokens }
+        />
+      </div>
     );
+  }
+
+  @bind
+  toggle () {
+    const { small } = this.state;
+
+    this.setState({ small: !small });
   }
 
 }
@@ -66,14 +80,16 @@ export default class Extractions extends Component {
 
     if (!extractions || extractions.length === 0) {
       return (
-        <p>No accounts have been extracted</p>
+        <p>No identities have been found on the page.</p>
       );
     }
 
     return (
       <div className={ styles.extractions }>
         { this.renderDesc(extractions.length) }
-        { this.renderAccounts(extractions, store) }
+        <div className={ styles.accounts }>
+          { this.renderAccounts(extractions, store) }
+        </div>
       </div>
     );
   }
@@ -81,12 +97,12 @@ export default class Extractions extends Component {
   renderDesc (n) {
     if (n > 1) {
       return (
-        <p>{ n } accounts have been extracted</p>
+        <p>{ n } identities have been found</p>
       );
     }
 
     return (
-      <p>{ n } account has been extracted</p>
+      <p>{ n } identity has been found</p>
     );
   }
 

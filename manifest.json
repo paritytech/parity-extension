@@ -31,6 +31,10 @@
     "default_title": "Parity Ethereum Integration",
     "default_popup": "popup/index.html"
   },
+   "options_ui": {
+    "page": "options/index.html",
+    "chrome_style": false
+  },
   "background": {
     "scripts": ["background/index.js"]
   },

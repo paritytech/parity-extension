@@ -21,10 +21,10 @@ import './embed.html';
  * It's not a content script!
  */
 import {
-  UI, getRetryTimeout,
+  getRetryTimeout,
   EV_WEB3_REQUEST, EV_WEB3_RESPONSE,
   EV_WEB3_ACCOUNTS_REQUEST, EV_WEB3_ACCOUNTS_RESPONSE,
-  EV_TOKEN, TRANSPORT_UNINITIALIZED
+  EV_TOKEN, EV_NODE_URL, TRANSPORT_UNINITIALIZED
 } from '../shared';
 
 // Indicate that the extension is installed.
@@ -181,19 +181,32 @@ if (!window.chrome || !window.chrome.extension) {
 
   window.web3 = proxiedWeb3;
 
-  // Extract token and background
-  if (window.location.origin === `http://${UI}`) {
-    // TODO [ToDr] Validate token?
-    const token = fromJson(localStorage.getItem('sysuiToken'));
-    const backgroundSeed = fromJson(localStorage.getItem('backgroundSeed'));
-    if (token) {
-      window.postMessage({
-        type: EV_TOKEN,
-        token,
-        backgroundSeed
-      }, '*');
+  window.addEventListener('message', (ev) => {
+    if (ev.source !== window) {
+      return;
     }
-  }
+
+    if (ev.data.type !== EV_NODE_URL) {
+      return;
+    }
+
+    const UI = ev.data.value;
+
+    // Extract token and background
+    if (window.location.origin === `http://${UI}`) {
+      // TODO [ToDr] Validate token?
+      const token = fromJson(localStorage.getItem('sysuiToken'));
+      const backgroundSeed = fromJson(localStorage.getItem('backgroundSeed'));
+
+      if (token) {
+        window.postMessage({
+          type: EV_TOKEN,
+          token,
+          backgroundSeed
+        }, '*');
+      }
+    }
+  });
 }
 
 function fromJson (val) {

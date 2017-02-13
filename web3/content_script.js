@@ -25,11 +25,11 @@ import {
   TRANSPORT_UNINITIALIZED,
   EV_WEB3_REQUEST, EV_WEB3_RESPONSE,
   EV_WEB3_ACCOUNTS_REQUEST, EV_WEB3_ACCOUNTS_RESPONSE,
-  EV_TOKEN, EV_SIGNER_BAR,
-  isEnabled
+  EV_TOKEN, EV_SIGNER_BAR, EV_NODE_URL,
+  getUI, isIntegrationEnabled
 } from '../shared';
 
-isEnabled()
+isIntegrationEnabled()
   .then((enabled) => {
     if (enabled) {
       main();
@@ -43,6 +43,7 @@ function main () {
 
   const initPort = () => {
     const port = chrome.runtime.connect({ name: 'web3' });
+
     if (!port) {
       return;
     }
@@ -74,6 +75,15 @@ function main () {
 
   // process requests
   let port = initPort();
+
+  getUI()
+    .then((UI) => {
+      window.postMessage({
+        type: EV_NODE_URL,
+        value: UI
+      }, '*');
+    });
+
   window.addEventListener('message', (ev) => {
     if (ev.source !== window) {
       return;

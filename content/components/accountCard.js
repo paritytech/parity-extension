@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 
+import classnames from 'classnames';
 import { bind } from 'decko';
 import { noop } from 'lodash';
 import { h, Component } from 'preact';
@@ -28,7 +29,7 @@ export default class AccountCard extends Component {
   clickTimeout = null;
 
   render () {
-    const { address, badges, className, email, name, safe, tokens } = this.props;
+    const { address, badges, className, email, name, safe, small, tokens } = this.props;
 
     return (
       <span
@@ -48,6 +49,19 @@ export default class AccountCard extends Component {
           </span>
         </span>
 
+        { this.renderContent(badges, name, safe, small, tokens) }
+      </span>
+    );
+  }
+
+  renderContent (badges, name, safe, small, tokens) {
+    const className = classnames({
+      [ styles.content ]: true,
+      [ styles.small ]: small
+    });
+
+    return (
+      <span className={ className }>
         { this.renderWarning(safe, name) }
 
         <span className={ styles.tokens }>

@@ -84,7 +84,7 @@ function main () {
       }, '*');
     });
 
-  window.addEventListener('message', (ev) => {
+  window.addEventListener('message', function retry (ev) {
     if (ev.source !== window) {
       return;
     }
@@ -115,6 +115,7 @@ function main () {
         origin
       }, (result) => {
         if (!result) {
+          retry(ev);
           return;
         }
 

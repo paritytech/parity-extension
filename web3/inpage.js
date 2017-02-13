@@ -50,7 +50,9 @@ class Web3FrameProvider {
       }
 
       if (ev.data.type === EV_WEB3_ACCOUNTS_RESPONSE && this.onAccounts) {
-        this.onAccounts(ev.data.err, ev.data.payload);
+        this.onAccounts(ev.data.err, {
+          result: ev.data.payload
+        });
         return;
       }
 
@@ -91,12 +93,17 @@ class Web3FrameProvider {
   }
 
   onAccounts (err, accounts) {
-    if (err) {
+    if (err || !accounts.result) {
       setTimeout(() => this.initializeMainAccount(), getRetryTimeout(this._retries));
       return;
     }
 
-    this.accounts = accounts;
+    this.accounts = accounts.result;
+
+    // Set default account for global object.
+    if (this.accounts[0] && global.web3 && 'eth' in global.web3) {
+      global.web3.eth.defaultAccount = this.accounts[0];
+    }
   }
 
   request (method, cb) {
@@ -170,8 +177,11 @@ if (!window.chrome || !window.chrome.extension) {
         const rawWeb3 = require('web3/dist/web3.min.js');
         eval(rawWeb3); // eslint-disable-line no-eval
 
-        web3.injectedWeb3 = new window.Web3(web3.currentProvider);
-        window.web3 = proxiedWeb3;
+        const injectedWeb3 = new window.Web3(web3.currentProvider);
+        web3.injectedWeb3 = injectedWeb3;
+        // Expose object directly
+        window.web3 = injectedWeb3;
+        return injectedWeb3[name];
       }
 
       // And return the value from this web3 instance

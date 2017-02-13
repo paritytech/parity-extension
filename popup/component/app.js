@@ -14,32 +14,33 @@
 // You should have received a copy of the GNU General Public License
 // along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 
-import { bind } from 'decko';
+import classnames from 'classnames';
 import { h, Component } from 'preact';
-import { CheckBox } from 'preact-mdl';
 
 import 'material-design-lite/material.css';
 import 'material-design-lite/material';
 
 import Config from '../../background/config';
-
 import Extractions from './extractions';
+import { getNodeStatus, getChainName } from '../../shared';
 
 import styles from './app.css';
 
 export default class App extends Component {
 
   state = {
-    enabled: true,
-    extractions: []
+    augmentationEnabled: true,
+    chainName: 'an unkown chain',
+    extractions: [],
+    status: ''
   };
 
   componentWillMount () {
     Config.get()
       .then((config) => {
-        const { enabled = true } = config;
+        const { augmentationEnabled } = config;
 
-        this.setState({ enabled });
+        this.setState({ augmentationEnabled });
       });
 
     this.getExtractions();
@@ -48,6 +49,18 @@ export default class App extends Component {
     window.onload = () => {
       this.getExtractions();
     };
+
+    getNodeStatus()
+      .then((status) => this.setState({ status }));
+
+    getChainName()
+      .then((chainName) => {
+        if (!chainName) {
+          return;
+        }
+
+        this.setState({ chainName });
+      });
   }
 
   getExtractions () {
@@ -58,35 +71,78 @@ export default class App extends Component {
 
   render () {
     const { store } = this.props;
-    const { enabled, extractions } = this.state;
+    const { augmentationEnabled, chainName, extractions, status } = this.state;
 
     return (
       <div className={ styles.container }>
         <div className={ styles.header }>
-          <h1 className={ styles.title }>Web3 Injection</h1>
-          <CheckBox
-            checked={ enabled }
-            className={ styles.check }
-            onChange={ this.handleChange }
-          />
+          <h1 className={ styles.title }>Parity Ethereum Integration</h1>
         </div>
 
-        <Extractions
-          extractions={ extractions }
-          store={ store }
-        />
+        { this.renderHint(status) }
+        { this.renderExtractions(augmentationEnabled, extractions, store) }
+        { this.renderStatus(status, chainName) }
       </div>
     );
   }
 
-  @bind
-  handleChange (event) {
-    const { checked } = event.target;
+  renderExtractions (augmentationEnabled, extractions, store) {
+    if (!augmentationEnabled) {
+      return null;
+    }
 
-    Config.set({ enabled: checked })
-      .then(() => {
-        this.setState({ enabled: checked });
-      });
+    return (
+      <Extractions
+        extractions={ extractions }
+        store={ store }
+      />
+    );
+  }
+
+  renderHint (status) {
+    if (status === 'connected' || status === 'connecting') {
+      return null;
+    }
+
+    return (
+      <p className={ styles.error }>
+        You are not connected to a local Parity Node. Seamless integration
+        with the Ethereum network is thus not available.
+      </p>
+    );
+  }
+
+  renderStatus (status, chainName) {
+    const iconClassName = classnames({
+      [ styles.statusIcon ]: true,
+      [ styles.connected ]: status === 'connected',
+      [ styles.connecting ]: status === 'connecting',
+      [ styles.disconnected ]: status === 'disconnected'
+    });
+
+    let phrase;
+
+    switch (status) {
+      case 'connected':
+        phrase = `Connected to ${chainName}`;
+        break;
+
+      case 'connecting':
+        phrase = 'Connecting...';
+        break;
+
+      case 'disconnected':
+      default:
+        phrase = 'Not connected to a local node';
+        break;
+    }
+
+    return (
+      <div className={ styles.status }>
+        <span className={ iconClassName } />
+        <span>{ phrase }</span>
+      </div>
+    );
   }
 
 }

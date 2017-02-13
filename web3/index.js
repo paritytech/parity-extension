@@ -22,10 +22,10 @@
  */
 
 import { createSecureTransport } from './secureTransport';
-import { EV_SIGNER_BAR, EV_BAR_CODE, isEnabled } from '../shared';
+import { EV_SIGNER_BAR, EV_BAR_CODE, isIntegrationEnabled } from '../shared';
 import Config from '../background/config';
 
-isEnabled()
+isIntegrationEnabled()
   .then((enabled) => {
     if (enabled && window.location.protocol === 'chrome-extension:') {
       window.secureTransport = createSecureTransport();

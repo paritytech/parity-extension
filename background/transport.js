@@ -18,15 +18,17 @@ import { Api } from '@parity/parity.js';
 
 import Ws from './ws';
 import State from './state';
-import { UI, TRANSPORT_UNINITIALIZED, EV_WEB3_ACCOUNTS_REQUEST, EV_TOKEN, getRetryTimeout } from '../shared';
-import Config from './config';
+import { TRANSPORT_UNINITIALIZED, EV_WEB3_ACCOUNTS_REQUEST, EV_TOKEN, getRetryTimeout } from '../shared';
+import Config, { DEFAULT_CONFIG } from './config';
 
 export default class Transport {
 
   accountsCache = {};
   extractTokenRetries = 0;
+  imageCanvas = null;
   openedTabId = null;
   transport = null;
+  UI = DEFAULT_CONFIG.UI;
 
   store = null;
 
@@ -35,7 +37,23 @@ export default class Transport {
   }
 
   get isConnected () {
-    return this.transport.isConnected;
+    return this.transport && this.transport.isConnected;
+  }
+
+  get status () {
+    if (this.transport.isConnected) {
+      return 'connected';
+    }
+
+    if (this.transport.isConnecting) {
+      return 'connecting';
+    }
+
+    return 'disconnected';
+  }
+
+  get url () {
+    return this.transport.url;
   }
 
   constructor (store) {
@@ -44,8 +62,45 @@ export default class Transport {
     // Attempt to extract token on start
     this.extractToken();
 
+    // Pre-create the image canvas
+    this.getImageCanvas(76);
+
     chrome.runtime.onMessage.addListener((request, sender, callback) => {
       return this.handleMessage(request, sender, callback);
+    });
+  }
+
+  cloneCanvas (oldCanvas) {
+    const newCanvas = document.createElement('canvas');
+    const context = newCanvas.getContext('2d');
+
+    newCanvas.width = oldCanvas.width;
+    newCanvas.height = oldCanvas.height;
+
+    context.drawImage(oldCanvas, 0, 0);
+
+    return newCanvas;
+  }
+
+  getImageCanvas (size) {
+    if (this.imageCanvas) {
+      const clonedCanvas = this.cloneCanvas(this.imageCanvas);
+      return Promise.resolve(clonedCanvas);
+    }
+
+    return new Promise((resolve) => {
+      const canvas = document.createElement('canvas');
+      const context = canvas.getContext('2d');
+      const image = new Image();
+
+      image.onload = () => {
+        context.drawImage(image, 0, 0);
+        this.imageCanvas = canvas;
+
+        return resolve(this.cloneCanvas(canvas));
+      };
+
+      image.src = chrome.extension.getURL(`$assets/icon-${size}.png`);
     });
   }
 
@@ -53,10 +108,82 @@ export default class Transport {
     return this.secureApiMessage(port);
   }
 
+  getNetworkId () {
+    if (!this.isConnected) {
+      return Promise.resolve(null);
+    }
+
+    return this.api.net.version()
+      .then((netVersion) => {
+        const version = parseInt(netVersion, 10);
+
+        return version;
+      });
+  }
+
+  getChainName () {
+    if (!this.isConnected) {
+      return null;
+    }
+
+    return this.getNetworkId()
+      .then((networkId) => {
+        switch (networkId) {
+          case 1:
+            return 'Mainnet';
+
+          case 2:
+            return 'Morden';
+
+          case 3:
+            return 'Ropsten';
+
+          default:
+            return null;
+        }
+      });
+  }
+
+  setIcon (status) {
+    console.log('setting icon to ', status);
+
+    const size = 76;
+
+    this.getImageCanvas(size)
+      .then((canvas) => {
+        const ctx = canvas.getContext('2d');
+
+        switch (status) {
+          case 'connected':
+            ctx.fillStyle = 'rgba(46, 204, 113, 0.95)';
+            break;
+
+          case 'disconnected':
+          default:
+            ctx.fillStyle = 'rgba(231, 76, 60, 0.75)';
+            break;
+        }
+
+        ctx.strokeStyle = 'white';
+        ctx.beginPath();
+        ctx.arc(15, 20, 12, 0, 2 * Math.PI);
+        ctx.fill();
+        ctx.stroke();
+
+        const pixels = ctx.getImageData(0, 0, size, size);
+
+        chrome.browserAction.setIcon({ imageData: pixels });
+      });
+  }
+
   initiate (token) {
-    const transport = new Ws(`ws://${UI}`, token, true);
+    const transport = new Ws(`ws://${this.UI}`, token, true);
+
+    this.setIcon('disconnected');
 
     transport.on('open', () => {
+      this.setIcon('connected');
+
       const oldOrigins = Object.keys(this.accountsCache);
 
       this.accountsCache = {};
@@ -71,32 +198,45 @@ export default class Transport {
         .then(version => {
           State.version = version;
         });
+
+      this.store.lookup.load();
     });
 
     transport.on('close', () => {
+      this.setIcon('disconnected');
       State.version = null;
+
+      this.store.lookup.load();
     });
 
     this.transport = transport;
   }
 
+  close () {
+    this.transport && this.transport.close();
+  }
+
   extractToken () {
     return Config.get()
       .then((config) => {
+        if (config.UI) {
+          this.UI = config.UI;
+        }
+
         if (config.authToken) {
           if (this.transport) {
-            this.transport.close();
+            this.close();
           }
 
           this.initiate(config.authToken);
           return;
         }
 
-        return fetch(`http://${UI}`)
+        return fetch(`http://${this.UI}`)
           .then(() => {
             // Open a UI to extract the token from it
             chrome.tabs.create({
-              url: `http://${UI}`,
+              url: `http://${this.UI}/#/?from=` + chrome.runtime.id,
               active: false
             }, (tab) => {
               this.openedTabId = tab.id;

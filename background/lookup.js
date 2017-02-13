@@ -20,6 +20,8 @@ import { keccak_256 as sha3 } from 'js-sha3';
 import { omitBy } from 'lodash';
 import ParityLookup from 'lookup';
 
+import Config, { DEFAULT_CONFIG } from './config';
+
 const LOOKUP_STORAGE_KEY = 'parity::lookup_cache';
 
 // Time To Live for Lookup data (in ms : 1h for valid response,
@@ -36,12 +38,48 @@ export default class Lookup {
   _emails = {};
   _names = {};
 
+  currentCacheKey = null;
+  lookupURL = DEFAULT_CONFIG.lookupURL;
+
   store = null;
 
   constructor (store) {
     this.store = store;
 
     this.load();
+    Config.get()
+      .then((config) => {
+        if (config.lookupURL) {
+          this.lookupURL = config.lookupURL;
+        }
+      });
+  }
+
+  clearCache () {
+    this.clean();
+
+    setTimeout(() => {
+      chrome.storage.local.remove(LOOKUP_STORAGE_KEY, () => {});
+    }, 50);
+  }
+
+  getCacheKey () {
+    // From local node
+    if (this.store.transport.isConnected) {
+      return this.store.transport.getNetworkId()
+        .then((networkId = -1) => {
+          return `node_net::${networkId}`;
+        });
+    }
+
+    // From Lookup Service
+    return Config.get()
+      .then((config) => {
+        const { lookupURL } = config;
+        const hash = sha3(lookupURL);
+
+        return `lookup_url::${hash}`;
+      });
   }
 
   /**
@@ -76,23 +114,35 @@ export default class Lookup {
     return cleanData;
   }
 
-  save () {
+  save (data, cacheKey = this.currentCacheKey) {
     setTimeout(() => {
-      const cleanData = this.clean();
-      chrome.storage.local.set({ [ LOOKUP_STORAGE_KEY ]: cleanData }, () => {});
+      const cleanData = this.clean(data);
+
+      chrome.storage.local.get(LOOKUP_STORAGE_KEY, (storage = {}) => {
+        const cache = storage[LOOKUP_STORAGE_KEY] || {};
+
+        cache[cacheKey] = cleanData;
+        chrome.storage.local.set({ [ LOOKUP_STORAGE_KEY ]: cache }, () => {});
+      });
     }, 50);
   }
 
   load () {
-    return new Promise((resolve) => {
-      chrome.storage.local.get(LOOKUP_STORAGE_KEY, (storage = {}) => {
-        const data = storage[LOOKUP_STORAGE_KEY];
+    return this.getCacheKey()
+      .then((cacheKey) => {
+        this.currentCacheKey = cacheKey;
 
-        this.clean(data);
-        this.save();
-        resolve();
+        return new Promise((resolve) => {
+          chrome.storage.local.get(LOOKUP_STORAGE_KEY, (storage = {}) => {
+            const cache = storage[LOOKUP_STORAGE_KEY] || {};
+            const data = cache[cacheKey];
+
+            this.clean(data);
+            this.save({}, cacheKey);
+            resolve();
+          });
+        });
       });
-    });
   }
 
   find (address) {
@@ -239,7 +289,7 @@ export default class Lookup {
         ? 'emailHash'
         : method;
 
-      return fetch(`https://id.parity.io:8443/?${lookupMethod}=${input}`)
+      return fetch(`${this.lookupURL}/?${lookupMethod}=${input}`)
         .then((response) => response.json());
     }
 

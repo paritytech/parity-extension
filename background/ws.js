@@ -326,6 +326,10 @@ export default class Ws extends JsonRpcBase {
     });
   }
 
+  get url () {
+    return this._url;
+  }
+
   get token () {
     return this._token;
   }

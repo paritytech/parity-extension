@@ -14,17 +14,42 @@
 // You should have received a copy of the GNU General Public License
 // along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 
+import { isEqual } from 'lodash';
+
+import { reload } from '../shared';
+
 const CONFIG_KEY = 'parity::config';
+
+export const DEFAULT_CONFIG = {
+  augmentationEnabled: true,
+  DAPPS: '127.0.0.1:8080',
+  integrationEnabled: true,
+  lookupURL: 'https://id.parity.io',
+  UI: '127.0.0.1:8180'
+};
 
 export default class Config {
 
   static set (data) {
     return Config.get()
       .then((config) => {
+        const prevConfig = {
+          ...DEFAULT_CONFIG,
+          ...config
+        };
+
         const nextConfig = {
-          ...config,
+          ...prevConfig,
           ...data
         };
+
+        if (config.lookupURL) {
+          nextConfig.lookupURL = nextConfig.lookupURL.replace(/\/+$/, '');
+        }
+
+        if (!isEqual(prevConfig, nextConfig)) {
+          reload();
+        }
 
         return new Promise((resolve) => {
           chrome.storage.local.set({
@@ -39,7 +64,12 @@ export default class Config {
   static get () {
     return new Promise((resolve) => {
       chrome.storage.local.get(CONFIG_KEY, (data = {}) => {
-        resolve(data[CONFIG_KEY] || {});
+        const config = data[CONFIG_KEY] || {};
+
+        resolve({
+          ...DEFAULT_CONFIG,
+          ...config
+        });
       });
     });
   }

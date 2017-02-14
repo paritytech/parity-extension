@@ -16,4 +16,7 @@
 
 import Web3 from 'web3/lib/web3';
 
+import Web3FrameProvider from './provider';
+
 window.Web3 = Web3;
+window.web3 = new Web3(new Web3FrameProvider());

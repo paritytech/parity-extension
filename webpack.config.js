@@ -66,7 +66,10 @@ module.exports = {
 
   entry: Object.assign({},
     manifest.entries,
-    { 'options/index': './options/index.js' }
+    {
+      'options/index': './options/index.js',
+      'web3.lib': 'web3/lib.js'
+    }
   ),
   output: {
     path: manifest.buildPath,
@@ -76,10 +79,10 @@ module.exports = {
 
   module: {
     rules: [
-      {
-        test: /node_modules\/web3.+\.js$/,
-        use: 'raw-loader'
-      },
+      // {
+      //   test: /node_modules\/web3.+\.js$/,
+      //   use: 'raw-loader'
+      // },
       {
         test: /\.js$/,
         exclude: /(node_modules)/,

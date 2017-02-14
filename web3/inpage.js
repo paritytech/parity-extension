@@ -174,8 +174,8 @@ if (!window.chrome || !window.chrome.extension) {
 
       // Else, add a full web3 instance
       if (!web3.injectedWeb3) {
-        const rawWeb3 = require('./lib');
-        eval(rawWeb3); // eslint-disable-line no-eval
+        require('./lib');
+        // eval(rawWeb3); // eslint-disable-line no-eval
 
         const injectedWeb3 = new window.Web3(web3.currentProvider);
         web3.injectedWeb3 = injectedWeb3;

@@ -14,7 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 
-import './embed.html';
+import Web3 from 'web3/lib/web3';
+
+import Web3FrameProvider from './provider';
 
 /*
  * NOTE: This file is executed in context of the website:
@@ -24,7 +26,7 @@ import {
   EV_TOKEN, EV_NODE_URL
 } from '../shared';
 
-import Web3FrameProvider from './provider';
+import './embed.html';
 
 // Indicate that the extension is installed.
 window[Symbol.for('parity.extension')] = {
@@ -34,34 +36,10 @@ window[Symbol.for('parity.extension')] = {
 if (!window.chrome || !window.chrome.extension) {
   console.log('Parity - Injecting Web3');
 
-  const web3 = {
-    currentProvider: new Web3FrameProvider(),
-    injectedWeb3: null
-  };
+  const provider = new Web3FrameProvider();
 
-  const proxiedWeb3 = new Proxy(web3, {
-    get: (target, name, receiver) => {
-      // If the web3 object already has the
-      // requested value, return it (current provider)
-      if (target[name]) {
-        return target[name];
-      }
-
-      // Else, add a full web3 instance
-      if (!web3.injectedWeb3) {
-        require('./lib');
-
-        web3.injectedWeb3 = window.web3;
-
-        return window.web3[name];
-      }
-
-      // And return the value from this web3 instance
-      return web3.injectedWeb3[name];
-    }
-  });
-
-  window.web3 = proxiedWeb3;
+  window.Web3 = Web3;
+  window.web3 = new Web3(provider);
 
   window.addEventListener('message', (ev) => {
     if (ev.source !== window) {

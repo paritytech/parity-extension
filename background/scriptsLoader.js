@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 
+import { flatten } from 'lodash';
+
 import Config, { DEFAULT_CONFIG } from './config';
 import State from './state';
 import { EV_BAR_CODE, getRetryTimeout } from '../shared';
@@ -146,35 +148,55 @@ export default class ScriptsLoader {
   fetchFromHTML () {
     const vendor = fetch(`http://${this.UI}/vendor.js`)
       .then((response) => this.checkResponseOk(response))
-      .then(response => response.blob());
+      .then(response => response.blob())
+      .then((blob) => [ { blob, type: 'script' } ]);
 
     const embed = fetch(`http://${this.UI}/embed.html`)
       .then((response) => this.checkResponseOk(response))
-      .then(response => response.text())
-      .then(page => ({
+      .then((response) => response.text())
+      .then((page) => ({
         styles: /styles\/embed\.([a-z0-9]{10})\.css/.exec(page),
         scripts: /embed\.([a-z0-9]{10})\.js/.exec(page)
       }))
-      .then(res => {
-        return Promise.all([
-          fetch(`http://${this.UI}/${res.styles[0]}`).then((response) => this.checkResponseOk(response)),
-          fetch(`http://${this.UI}/${res.scripts[0]}`).then((response) => this.checkResponseOk(response))
-        ]);
-      })
-      .then(responses => Promise.all(responses.map(response => response.blob())));
+      .then((res) => {
+        const promises = [];
+
+        if (res.styles) {
+          const promise = fetch(`http://${this.UI}/${res.styles[0]}`)
+            .then((response) => this.checkResponseOk(response))
+            .then((response) => response.blob())
+            .then((blob) => ({ blob, type: 'style' }));
+
+          promises.push(promise);
+        }
+
+        if (res.scripts) {
+          const promise = fetch(`http://${this.UI}/${res.scripts[0]}`)
+            .then((response) => this.checkResponseOk(response))
+            .then((response) => response.blob())
+            .then((blob) => ({ blob, type: 'script' }));
+
+          promises.push(promise);
+        }
+
+        return Promise.all(promises);
+      });
 
     return Promise.all([vendor, embed])
-      .then(scripts => {
-        const vendor = scripts[0];
-        const styles = scripts[1][0];
-        const embed = scripts[1][1];
+      .then((responses) => {
+        const blobs = flatten(responses);
+
+        const scriptBlobs = blobs.filter((b) => b.type === 'script').map((b) => b.blob);
+        const styleBlobs = blobs.filter((b) => b.type === 'style').map((b) => b.blob);
 
         // Concat blobs
-        const blob = new Blob([vendor, embed], { type: 'application/javascript' });
+        const scriptBlob = new Blob(scriptBlobs, { type: 'application/javascript' });
+        const styleBlob = new Blob(styleBlobs);
+
         return {
           success: true,
-          styles: URL.createObjectURL(styles),
-          scripts: URL.createObjectURL(blob)
+          styles: URL.createObjectURL(styleBlob),
+          scripts: URL.createObjectURL(scriptBlob)
         };
       });
   }

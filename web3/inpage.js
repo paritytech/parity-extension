@@ -14,182 +14,32 @@
 // You should have received a copy of the GNU General Public License
 // along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 
-import './embed.html';
+import Web3 from 'web3/lib/web3';
+
+import Web3FrameProvider from './provider';
 
 /*
  * NOTE: This file is executed in context of the website:
  * It's not a content script!
  */
 import {
-  getRetryTimeout,
-  EV_WEB3_REQUEST, EV_WEB3_RESPONSE,
-  EV_WEB3_ACCOUNTS_REQUEST, EV_WEB3_ACCOUNTS_RESPONSE,
-  EV_TOKEN, EV_NODE_URL, TRANSPORT_UNINITIALIZED
+  EV_TOKEN, EV_NODE_URL
 } from '../shared';
+
+import './embed.html';
 
 // Indicate that the extension is installed.
 window[Symbol.for('parity.extension')] = {
   version: require('../package.json').version
 };
 
-class Web3FrameProvider {
-  id = 0;
-  callbacks = {};
-  accounts = null;
-  _isConnected = true;
-  _retries = 0;
-
-  constructor () {
-    window.addEventListener('message', (ev) => {
-      if (ev.source !== window) {
-        return;
-      }
-
-      if (!ev.data.type) {
-        return;
-      }
-
-      if (ev.data.type === EV_WEB3_ACCOUNTS_RESPONSE && this.onAccounts) {
-        this.onAccounts(ev.data.err, {
-          result: ev.data.payload
-        });
-        return;
-      }
-
-      if (ev.data.type !== EV_WEB3_RESPONSE) {
-        return;
-      }
-
-      if (ev.data.err === TRANSPORT_UNINITIALIZED) {
-        if (this.isConnected()) {
-          // re-fetch accounts in case it's disconnected
-          this.initializeMainAccount();
-        }
-        this._isConnected = false;
-      } else {
-        this._isConnected = true;
-      }
-
-      const { id, err, payload } = ev.data;
-      const cb = this.callbacks[id];
-      delete this.callbacks[id];
-
-      if (!cb) {
-        console.warn(`Unexpected response for ${id} received.`, ev.data);
-        return;
-      }
-
-      cb(err, payload);
-    });
-
-    this.initializeMainAccount();
-  }
-
-  initializeMainAccount () {
-    this._retries += 1;
-    window.postMessage({
-      type: EV_WEB3_ACCOUNTS_REQUEST
-    }, '*');
-  }
-
-  onAccounts (err, accounts) {
-    if (err || !accounts.result) {
-      setTimeout(() => this.initializeMainAccount(), getRetryTimeout(this._retries));
-      return;
-    }
-
-    this.accounts = accounts.result;
-
-    // Set default account for global object.
-    if (this.accounts[0] && global.web3 && 'eth' in global.web3) {
-      global.web3.eth.defaultAccount = this.accounts[0];
-    }
-  }
-
-  request (method, cb) {
-    this.sendAsync({
-      jsonrpc: '2.0',
-      id: this.id,
-      method,
-      params: []
-    }, cb);
-  }
-
-  sendAsync = (payload, cb) => {
-    this.id += 1;
-    this.callbacks[this.id] = cb;
-    window.postMessage({
-      type: EV_WEB3_REQUEST,
-      id: this.id,
-      payload: payload
-    }, '*');
-  };
-
-  send = (payload) => {
-    const { id, method, jsonrpc } = payload;
-    if (method === 'eth_accounts') {
-      // Make a accounts request to refresh them
-      this.request('eth_accounts', (err, payload) => this.onAccounts(err, payload));
-      const result = this.accounts || [];
-      return { id, jsonrpc, result };
-    }
-
-    if (method === 'eth_coinbase') {
-      this.request('eth_accounts', (err, payload) => this.onAccounts(err, payload));
-      const result = (this.accounts && this.accounts[0]) || '0x0000000000000000000000000000000000000000';
-      return { id, jsonrpc, result };
-    }
-
-    if (method === 'eth_uninstallFilter') {
-      this.sendAsync(payload, () => {});
-      return {
-        id, jsonrpc,
-        result: true
-      };
-    }
-
-    throw new Error('Async methods not supported.');
-  };
-
-  isConnected () {
-    return this._isConnected;
-  }
-}
-
 if (!window.chrome || !window.chrome.extension) {
   console.log('Parity - Injecting Web3');
 
-  const web3 = {
-    currentProvider: new Web3FrameProvider(),
-    injectedWeb3: null
-  };
+  const provider = new Web3FrameProvider();
 
-  const proxiedWeb3 = new Proxy(web3, {
-    get: (target, name, receiver) => {
-      // If the web3 object already has the
-      // requested value, return it (current provider)
-      if (target[name]) {
-        return target[name];
-      }
-
-      // Else, add a full web3 instance
-      if (!web3.injectedWeb3) {
-        const rawWeb3 = require('web3/dist/web3.min.js');
-        eval(rawWeb3); // eslint-disable-line no-eval
-
-        const injectedWeb3 = new window.Web3(web3.currentProvider);
-        web3.injectedWeb3 = injectedWeb3;
-        // Expose object directly
-        window.web3 = injectedWeb3;
-        return injectedWeb3[name];
-      }
-
-      // And return the value from this web3 instance
-      return web3.injectedWeb3[name];
-    }
-  });
-
-  window.web3 = proxiedWeb3;
+  window.Web3 = Web3;
+  window.web3 = new Web3(provider);
 
   window.addEventListener('message', (ev) => {
     if (ev.source !== window) {

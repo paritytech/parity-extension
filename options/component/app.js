@@ -130,9 +130,15 @@ export default class App extends Component {
         <Button onClick={ this.handleReset }>
             DEFAULT
           </Button>
-        <Button accent onClick={ this.handleClearCache }>
-          CLEAR CACHE
-        </Button>
+        {
+          isProd
+          ? null
+          : (
+            <Button accent onClick={ this.handleClearCache }>
+              CLEAR CACHE
+            </Button>
+          )
+        }
       </div>
     );
   }

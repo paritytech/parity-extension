@@ -145,6 +145,10 @@ export default class Transport {
   }
 
   setIcon (status) {
+    if (!chrome.browserAction) {
+      return false;
+    }
+
     console.log('setting icon to ', status);
 
     const size = 76;

@@ -28,6 +28,8 @@ import 'material-design-lite/material';
 
 import styles from './app.css';
 
+const isProd = process.env.NODE_ENV === 'production';
+
 export default class App extends Component {
 
   state = {
@@ -73,17 +75,23 @@ export default class App extends Component {
           </div>
         </div>
 
-        <div className={ styles.option }>
-          <div className={ styles.switch }>
-            <Switch
-              checked={ augmentationEnabled }
-              className={ styles.check }
-              onChange={ this.handleToggleAugmentation }
-            >
-              Identity Augmentation
-            </Switch>
-          </div>
-        </div>
+        {
+          isProd
+          ? null
+          : (
+            <div className={ styles.option }>
+              <div className={ styles.switch }>
+                <Switch
+                  checked={ augmentationEnabled }
+                  className={ styles.check }
+                  onChange={ this.handleToggleAugmentation }
+                >
+                  Identity Augmentation
+                </Switch>
+              </div>
+            </div>
+          )
+        }
 
         <br />
 
@@ -122,9 +130,15 @@ export default class App extends Component {
         <Button onClick={ this.handleReset }>
             DEFAULT
           </Button>
-        <Button accent onClick={ this.handleClearCache }>
-          CLEAR CACHE
-        </Button>
+        {
+          isProd
+          ? null
+          : (
+            <Button accent onClick={ this.handleClearCache }>
+              CLEAR CACHE
+            </Button>
+          )
+        }
       </div>
     );
   }
@@ -185,20 +199,26 @@ export default class App extends Component {
           </div>
         </div>
 
-        <div className={ [ styles.option, styles.optionInput ].join(' ') }>
-          <div
-            className={ lookupClassName }
-            title={ statuses.lookup }
-          />
-          <div className={ styles.input }>
-            <TextField
-              floating-label
-              label='Lookup service URL (fallback)'
-              onChange={ this.handleChangeLookupURL }
-              value={ lookupURL }
-            />
-          </div>
-        </div>
+        {
+          isProd
+          ? null
+          : (
+            <div className={ [ styles.option, styles.optionInput ].join(' ') }>
+              <div
+                className={ lookupClassName }
+                title={ statuses.lookup }
+              />
+              <div className={ styles.input }>
+                <TextField
+                  floating-label
+                  label='Lookup service URL (fallback)'
+                  onChange={ this.handleChangeLookupURL }
+                  value={ lookupURL }
+                />
+              </div>
+            </div>
+          )
+        }
       </div>
     );
   }

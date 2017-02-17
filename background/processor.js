@@ -64,10 +64,12 @@ export default class Processor {
               this._extractions[tab.id] = uniq(nextExtractions);
 
               // Set the number of extractions as a badge
-              chrome.browserAction.setBadgeText({
-                text: this._extractions[tab.id].length.toString(),
-                tabId: tab.id
-              });
+              if (chrome.browserAction) {
+                chrome.browserAction.setBadgeText({
+                  text: this._extractions[tab.id].length.toString(),
+                  tabId: tab.id
+                });
+              }
             }
 
             return result;

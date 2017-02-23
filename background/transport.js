@@ -261,6 +261,11 @@ export default class Transport {
 
   fetchAccountsForCache (origin) {
     return this.transport.execute('parity_getDappsAddresses', origin)
+      .then(null, () => {
+        // Cater for new version of parity (> 1.6)
+        // TODO [ToDr] Remove support for older version completely.
+        return this.transport.execute('parity_getDappAddresses', origin);
+      })
       .then(accounts => {
         this.accountsCache[origin] = accounts;
         return accounts;
@@ -321,16 +326,17 @@ export default class Transport {
       }
 
       this.fetchAccountsForCache(origin)
-        .then(accounts => {
-          return callback({
-            err: null,
-            payload: accounts
-          });
-        })
+        .then(accounts => callback({
+          err: null,
+          payload: accounts
+        }))
         .catch(err => callback({
           err,
           payload: null
         }));
+
+      // The response will be provided asynchronously.
+      return true;
     }
 
     if (request.type !== EV_TOKEN) {

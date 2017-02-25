@@ -261,7 +261,7 @@ export default class Transport {
 
   fetchAccountsForCache (origin) {
     return this.transport.execute('parity_getDappsAddresses', origin)
-      .then(null, () => {
+      .catch(() => {
         // Cater for new version of parity (> 1.6)
         // TODO [ToDr] Remove support for older version completely.
         return this.transport.execute('parity_getDappAddresses', origin);

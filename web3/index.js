@@ -29,10 +29,12 @@ isIntegrationEnabled()
   .then((enabled) => {
     if (enabled && window.location.protocol === 'chrome-extension:') {
       window.secureTransport = createSecureTransport();
-      Config.get().then(config => {
+
+      Config.get().then((config) => {
         window.backgroundSeed = config.backgroundSeed;
-        loadScripts();
+        loadScripts(config);
       });
+
       handleResizeEvents();
     }
   });
@@ -53,7 +55,7 @@ function handleResizeEvents () {
 /**
  * Loads ParityBar scripts from running node.
  */
-function loadScripts () {
+function loadScripts (config) {
   // We need to use `port` here cause the response is asynchronous.
   const port = chrome.runtime.connect({ name: 'barScripts' });
   port.onMessage.addListener((code) => {
@@ -74,6 +76,10 @@ function loadScripts () {
     $script.src = code.scripts;
     document.body.appendChild($script);
 
+    $script.addEventListener('load', () => {
+      configureApi(config);
+    });
+
     if (code.styles) {
       const $styles = document.createElement('link');
       $styles.rel = 'stylesheet';
@@ -89,3 +95,17 @@ function loadScripts () {
   });
 }
 
+function configureApi (config) {
+  const { DAPPS } = config;
+
+  const dappsInterface = DAPPS.split(':')[0];
+  const dappsPort = DAPPS.split(':')[1];
+
+  if (dappsInterface) {
+    window.secureApi._dappsInterface = dappsInterface;
+  }
+
+  if (dappsPort) {
+    window.secureApi._dappsPort = dappsPort;
+  }
+}

@@ -101,6 +101,13 @@ function configureApi (config) {
   const dappsInterface = DAPPS.split(':')[0];
   const dappsPort = DAPPS.split(':')[1];
 
+  // Use the Secure API configure method if available
+  if (window.secureApi && typeof window.secureApi.configure === 'function') {
+    return window.secureApi.configure({
+      dappsInterface, dappsPort
+    });
+  }
+
   if (dappsInterface) {
     window.secureApi._dappsInterface = dappsInterface;
   }

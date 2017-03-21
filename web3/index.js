@@ -22,7 +22,7 @@
  */
 
 import { createSecureTransport } from './secureTransport';
-import { EV_SIGNER_BAR, EV_BAR_CODE, isIntegrationEnabled } from '../shared';
+import { EV_SIGNER_BAR, EV_BAR_CODE, EV_IFRAME_STYLE, isIntegrationEnabled } from '../shared';
 import Config from '../background/config';
 
 isIntegrationEnabled()
@@ -35,21 +35,84 @@ isIntegrationEnabled()
         loadScripts(config);
       });
 
+      resizeParityBar();
       handleResizeEvents();
     }
   });
+
+function getParityBarElement () {
+  return document.querySelector('#container > div > div');
+}
 
 /**
  *  Propagates opening events to upper frame
  */
 function handleResizeEvents () {
   document.body.addEventListener('parity.bar.visibility', (ev) => {
-    document.querySelector('#container > div > div').style.maxHeight = '100vh';
-    window.parent.postMessage({
+    const { opened } = ev.detail;
+    const parityBarElement = getParityBarElement();
+    const message = {
       type: EV_SIGNER_BAR,
-      opened: ev.detail.opened
-    }, '*');
+      opened
+    };
+
+    parityBarElement.style.maxHeight = '100vh';
+
+    // Resize the iframe if it's closing
+    if (!opened) {
+      return window.setTimeout(() => {
+        resizeParityBar();
+      }, 100);
+    }
+
+    window.parent.postMessage(message, '*');
   });
+}
+
+/**
+ * Resize and position the iframe according
+ * to the Parity Bar style
+ */
+function resizeParityBar (wait = 2000) {
+  const parityBarElement = getParityBarElement();
+
+  // Try again in 100ms
+  if (!parityBarElement && wait > 0) {
+    const timeout = 100;
+    const nextWait = wait - timeout;
+
+    return setTimeout(() => {
+      resizeParityBar(nextWait);
+    }, timeout);
+  } else if (!parityBarElement) {
+    return console.error('the parity bar could not be found after 2s');
+  }
+
+  const { height, width } = parityBarElement.getBoundingClientRect();
+  const { left, top } = parityBarElement.style;
+  const computedStyle = window.getComputedStyle(parityBarElement);
+  const iframeStyle = {};
+
+  if (left) {
+    iframeStyle.left = 0;
+    iframeStyle.width = (width + parseInt(computedStyle.left) + 2) + 'px';
+  } else {
+    iframeStyle.right = 0;
+    iframeStyle.width = (width + parseInt(computedStyle.right) + 2) + 'px';
+  }
+
+  if (top) {
+    iframeStyle.top = 0;
+    iframeStyle.height = (height + parseInt(computedStyle.top) + 2) + 'px';
+  } else {
+    iframeStyle.bottom = 0;
+    iframeStyle.height = (height + parseInt(computedStyle.bottom) + 2) + 'px';
+  }
+
+  window.parent.postMessage({
+    type: EV_IFRAME_STYLE,
+    style: iframeStyle
+  }, '*');
 }
 
 /**

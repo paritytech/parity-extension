@@ -25,7 +25,7 @@ import {
   TRANSPORT_UNINITIALIZED,
   EV_WEB3_REQUEST, EV_WEB3_RESPONSE,
   EV_WEB3_ACCOUNTS_REQUEST, EV_WEB3_ACCOUNTS_RESPONSE,
-  EV_TOKEN, EV_SIGNER_BAR, EV_NODE_URL,
+  EV_TOKEN, EV_SIGNER_BAR, EV_NODE_URL, EV_IFRAME_STYLE,
   getUI, isIntegrationEnabled
 } from '../shared';
 
@@ -155,7 +155,7 @@ function main () {
     // lazy load styles
     const styles = require('./styles.css');
     const iframe = document.createElement('iframe');
-    iframe.className = styles.iframe__main;
+    iframe.className = [ styles.iframe__main, styles.iframe__open ].join(' ');
     iframe.src = chrome.extension.getURL('web3/embed.html');
     iframeInjected = iframe;
 
@@ -163,15 +163,33 @@ function main () {
       if (ev.source !== iframe.contentWindow) {
         return;
       }
-      if (!ev.data.type || ev.data.type !== EV_SIGNER_BAR) {
+
+      if (!ev.data.type) {
         return;
       }
-      if (ev.data.opened) {
-        iframe.classList.add(styles.iframe__open);
-      } else {
-        iframe.classList.remove(styles.iframe__open);
+
+      switch (ev.data.type) {
+        case EV_SIGNER_BAR:
+          if (ev.data.opened) {
+            iframe.classList.add(styles.iframe__open);
+          } else {
+            iframe.classList.remove(styles.iframe__open);
+          }
+
+          break;
+
+        case EV_IFRAME_STYLE:
+          const { style } = ev.data;
+
+          Object.keys(style).forEach((styleKey) => {
+            iframe.style[styleKey] = style[styleKey];
+          });
+
+          iframe.classList.remove(styles.iframe__open);
+          break;
       }
     });
+
     document.body.appendChild(iframe);
   }
 }

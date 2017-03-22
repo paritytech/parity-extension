@@ -58,9 +58,12 @@ function handleResizeEvents () {
 
     // Resize the iframe if it's closing
     if (!opened) {
-      return window.setTimeout(() => {
+      const transitionHandler = () => {
         resizeAndClose();
-      }, 200);
+        parityBarElement.removeEventListener('transitionend', transitionHandler);
+      };
+
+      return parityBarElement.addEventListener('transitionend', transitionHandler);
     }
 
     window.parent.postMessage({

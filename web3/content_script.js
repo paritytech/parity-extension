@@ -25,7 +25,7 @@ import {
   TRANSPORT_UNINITIALIZED,
   EV_WEB3_REQUEST, EV_WEB3_RESPONSE,
   EV_WEB3_ACCOUNTS_REQUEST, EV_WEB3_ACCOUNTS_RESPONSE,
-  EV_TOKEN, EV_SIGNER_BAR, EV_NODE_URL, EV_IFRAME_STYLE,
+  EV_TOKEN, EV_SIGNER_BAR, EV_NODE_URL,
   getUI, isIntegrationEnabled
 } from '../shared';
 
@@ -168,25 +168,22 @@ function main () {
         return;
       }
 
-      switch (ev.data.type) {
-        case EV_SIGNER_BAR:
-          if (ev.data.opened) {
-            iframe.classList.add(styles.iframe__open);
-          } else {
-            iframe.classList.remove(styles.iframe__open);
-          }
+      if (ev.data.type === EV_SIGNER_BAR) {
+        const { opened, style } = ev.data;
 
-          break;
-
-        case EV_IFRAME_STYLE:
-          const { style } = ev.data;
-
+        if (style) {
           Object.keys(style).forEach((styleKey) => {
             iframe.style[styleKey] = style[styleKey];
           });
+        }
 
+        if (opened) {
+          iframe.classList.add(styles.iframe__open);
+        } else {
           iframe.classList.remove(styles.iframe__open);
-          break;
+        }
+
+        return;
       }
     });
 

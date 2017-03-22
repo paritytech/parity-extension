@@ -22,7 +22,7 @@
  */
 
 import { createSecureTransport } from './secureTransport';
-import { EV_SIGNER_BAR, EV_BAR_CODE, EV_IFRAME_STYLE, isIntegrationEnabled } from '../shared';
+import { EV_SIGNER_BAR, EV_BAR_CODE, isIntegrationEnabled } from '../shared';
 import Config from '../background/config';
 
 const IFRAME_BORDER_SIZE = 4;
@@ -37,7 +37,7 @@ isIntegrationEnabled()
         loadScripts(config);
       });
 
-      resizeParityBar();
+      resizeAndClose();
       handleResizeEvents();
     }
   });
@@ -53,21 +53,20 @@ function handleResizeEvents () {
   document.body.addEventListener('parity.bar.visibility', (ev) => {
     const { opened } = ev.detail;
     const parityBarElement = getParityBarElement();
-    const message = {
-      type: EV_SIGNER_BAR,
-      opened
-    };
 
     parityBarElement.style.maxHeight = '100vh';
 
     // Resize the iframe if it's closing
     if (!opened) {
       return window.setTimeout(() => {
-        resizeParityBar();
+        resizeAndClose();
       }, 200);
     }
 
-    window.parent.postMessage(message, '*');
+    window.parent.postMessage({
+      type: EV_SIGNER_BAR,
+      opened
+    }, '*');
   });
 }
 
@@ -75,16 +74,17 @@ function handleResizeEvents () {
  * Resize and position the iframe according
  * to the Parity Bar style
  */
-function resizeParityBar (wait = 2000) {
+function resizeAndClose (wait = 2000) {
   const parityBarElement = getParityBarElement();
 
-  // Try again in 100ms
+  // Try again in 100ms if the ParityBar hasn't appeared yet
+  // (typically, onload...)
   if (!parityBarElement && wait > 0) {
     const timeout = 100;
     const nextWait = wait - timeout;
 
     return setTimeout(() => {
-      resizeParityBar(nextWait);
+      resizeAndClose(nextWait);
     }, timeout);
   } else if (!parityBarElement) {
     return console.error('the parity bar could not be found after 2s');
@@ -116,7 +116,8 @@ function resizeParityBar (wait = 2000) {
   }
 
   window.parent.postMessage({
-    type: EV_IFRAME_STYLE,
+    type: EV_SIGNER_BAR,
+    opened: false,
     style: iframeStyle
   }, '*');
 }

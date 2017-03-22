@@ -8,7 +8,6 @@ export const EV_TOKEN = 'parity.token';
 export const EV_SIGNER_BAR = 'parity.signer.bar';
 export const EV_BAR_CODE = 'parity.signer.bar.code';
 export const EV_NODE_URL = 'parity.inject.node.url';
-export const EV_IFRAME_STYLE = 'parity.signer.bar.iframe.style';
 
 /**
  * Exponential Timeout for Retries

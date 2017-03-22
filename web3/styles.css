@@ -30,8 +30,6 @@
 }
 
 .iframe__open {
-  bottom: 0 !important;
-  right: 0 !important;
   height: 100vh !important;
   width: 100vw !important;
   /* Disable (width,height) animation when opening the iframe. */

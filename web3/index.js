@@ -25,6 +25,8 @@ import { createSecureTransport } from './secureTransport';
 import { EV_SIGNER_BAR, EV_BAR_CODE, EV_IFRAME_STYLE, isIntegrationEnabled } from '../shared';
 import Config from '../background/config';
 
+const IFRAME_BORDER_SIZE = 4;
+
 isIntegrationEnabled()
   .then((enabled) => {
     if (enabled && window.location.protocol === 'chrome-extension:') {
@@ -62,7 +64,7 @@ function handleResizeEvents () {
     if (!opened) {
       return window.setTimeout(() => {
         resizeParityBar();
-      }, 100);
+      }, 200);
     }
 
     window.parent.postMessage(message, '*');
@@ -94,19 +96,23 @@ function resizeParityBar (wait = 2000) {
   const iframeStyle = {};
 
   if (left) {
+    iframeStyle.right = '';
     iframeStyle.left = 0;
-    iframeStyle.width = (width + parseInt(computedStyle.left) + 2) + 'px';
+    iframeStyle.width = (width + parseInt(computedStyle.left) + IFRAME_BORDER_SIZE) + 'px';
   } else {
+    iframeStyle.left = '';
     iframeStyle.right = 0;
-    iframeStyle.width = (width + parseInt(computedStyle.right) + 2) + 'px';
+    iframeStyle.width = (width + parseInt(computedStyle.right) + IFRAME_BORDER_SIZE) + 'px';
   }
 
   if (top) {
+    iframeStyle.bottom = '';
     iframeStyle.top = 0;
-    iframeStyle.height = (height + parseInt(computedStyle.top) + 2) + 'px';
+    iframeStyle.height = (height + parseInt(computedStyle.top) + IFRAME_BORDER_SIZE) + 'px';
   } else {
+    iframeStyle.top = '';
     iframeStyle.bottom = 0;
-    iframeStyle.height = (height + parseInt(computedStyle.bottom) + 2) + 'px';
+    iframeStyle.height = (height + parseInt(computedStyle.bottom) + IFRAME_BORDER_SIZE) + 'px';
   }
 
   window.parent.postMessage({

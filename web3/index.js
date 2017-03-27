@@ -176,7 +176,6 @@ function resizeAndClose () {
 
   // Save closing position
   parityBarBoundingRect = parityBarElement.getBoundingClientRect();
-  parityBarStyle = iframeStyle;
 
   window.parent.postMessage({
     type: EV_SIGNER_BAR,

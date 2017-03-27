@@ -32,7 +32,6 @@ const BAR_MIN_WIDTH = 350;
 const BAR_MIN_HEIGHT = 60;
 
 let parityBarBoundingRect;
-let parityBarStyle;
 
 isIntegrationEnabled()
   .then((enabled) => {

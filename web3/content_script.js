@@ -155,7 +155,7 @@ function main () {
     // lazy load styles
     const styles = require('./styles.css');
     const iframe = document.createElement('iframe');
-    iframe.className = styles.iframe__main;
+    iframe.className = [ styles.iframe__main, styles.iframe__open ].join(' ');
     iframe.src = chrome.extension.getURL('web3/embed.html');
     iframeInjected = iframe;
 
@@ -163,15 +163,30 @@ function main () {
       if (ev.source !== iframe.contentWindow) {
         return;
       }
-      if (!ev.data.type || ev.data.type !== EV_SIGNER_BAR) {
+
+      if (!ev.data.type) {
         return;
       }
-      if (ev.data.opened) {
-        iframe.classList.add(styles.iframe__open);
-      } else {
-        iframe.classList.remove(styles.iframe__open);
+
+      if (ev.data.type === EV_SIGNER_BAR) {
+        const { opened, style } = ev.data;
+
+        if (style) {
+          Object.keys(style).forEach((styleKey) => {
+            iframe.style[styleKey] = style[styleKey];
+          });
+        }
+
+        if (opened) {
+          iframe.classList.add(styles.iframe__open);
+        } else {
+          iframe.classList.remove(styles.iframe__open);
+        }
+
+        return;
       }
     });
+
     document.body.appendChild(iframe);
   }
 }

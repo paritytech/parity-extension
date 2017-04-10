@@ -21,9 +21,17 @@
  * we have access to chrome.* APIs
  */
 
+import { isEqual, pick } from 'lodash';
+
 import { createSecureTransport } from './secureTransport';
 import { EV_SIGNER_BAR, EV_BAR_CODE, isIntegrationEnabled } from '../shared';
 import Config from '../background/config';
+
+const IFRAME_BORDER_SIZE = 4;
+const BAR_MIN_WIDTH = 350;
+const BAR_MIN_HEIGHT = 60;
+
+let parityBarBoundingRect;
 
 isIntegrationEnabled()
   .then((enabled) => {
@@ -35,21 +43,145 @@ isIntegrationEnabled()
         loadScripts(config);
       });
 
+      intializeBar();
       handleResizeEvents();
     }
   });
+
+function isRoughlyEqual (a, b, diff = 0.1) {
+  const keys = Object.keys(a);
+
+  if (!isEqual(keys, Object.keys(b))) {
+    return false;
+  }
+
+  return !keys.find((key) => {
+    const valueA = a[key];
+    const valueB = b[key];
+
+    return Math.abs((valueB - valueA) / valueB) > diff;
+  });
+}
+
+function getParityBarElement () {
+  return document.querySelector('#container > div > div');
+}
 
 /**
  *  Propagates opening events to upper frame
  */
 function handleResizeEvents () {
   document.body.addEventListener('parity.bar.visibility', (ev) => {
-    document.querySelector('#container > div > div').style.maxHeight = '100vh';
+    const { opened } = ev.detail;
+    const parityBarElement = getParityBarElement();
+
+    parityBarElement.style.maxHeight = '100vh';
+
+    // Resize the iframe if it's closing
+    if (!opened) {
+      const transitionHandler = () => {
+        resizeAndClose();
+        window.clearTimeout(safeTimeout);
+        parityBarElement.removeEventListener('transitionend', transitionHandler);
+      };
+
+      // Check after 50ms if the Parity bar is back to its previous position
+      // If it is, it means there haven't been any transition and we can safely
+      // close it
+      window.setTimeout(() => {
+        const keys = [ 'height', 'width', 'left', 'right', 'top', 'bottom' ];
+        const prevBoundingRect = pick(parityBarBoundingRect, keys);
+        const currBoundingRect = pick(parityBarElement.getBoundingClientRect(), keys);
+
+        if (isRoughlyEqual(prevBoundingRect, currBoundingRect, 0.2)) {
+          transitionHandler();
+        }
+      }, 25);
+
+      // In case we couldn't detect an animation end...
+      const safeTimeout = window.setTimeout(() => {
+        transitionHandler();
+      }, 750);
+
+      return parityBarElement.addEventListener('transitionend', transitionHandler);
+    }
+
     window.parent.postMessage({
       type: EV_SIGNER_BAR,
-      opened: ev.detail.opened
+      opened
     }, '*');
   });
+}
+
+function intializeBar (wait = 5000) {
+  const parityBarElement = getParityBarElement();
+
+  // Try again in 100ms if the ParityBar hasn't appeared yet
+  // (typically, onload...)
+  if ((!parityBarElement || !/parity/i.test(parityBarElement.innerText)) && wait > 0) {
+    const timeout = 100;
+    const nextWait = wait - timeout;
+
+    return setTimeout(() => {
+      intializeBar(nextWait);
+    }, timeout);
+  } else if (!parityBarElement) {
+    return console.error('the parity bar could not be found after 2s');
+  }
+
+  window.setTimeout(() => {
+    resizeAndClose();
+  }, 100);
+}
+
+/**
+ * Resize and position the iframe according
+ * to the Parity Bar style
+ */
+function resizeAndClose () {
+  const parityBarElement = getParityBarElement();
+
+  const { height, width } = parityBarElement.getBoundingClientRect();
+  const { left, top } = parityBarElement.style;
+  const computedStyle = window.getComputedStyle(parityBarElement);
+  const iframeStyle = {};
+
+  if (left) {
+    iframeStyle.right = '';
+    iframeStyle.left = 0;
+    iframeStyle.width = (width + parseInt(computedStyle.left) + IFRAME_BORDER_SIZE) + 'px';
+  } else {
+    iframeStyle.left = '';
+    iframeStyle.right = 0;
+    iframeStyle.width = (width + parseInt(computedStyle.right) + IFRAME_BORDER_SIZE) + 'px';
+  }
+
+  if (top) {
+    iframeStyle.bottom = '';
+    iframeStyle.top = 0;
+    iframeStyle.height = (height + parseInt(computedStyle.top) + IFRAME_BORDER_SIZE) + 'px';
+  } else {
+    iframeStyle.top = '';
+    iframeStyle.bottom = 0;
+    iframeStyle.height = (height + parseInt(computedStyle.bottom) + IFRAME_BORDER_SIZE) + 'px';
+  }
+
+  if (parseInt(iframeStyle.width) < BAR_MIN_WIDTH) {
+    iframeStyle.width = `${BAR_MIN_WIDTH}px`;
+  }
+
+  if (parseInt(iframeStyle.height) < BAR_MIN_HEIGHT) {
+    iframeStyle.height = `${BAR_MIN_HEIGHT}px`;
+  }
+
+  // Save closing position
+  parityBarBoundingRect = parityBarElement.getBoundingClientRect();
+
+  window.parent.postMessage({
+    type: EV_SIGNER_BAR,
+    opened: false,
+    style: iframeStyle
+  }, '*');
 }
 
 /**

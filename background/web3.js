@@ -17,6 +17,8 @@
 import Config, { DEFAULT_CONFIG } from './config';
 import { TRANSPORT_UNINITIALIZED } from '../shared';
 
+const FAILURE = 'Failed to fetch';
+
 export default class Web3 {
 
   DAPPS = DEFAULT_CONFIG.DAPPS;
@@ -46,7 +48,7 @@ export default class Web3 {
           });
         })
         .catch((error) => {
-          const err = error.message === 'Failed to fetch' ? TRANSPORT_UNINITIALIZED : error.message;
+          const err = error.message === FAILURE ? TRANSPORT_UNINITIALIZED : error.message;
 
           port.postMessage({
             id,
@@ -60,20 +62,38 @@ export default class Web3 {
   web3Message (msg) {
     const { payload, origin } = msg;
 
-    return fetch(
-      `http://${this.DAPPS}/rpc/`,
-      {
-        method: 'POST',
-        mode: 'cors',
-        headers: new Headers({
-          'Content-Type': 'application/json',
-          'X-Parity-Origin': origin
-        }),
-        body: JSON.stringify(payload),
-        redirect: 'error',
-        referrerPolicy: 'origin'
-      }
-    ).then((response) => response.json());
+    const request = {
+      method: 'POST',
+      mode: 'cors',
+      headers: new Headers({
+        'Content-Type': 'application/json',
+        'X-Parity-Origin': origin
+      }),
+      body: JSON.stringify(payload),
+      redirect: 'error',
+      referrerPolicy: 'origin'
+    };
+    return fetch(`http://${this.DAPPS}/rpc/`, request)
+      .catch(err => {
+        // TODO [ToDr] Get rid of this in the future!
+        // Version 1.7 of Parity runs dapps server on the same port as RPC.
+        // Previous versions were running on :8080.
+        // For backward compatibility we support both cases.
+        const defaultPort = ':' + DEFAULT_CONFIG.DAPPS.split(':')[1];
+        const newParityDappsPort = ':8545';
+        if (!(err.message === FAILURE && this.DAPPS.endsWith(defaultPort))) {
+          throw err;
+        }
+
+        const newDapps = this.DAPPS.replace(defaultPort, newParityDappsPort);
+        const url = `http://${newDapps}/rpc/`;
+        return fetch(url, request).then(res => {
+          // Update dapps if it succeeds
+          this.DAPPS = newDapps;
+          return res;
+        });
+      })
+      .then(response => response.json());
   }
 
 }

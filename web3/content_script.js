@@ -41,6 +41,19 @@ function main () {
   script.src = chrome.extension.getURL('web3/inpage.js');
   document.documentElement.insertBefore(script, document.documentElement.childNodes[0]);
 
+  // Fetch UI details, but dispatch when script is loaded
+  const scriptLoaded = new Promise((resolve, reject) => {
+    script.addEventListener('load', resolve);
+    script.addEventListener('error', reject);
+  });
+
+  Promise.all([getUI(), scriptLoaded]).then(([UI]) => {
+    window.postMessage({
+      type: EV_NODE_URL,
+      value: UI
+    }, '*');
+  });
+
   const initPort = () => {
     const port = chrome.runtime.connect({ name: 'web3' });
 
@@ -75,14 +88,6 @@ function main () {
 
   // process requests
   let port = initPort();
-
-  getUI()
-    .then((UI) => {
-      window.postMessage({
-        type: EV_NODE_URL,
-        value: UI
-      }, '*');
-    });
 
   window.addEventListener('message', function retry (ev) {
     if (ev.source !== window) {

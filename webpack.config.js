@@ -82,7 +82,7 @@ module.exports = {
       {
         test: /\.js$/,
         exclude: /(node_modules)/,
-        use: 'babel-loader'
+        use: 'babel-loader',
       },
 
       {
@@ -119,7 +119,7 @@ module.exports = {
       },
 
       {
-        test: /\.(woff(2)|ttf|eot|otf)(\?v=[0-9]\.[0-9]\.[0-9])?$/,
+        test: /\.(woff|woff2|ttf|eot|otf)(\?v=[0-9]\.[0-9]\.[0-9])?$/,
         use: [ 'file-loader?name=/web3/fonts/[name][hash:10].[ext]' ]
       }
     ]

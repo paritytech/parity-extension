@@ -1,0 +1,87 @@
+.App {
+  text-align: center;
+  background-color: #cf593f;
+}
+
+#logo {
+  position: absolute;
+  top: 0.3rem;
+  left: 50%;
+  width: 15rem;
+  transform: translateX(-50%);
+}
+
+.currency-switch {
+  position: absolute;
+  right: 2rem;
+  top: 2rem;
+  background-color: #C7C4BB;
+  border-radius: 6px;
+  width: 24rem;
+  height: 8rem;
+  overflow: hidden;
+}
+
+.blue-selected {
+  position: absolute;
+  top: 0;
+  width: 8rem;
+  height: 8rem;
+  border-radius: 6px;
+  background-color: #7BC1BF;
+  transition: 400ms ease-in-out;
+}
+
+.option-usd {
+  position: relative;
+  width: 8rem;
+  z-index: 1000;
+  margin: 0;
+  display: inline-block;
+}
+.option-usd:hover {
+  cursor: pointer;
+}
+.option-usd svg {
+  z-index: 1000;
+}
+
+.option-gbp {
+  position: relative;
+  width: 8rem;
+  z-index: 1000;
+  display: inline-block;
+}
+.option-gbp:hover {
+  cursor: pointer;
+}
+
+.option-eur {
+  position: relative;
+  width: 8rem;
+  z-index: 1000;
+  display: inline-block;
+}
+.option-eur:hover {
+  cursor: pointer;
+}
+
+
+
+/* CONTENT */
+
+.content {
+  margin-top: 14rem;
+}
+
+.left-content {
+  min-height: 18rem;
+}
+
+.center-content {
+  min-height: 100px;
+}
+
+.right-content {
+  min-height: 100px;
+}

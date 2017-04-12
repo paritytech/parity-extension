@@ -1,0 +1,80 @@
+.EthBtc {
+}
+
+.exchange-details {
+  position: absolute;
+  font-weight: lighter;
+  padding-top: 0.5rem;
+  left: 2rem;
+  color: #8c817b;
+  font-size: 30px;
+}
+
+.coin-switch {
+  position: absolute;
+  right: 2rem;
+  background-color: #C7C4BB;
+  border-radius: 6px;
+  width: 14rem;
+  height: 5rem;
+  overflow: hidden;
+}
+
+.blue-selected-coin {
+  position: absolute;
+  top: 0;
+  width: 7rem;
+  height: 5rem;
+  border-radius: 6px;
+  background-color: #7BC1BF;
+  transition: 400ms ease-in-out;
+}
+
+#eth-svg {
+  position: relative;
+  width: 6rem;
+  display: inline-block;
+  padding-right: 1.2rem;
+  z-index: 1000;
+}
+#eth-svg:hover {
+  cursor: pointer;
+}
+
+#btc-svg {
+  position: relative;
+  width: 6rem;
+  display: inline-block;
+  padding-left: 1.2rem;
+  z-index: 1000;
+}
+#btc-svg:hover {
+  cursor: pointer;
+}
+
+
+/* BODY */
+
+.eth-btc-body {
+  padding-top: 6.5rem;
+}
+
+.eth-btc-topic {
+  display: flex;
+  justify-content: space-between;
+  margin: 0 0.7rem;
+  padding-top: 0.4rem;
+  padding-bottom: 0.4rem;
+}
+
+.eth-btc-topic-title {
+  font-size: 26px;
+  font-weight: bold;
+  padding-top: 0.2rem;
+  color: #8c817b;
+}
+
+.eth-btc-topic-value {
+  font-size: 30px;
+  color: #8c817b;
+}

@@ -17,6 +17,7 @@ class App extends Component {
   constructor () {
     super();
     this.state = {
+      firstTime: false,
       stylePiggy: '#F4F3EF',
       styleConvert: '#8c817b',
       styleBank: '#8c817b',
@@ -34,7 +35,12 @@ class App extends Component {
     const self = this;
 
     localforage.getItem('currency', function (err, value) {
-      if (err) { return; }
+      if (err) {
+        this.setState({
+          firstTime: true
+        });
+        return;
+      }
       let newPosition = {};
       if (value === 'GBP') {
         newPosition = {
@@ -172,6 +178,7 @@ class App extends Component {
 
   render () {
     const {
+      firstTime,
       styleUSD,
       styleGBP,
       styleEUR,
@@ -182,11 +189,22 @@ class App extends Component {
       appBluePosition
     } = this.state;
 
+    let popup = null;
+
+    if (firstTime) {
+      popup = (
+        <div id='popup'>
+          <div id='popup-inner'>Click the logo to enter the UI</div>
+          <div id='popup-arrow' />
+        </div>
+      );
+    }
+
     return (
       <div className='App'>
         <div className='header'>
 
-          <div id='logo'>
+          <a id='logo' href='http://localhost:8180/'>
             <svg viewBox='0 0 200 150'>
               <g>
                 <polygon fill='#C7C4BB' points='116.835,39.786 140.608,19.331 170.171,24.218 192.387,49.58 192.865,77.111 178.597,96.849
@@ -201,7 +219,8 @@ class App extends Component {
                 21.43,112.111' />
               </g>
             </svg>
-          </div>
+          </a>
+          { popup }
 
           <div className='app-switch'>
             <div className='blue-selected' style={ { left: appBluePosition } } />

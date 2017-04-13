@@ -82,6 +82,8 @@
     "preact": "7.1.0",
     "preact-mdl": "2.2.0",
     "preact-portal": "1.1.1",
+    "rc-animate": "2.3.3",
+    "react-animate-on-change": "0.2.1",
     "web3": "0.18.2"
   }
 }

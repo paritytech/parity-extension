@@ -1,9 +1,9 @@
 import { h, Component } from 'preact';
 import '../Stylesheets/Wallet.css';
 
-const formatValue = (value) => ('' + value).replace(/(\d)(?=(\d{3})+$)/g, "$1,");
-const parseUpper  = (value) => value.toString().split('.')[0];
-const parseLower  = (value) => {
+const formatValue = (value) => ('' + value).replace(/(\d)(?=(\d{3})+$)/g, '$1,');
+const parseUpper = (value) => value.toString().split('.')[0];
+const parseLower = (value) => {
   let n = parseFloat(value.toFixed(2)).toString().split('.')[1];
   if (!n) {
     return '00';
@@ -12,13 +12,15 @@ const parseLower  = (value) => {
   }
 
   return n;
-}
+};
 
 class Wallet extends Component {
-  render() {
+  render () {
     const { accounts, current, priceMulti } = this.props;
 
-    let totalEth = 0, sign = '$', wallets = null;
+    let totalEth = 0;
+    let sign = '$';
+    let wallets = null;
 
     switch (current) {
       case 'USD':
@@ -70,7 +72,7 @@ class Wallet extends Component {
         <div className="Wallet">
           <div className="wallet-accounts">
 
-            <div className="wallet-details">Personal Wallet</div>
+            <div className="wallet-details">Accounts</div>
 
             <div className="wallet-body">
               <div className="parity-svg">
@@ -87,8 +89,6 @@ class Wallet extends Component {
     return (
       <div className="Wallet">
         <div className="wallet-accounts">
-
-          <div className="wallet-details">Personal Wallet</div>
 
           <div className="wallet-body">
             <div className="w-amount">

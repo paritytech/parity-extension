@@ -4,16 +4,15 @@
 
 
 .wallet-details {
-  position: absolute;
+  text-align: center;
   font-weight: lighter;
   padding-top: 0.5rem;
-  right: 2rem;
   color: #8c817b;
   font-size: 30px;
 }
 
 .wallet-body {
-  padding-top: 6.5rem;
+  padding-top: 2.5rem;
 }
 
 .w-amount {
@@ -57,7 +56,7 @@
 }
 
 .wallet-accounts-container {
-  margin-top: 5rem;
+  margin-top: 4rem;
   max-height: 26rem;
   overflow: scroll;
   border:

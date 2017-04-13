@@ -45,7 +45,7 @@
     "storage",
     "tabs",
     "<all_urls>",
-    "http://*/*", "https://*/*", "cookies", "notifications"
+    "cookies"
   ],
   "icons": {
     "16": "icons/icon-16.png",

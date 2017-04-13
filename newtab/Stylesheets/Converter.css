@@ -4,8 +4,8 @@
 
 .converter-component {
   position: relative;
+  background-color: #ededed;
   color: #787c87;
-  background-color: #F7F7F7;
   border-radius: 10px;
   border-top-left-radius: 0px;
   border-top-right-radius: 0px;
@@ -46,7 +46,7 @@
   width: 100%;
   border-radius: 6px;
   padding: 0.5rem;
-  background-color: #EFECE3;
+  background-color: white;
   border: none;
   text-align: right;
   outline: none;
@@ -54,7 +54,7 @@
 }
 
 #convert-main {
-  border-bottom: 1px dashed #dae1e9;
+  border-bottom: 1px dashed #cccccc;
 }
 
 .c-type {

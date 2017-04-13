@@ -1,4 +1,5 @@
 .EthBtc {
+  margin-top: 2rem;
 }
 
 .exchange-details {
@@ -62,14 +63,13 @@
 .eth-btc-topic {
   display: flex;
   justify-content: space-between;
-  margin: 0 0.7rem;
+  margin: 0 2rem;
   padding-top: 0.4rem;
   padding-bottom: 0.4rem;
 }
 
 .eth-btc-topic-title {
   font-size: 26px;
-  font-weight: bold;
   padding-top: 0.2rem;
   color: #8c817b;
 }

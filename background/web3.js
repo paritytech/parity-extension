@@ -17,7 +17,7 @@
 import Config, { DEFAULT_CONFIG } from './config';
 import { TRANSPORT_UNINITIALIZED } from '../shared';
 
-const FAILURE = 'Failed to fetch';
+const FAILURE = /Failed to fetch/i;
 
 export default class Web3 {
 
@@ -48,7 +48,7 @@ export default class Web3 {
           });
         })
         .catch((error) => {
-          const err = error.message === FAILURE ? TRANSPORT_UNINITIALIZED : error.message;
+          const err = FAILURE.test(error.message) ? TRANSPORT_UNINITIALIZED : error.message;
 
           port.postMessage({
             id,
@@ -81,7 +81,7 @@ export default class Web3 {
         // For backward compatibility we support both cases.
         const defaultPort = ':' + DEFAULT_CONFIG.DAPPS.split(':')[1];
         const newParityDappsPort = ':8545';
-        if (!(err.message === FAILURE && this.DAPPS.endsWith(defaultPort))) {
+        if (!(FAILURE.test(err.message) && this.DAPPS.endsWith(defaultPort))) {
           throw err;
         }
 

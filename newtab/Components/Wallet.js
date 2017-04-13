@@ -38,7 +38,7 @@ class Wallet extends Component {
 
     if (accounts && priceMulti) {
       let accountArray = accounts.sort((a, b) => {
-          return parseFloat(b.balance) - parseFloat(a.balance);
+        return parseFloat(b.balance) - parseFloat(a.balance);
       });
       wallets = accountArray.map((account, i) => {
         // account, balance, name
@@ -46,20 +46,18 @@ class Wallet extends Component {
         let value = account.balance * priceMulti['ETH'][current];
 
         return (
-          <div key={i} className="wallet-account">
-            <div className="wallet-account-info">
-              <div className="wallet-account-svg">
-                <svg viewBox="0 0 100 100">
-                <path fill="#8C817B" d="M84.032,33.467l-9.986-1.353l-50.572,0.647l-1.983-3.27l36.118-3.203h21.431L78.08,17.28l-5.907-1.827
-                	l-55.76,9.171l-0.915,16.021l0.915,22.263l-0.915,18.102l6.948,5.466l48.271-1.305l13.315-1.428l2.488-6.062V40.645L84.032,33.467z
-                	 M77.155,64.281l-5.271,1.109l-4.229-4.438l2.114-4.994l4.195-1.665l4.439,3.329L77.155,64.281z"/>
+          <div key={ i } className='wallet-account'>
+            <div className='wallet-account-info'>
+              <div className='wallet-account-svg'>
+                <svg viewBox='0 0 100 100'>
+                  <path fill='#8C817B' d='M84.032,33.467l-9.986-1.353l-50.572,0.647l-1.983-3.27l36.118-3.203h21.431L78.08,17.28l-5.907-1.827 l-55.76,9.171l-0.915,16.021l0.915,22.263l-0.915,18.102l6.948,5.466l48.271-1.305l13.315-1.428l2.488-6.062V40.645L84.032,33.467z M77.155,64.281l-5.271,1.109l-4.229-4.438l2.114-4.994l4.195-1.665l4.439,3.329L77.155,64.281z' />
                 </svg>
               </div>
-              <div className="wallet-account-name">{account.name}</div>
+              <div className='wallet-account-name'>{account.name}</div>
             </div>
-            <div className="wallet-account-details">
-              <div className="wallet-account-balance">{account.balance.toFixed(4)} ETH</div>
-              <div className="wallet-account-value">{sign}{value.toFixed(2)}</div>
+            <div className='wallet-account-details'>
+              <div className='wallet-account-balance'>{account.balance.toFixed(4)} ETH</div>
+              <div className='wallet-account-value'>{sign}{value.toFixed(2)}</div>
             </div>
           </div>
         );
@@ -69,38 +67,36 @@ class Wallet extends Component {
 
     if (!accounts) {
       return (
-        <div className="Wallet">
-          <div className="wallet-accounts">
+        <div className='Wallet'>
+          <div className='wallet-accounts'>
 
-            <div className="wallet-details">Accounts</div>
+            <div className='wallet-details'>Accounts</div>
 
-            <div className="wallet-body">
-              <div className="parity-svg">
-
-              </div>
-              <div className="error">No Parity node found</div>
+            <div className='wallet-body'>
+              <div className='parity-svg' />
+              <div className='error'>No Parity node found</div>
             </div>
 
           </div>
         </div>
-      )
+      );
     }
 
     return (
-      <div className="Wallet">
-        <div className="wallet-accounts">
+      <div className='Wallet'>
+        <div className='wallet-accounts'>
 
-          <div className="wallet-body">
-            <div className="w-amount">
-              <span className="w-lower">{sign}</span>
-              <span className="w-upper">{formatValue(parseUpper(totalEth))}</span>
-              <span className="w-period">.</span>
-              <span className="w-lower">{formatValue(parseLower(totalEth))}</span>
+          <div className='wallet-body'>
+            <div className='w-amount'>
+              <span className='w-lower'>{sign}</span>
+              <span className='w-upper'>{formatValue(parseUpper(totalEth))}</span>
+              <span className='w-period'>.</span>
+              <span className='w-lower'>{formatValue(parseLower(totalEth))}</span>
             </div>
-            <div className="wallet-account-total">Total Balance</div>
+            <div className='wallet-account-total'>Total Balance</div>
 
-            <div className="wallet-accounts">
-              <div className="wallet-accounts-container">
+            <div className='wallet-accounts'>
+              <div className='wallet-accounts-container'>
                 {wallets}
               </div>
             </div>

@@ -74,6 +74,9 @@ export function createSecureTransport () {
       listeners[event] = listeners[event] || [];
       listeners[event].push(callback.bind(context));
     },
+    addMiddleware (middleware) {
+      console.log('Trying to add a middleware, but it is not supported.', middleware);
+    },
     get isConnected () {
       return isConnected;
     }

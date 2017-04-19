@@ -129,14 +129,17 @@ export default class Transport {
     return this.getNetworkId()
       .then((networkId) => {
         switch (networkId) {
-          case 1:
+          case 0x1:
             return 'Mainnet';
 
-          case 2:
+          case 0x2:
             return 'Morden';
 
-          case 3:
+          case 0x3:
             return 'Ropsten';
+
+          case 0x2a:
+            return 'Kovan';
 
           default:
             return null;

@@ -21,7 +21,7 @@ import { reload } from '../shared';
 const CONFIG_KEY = 'parity::config';
 
 export const DEFAULT_CONFIG = {
-  augmentationEnabled: true,
+  augmentationEnabled: process.env.NODE_ENV !== 'production',
   DAPPS: '127.0.0.1:8080',
   integrationEnabled: true,
   lookupURL: 'https://id.parity.io',

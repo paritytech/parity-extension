@@ -35,7 +35,6 @@ module.exports = {
         if (idx !== -1) {
           manifest.content_scripts.splice(idx, 1);
         }
-        delete manifest.browser_action;
         return manifest;
       };
     }

@@ -137,7 +137,7 @@ export default class Web3FrameProvider {
       };
     }
 
-    throw new Error('Async methods not supported.');
+    throw new Error('Synchronous methods are not supported.');
   };
 
   isConnected () {

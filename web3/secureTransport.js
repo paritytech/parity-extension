@@ -87,6 +87,9 @@ export function createSecureTransport () {
     },
     get uiUrl () {
       return uiUrl;
+    },
+    set uiUrl (url) {
+      uiUrl = url;
     }
   };
 }

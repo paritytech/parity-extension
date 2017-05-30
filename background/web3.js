@@ -81,7 +81,7 @@ export default class Web3 {
         // Version 1.7 of Parity runs dapps server on the same port as RPC.
         // Previous versions were running on :8080.
         // For backward compatibility we support both cases.
-        const defaultPort = ':' + DEFAULT_CONFIG.DAPPS.split(':')[1];
+        const defaultPort = ':' + DEFAULT_CONFIG.DAPPS.split(':')[2];
         const newParityDappsPort = ':8545';
         if (!(FAILURE.test(err.message) && this._url.endsWith(defaultPort))) {
           throw err;

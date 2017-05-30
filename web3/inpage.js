@@ -53,7 +53,7 @@ if (!window.chrome || !window.chrome.extension) {
     const UI = ev.data.value;
 
     // Extract token and background
-    if (window.location.origin === `http://${UI}`) {
+    if (window.location.origin === `${UI}`) {
       // TODO [ToDr] Validate token?
       const token = fromJson(localStorage.getItem('sysuiToken'));
       const backgroundSeed = fromJson(localStorage.getItem('backgroundSeed'));

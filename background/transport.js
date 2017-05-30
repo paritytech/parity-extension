@@ -18,6 +18,8 @@ import { Api } from '@parity/parity.js';
 
 import Ws from './ws';
 import State from './state';
+import Web3 from './web3';
+
 import { TRANSPORT_UNINITIALIZED, EV_WEB3_ACCOUNTS_REQUEST, EV_TOKEN, getRetryTimeout } from '../shared';
 import Config, { DEFAULT_CONFIG } from './config';
 
@@ -27,25 +29,25 @@ export default class Transport {
   extractTokenRetries = 0;
   imageCanvas = null;
   openedTabId = null;
-  transport = null;
+  secureTransport = null;
   UI = DEFAULT_CONFIG.UI;
 
   store = null;
 
   get api () {
-    return new Api(this.transport);
+    return new Api(this.secureTransport);
   }
 
   get isConnected () {
-    return this.transport && this.transport.isConnected;
+    return this.secureTransport && this.secureTransport.isConnected;
   }
 
   get status () {
-    if (this.transport.isConnected) {
+    if (this.secureTransport.isConnected) {
       return 'connected';
     }
 
-    if (this.transport.isConnecting) {
+    if (this.secureTransport.isConnecting) {
       return 'connecting';
     }
 
@@ -53,7 +55,7 @@ export default class Transport {
   }
 
   get url () {
-    return this.transport.url;
+    return this.secureTransport.url;
   }
 
   constructor (store) {
@@ -184,11 +186,44 @@ export default class Transport {
   }
 
   initiate (token) {
-    const transport = new Ws(`ws://${this.UI}`, token, true);
+    // First check if it's a post Parity 1.7 version.
+    new Web3(this.UI).web3Message({
+      payload: [{
+        id: '1',
+        jsonrpc: '2.0',
+        method: 'parity_wsUrl',
+        params: []
+      }, {
+        id: '2',
+        jsonrpc: '2.0',
+        method: 'parity_dappsUrl',
+        params: []
+      }]
+    })
+      .then(([wsUrl, dappsUrl]) => {
+        if (wsUrl && dappsUrl && wsUrl.result && dappsUrl.result) {
+          const protocol = this.UI.split('://')[0] || 'http';
+          Config.set({
+            DAPPS: `${protocol}://${dappsUrl.result}`
+          });
+          this.connect(`${protocol}://${wsUrl.result}`, token);
+          return;
+        }
+
+        throw new Error('Old version of Parity detected.');
+      })
+      .catch(() => {
+        this.connect(this.UI, token);
+      });
+  }
+
+  connect (url, token) {
+    const wsUrl = url.replace('https://', 'wss://').replace('http://', 'ws://');
+    const secureTransport = new Ws(wsUrl, token, true);
 
     this.setIcon('disconnected');
 
-    transport.on('open', () => {
+    secureTransport.on('open', () => {
       this.setIcon('connected');
 
       const oldOrigins = Object.keys(this.accountsCache);
@@ -201,7 +236,7 @@ export default class Transport {
       });
 
       // fetch version
-      transport.execute('web3_clientVersion')
+      secureTransport.execute('web3_clientVersion')
         .then(version => {
           State.version = version;
         });
@@ -209,18 +244,18 @@ export default class Transport {
       this.store.lookup.load();
     });
 
-    transport.on('close', () => {
+    secureTransport.on('close', () => {
       this.setIcon('disconnected');
       State.version = null;
 
       this.store.lookup.load();
     });
 
-    this.transport = transport;
+    this.secureTransport = secureTransport;
   }
 
   close () {
-    this.transport && this.transport.close();
+    this.secureTransport && this.secureTransport.close();
   }
 
   extractToken () {
@@ -231,7 +266,7 @@ export default class Transport {
         }
 
         if (config.authToken) {
-          if (this.transport) {
+          if (this.secureTransport) {
             this.close();
           }
 
@@ -239,11 +274,11 @@ export default class Transport {
           return;
         }
 
-        return fetch(`http://${this.UI}`)
+        return fetch(`${this.UI}`)
           .then(() => {
             // Open a UI to extract the token from it
             chrome.tabs.create({
-              url: `http://${this.UI}/#/?from=` + chrome.runtime.id,
+              url: `${this.UI}/#/?from=` + chrome.runtime.id,
               active: false
             }, (tab) => {
               this.openedTabId = tab.id;
@@ -263,11 +298,11 @@ export default class Transport {
   }
 
   fetchAccountsForCache (origin) {
-    return this.transport.execute('parity_getDappsAddresses', origin)
+    return this.secureTransport.execute('parity_getDappsAddresses', origin)
       .catch(() => {
         // Cater for new version of parity (> 1.6)
         // TODO [ToDr] Remove support for older version completely.
-        return this.transport.execute('parity_getDappAddresses', origin);
+        return this.secureTransport.execute('parity_getDappAddresses', origin);
       })
       .then(accounts => {
         this.accountsCache[origin] = accounts;
@@ -279,7 +314,7 @@ export default class Transport {
     return (msg) => {
       const { id, payload } = msg;
 
-      if (!this.transport || !this.transport.isConnected) {
+      if (!this.secureTransport || !this.secureTransport.isConnected) {
         console.error('Transport uninitialized!');
 
         port.postMessage({
@@ -291,7 +326,7 @@ export default class Transport {
         return;
       }
 
-      this.transport.executeRaw(payload)
+      this.secureTransport.executeRaw(payload)
         .then((response) => {
           port.postMessage({
             id,
@@ -311,7 +346,7 @@ export default class Transport {
   }
 
   handleMessage (request, sender, callback) {
-    const isTransportReady = this.transport && this.transport.isConnected;
+    const isTransportReady = this.secureTransport && this.secureTransport.isConnected;
 
     if (request.type === EV_WEB3_ACCOUNTS_REQUEST) {
       if (!isTransportReady) {
@@ -347,8 +382,8 @@ export default class Transport {
     }
 
     if (!isTransportReady && request.token) {
-      if (this.transport) {
-        this.transport.close();
+      if (this.secureTransport) {
+        this.secureTransport.close();
       }
 
       if (this.openedTabId) {

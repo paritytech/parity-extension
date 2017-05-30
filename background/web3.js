@@ -21,17 +21,19 @@ const FAILURE = /Failed to fetch/i;
 
 export default class Web3 {
 
-  DAPPS = DEFAULT_CONFIG.DAPPS;
+  _url = DEFAULT_CONFIG.DAPPS;
 
-  constructor (store) {
-    this.store = store;
+  constructor (url) {
+    this._url = url;
 
-    Config.get()
-      .then((config) => {
-        if (config.DAPPS) {
-          this.DAPPS = config.DAPPS;
-        }
-      });
+    if (!url) {
+      Config.get()
+        .then((config) => {
+          if (config.DAPPS) {
+            this._url = config.DAPPS;
+          }
+        });
+    }
   }
 
   attachListener (port) {
@@ -73,7 +75,7 @@ export default class Web3 {
       redirect: 'error',
       referrerPolicy: 'origin'
     };
-    return fetch(`http://${this.DAPPS}/rpc/`, request)
+    return fetch(`${this._url}/rpc/`, request)
       .catch(err => {
         // TODO [ToDr] Get rid of this in the future!
         // Version 1.7 of Parity runs dapps server on the same port as RPC.
@@ -81,15 +83,15 @@ export default class Web3 {
         // For backward compatibility we support both cases.
         const defaultPort = ':' + DEFAULT_CONFIG.DAPPS.split(':')[1];
         const newParityDappsPort = ':8545';
-        if (!(FAILURE.test(err.message) && this.DAPPS.endsWith(defaultPort))) {
+        if (!(FAILURE.test(err.message) && this._url.endsWith(defaultPort))) {
           throw err;
         }
 
-        const newDapps = this.DAPPS.replace(defaultPort, newParityDappsPort);
-        const url = `http://${newDapps}/rpc/`;
+        const newDapps = this._url.replace(defaultPort, newParityDappsPort);
+        const url = `${newDapps}/rpc/`;
         return fetch(url, request).then(res => {
           // Update dapps if it succeeds
-          this.DAPPS = newDapps;
+          this._url = newDapps;
           return res;
         });
       })

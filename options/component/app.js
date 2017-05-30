@@ -21,7 +21,7 @@ import { h, Component } from 'preact';
 import { Button, CheckBox, Switch, TextField } from 'preact-mdl';
 
 import Config, { DEFAULT_CONFIG } from '../../background/config';
-import { clearCache } from '../../shared';
+import { clearCache, withDomain } from '../../shared';
 
 import 'material-design-lite/material.css';
 import 'material-design-lite/material';
@@ -34,28 +34,30 @@ export default class App extends Component {
 
   state = {
     augmentationEnabled: true,
-    DAPPS: '',
     integrationEnabled: true,
     isPristine: true,
     lookupURL: '',
     savedConf: {},
     statuses: {},
     showAdvanced: false,
+    // TODO [ToDr] Deprecate when 1.7 === stable
+    DAPPS: '',
     UI: ''
   };
 
   componentWillMount () {
     Config.get()
       .then((config) => {
-        const { augmentationEnabled, DAPPS, integrationEnabled, lookupURL, UI } = config;
-        const conf = { augmentationEnabled, DAPPS, integrationEnabled, lookupURL, UI };
+        const { augmentationEnabled, integrationEnabled, lookupURL, UI, DAPPS } = config;
+        const conf = { augmentationEnabled, integrationEnabled, lookupURL, UI, DAPPS };
 
         this.setState({ ...conf, savedConf: conf });
       });
   }
 
   render () {
-    const { augmentationEnabled, integrationEnabled, isPristine, showAdvanced } = this.state;
+    const { augmentationEnabled, integrationEnabled, isPristine, showAdvanced, UI, statuses } = this.state;
+    const nodeClassName = this.statusClassName(statuses.node);
 
     return (
       <div className={ styles.options }>
@@ -93,6 +95,21 @@ export default class App extends Component {
           )
         }
 
+        <div className={ [ styles.option, styles.optionInput ].join(' ') }>
+          <div
+            className={ nodeClassName }
+            title={ statuses.node }
+          />
+          <div className={ styles.input }>
+            <TextField
+              floating-label
+              label='Parity local node'
+              onChange={ this.handleChangeURL }
+              value={ UI }
+            />
+          </div>
+        </div>
+
         <br />
 
         <div className={ styles.option }>
@@ -128,8 +145,9 @@ export default class App extends Component {
     return (
       <div className={ styles.buttons }>
         <Button onClick={ this.handleReset }>
-            DEFAULT
-          </Button>
+          DEFAULT
+        </Button>
+
         {
           isProd
           ? null
@@ -144,46 +162,13 @@ export default class App extends Component {
   }
 
   renderAdvancedOptions () {
-    const { DAPPS, lookupURL, statuses, UI } = this.state;
+    const { DAPPS, lookupURL, statuses } = this.state;
 
-    const nodeClassName = classnames({
-      [ styles.status ]: true,
-      [ styles.connected ]: statuses.node === 'connected',
-      [ styles.connecting ]: statuses.node === 'connecting',
-      [ styles.disconnected ]: statuses.node === 'disconnected'
-    });
-
-    const dappsClassName = classnames({
-      [ styles.status ]: true,
-      [ styles.connected ]: statuses.dapps === 'connected',
-      [ styles.connecting ]: statuses.dapps === 'connecting',
-      [ styles.disconnected ]: statuses.dapps === 'disconnected'
-    });
-
-    const lookupClassName = classnames({
-      [ styles.status ]: true,
-      [ styles.connected ]: statuses.lookup === 'connected',
-      [ styles.connecting ]: statuses.lookup === 'connecting',
-      [ styles.disconnected ]: statuses.lookup === 'disconnected'
-    });
+    const dappsClassName = this.statusClassName(statuses.dapps);
+    const lookupClassName = this.statusClassName(statuses.lookup);
 
     return (
       <div className={ styles.advanced }>
-        <div className={ [ styles.option, styles.optionInput ].join(' ') }>
-          <div
-            className={ nodeClassName }
-            title={ statuses.node }
-          />
-          <div className={ styles.input }>
-            <TextField
-              floating-label
-              label='Parity local node'
-              onChange={ this.handleChangeURL }
-              value={ UI }
-            />
-          </div>
-        </div>
-
         <div className={ [ styles.option, styles.optionInput ].join(' ') }>
           <div
             className={ dappsClassName }
@@ -192,7 +177,7 @@ export default class App extends Component {
           <div className={ styles.input }>
             <TextField
               floating-label
-              label='Parity dapps'
+              label='Parity Dapps (pre 1.7)'
               onChange={ this.handleChangeDappsURL }
               value={ DAPPS }
             />
@@ -223,48 +208,36 @@ export default class App extends Component {
     );
   }
 
+  statusClassName (status) {
+    return classnames({
+      [ styles.status ]: true,
+      [ styles.connected ]: status === 'connected',
+      [ styles.connecting ]: status === 'connecting',
+      [ styles.disconnected ]: status === 'disconnected'
+    });
+  }
+
   checkStatuses (prevConf, nextConf) {
-    const prevNode = prevConf.UI;
-    const nextNode = nextConf.UI;
-
-    const prevDapps = prevConf.DAPPS;
-    const nextDapps = nextConf.DAPPS;
-
-    const prevLookup = prevConf.lookupURL;
-    const nextLookup = nextConf.lookupURL;
-
     const promises = [];
     const statuses = {};
+    const updateStatus = (prev, next, key) => {
+      if (prev === next) {
+        return Promise.reject('Not changed');
+      }
 
-    if (prevNode !== nextNode) {
-      statuses.node = 'connecting';
+      statuses[key] = 'connecting';
 
-      const promise = fetch(`http://${nextNode}`)
-        .then(() => ({ key: 'node', status: 'connected' }))
-        .catch(() => ({ key: 'node', status: 'disconnected' }));
-
-      promises.push(promise);
-    }
-
-    if (prevDapps !== nextDapps) {
-      statuses.dapps = 'connecting';
-
-      const promise = fetch(`http://${nextDapps}`)
-        .then(() => ({ key: 'dapps', status: 'connected' }))
-        .catch(() => ({ key: 'dapps', status: 'disconnected' }));
+      const promise = fetch(next, { method: 'HEAD' })
+        .then(() => ({ key, status: 'connected' }))
+        .catch(() => ({ key, status: 'disconnected' }));
 
       promises.push(promise);
-    }
+      return promise;
+    };
 
-    if (prevLookup !== nextLookup) {
-      statuses.lookup = 'connecting';
-
-      const promise = fetch(nextLookup)
-        .then(() => ({ key: 'lookup', status: 'connected' }))
-        .catch(() => ({ key: 'lookup', status: 'disconnected' }));
-
-      promises.push(promise);
-    }
+    updateStatus(prevConf.lookupURL, nextConf.lookupURL, 'lookup');
+    updateStatus(prevConf.DAPPS, nextConf.DAPPS, 'dapps');
+    updateStatus(prevConf.UI, nextConf.UI, 'node');
 
     if (!Object.keys(statuses)) {
       return;
@@ -291,8 +264,8 @@ export default class App extends Component {
   }
 
   saveState (partialNextConf) {
-    const { augmentationEnabled, DAPPS, integrationEnabled, lookupURL, savedConf, UI } = this.state;
-    const prevConf = { augmentationEnabled, DAPPS, integrationEnabled, lookupURL, UI };
+    const { augmentationEnabled, integrationEnabled, lookupURL, savedConf, UI, DAPPS } = this.state;
+    const prevConf = { augmentationEnabled, integrationEnabled, lookupURL, UI, DAPPS };
     const nextConf = {
       ...prevConf,
       ...partialNextConf
@@ -314,8 +287,8 @@ export default class App extends Component {
 
   @bind
   handleSave () {
-    const { augmentationEnabled, DAPPS, integrationEnabled, lookupURL, UI } = this.state;
-    const conf = { augmentationEnabled, DAPPS, integrationEnabled, lookupURL, UI };
+    const { augmentationEnabled, integrationEnabled, lookupURL, UI, DAPPS } = this.state;
+    const conf = { augmentationEnabled, integrationEnabled, lookupURL, UI, DAPPS };
 
     Config.set(conf);
     this.setState({ isPristine: true, savedConf: conf });
@@ -323,10 +296,14 @@ export default class App extends Component {
 
   @bind
   handleReset () {
-    const { augmentationEnabled, DAPPS, integrationEnabled, lookupURL, UI } = DEFAULT_CONFIG;
+    const { augmentationEnabled, integrationEnabled, lookupURL, UI, DAPPS } = DEFAULT_CONFIG;
 
     this.saveState({
-      augmentationEnabled, DAPPS, integrationEnabled, lookupURL, UI
+      augmentationEnabled,
+      integrationEnabled,
+      UI,
+      DAPPS,
+      lookupURL
     });
   }
 
@@ -353,7 +330,7 @@ export default class App extends Component {
   handleChangeURL (event) {
     const { value } = event.target;
 
-    this.saveState({ UI: value });
+    this.saveState({ UI: withDomain(value) });
   }
 
   @bind
@@ -367,7 +344,6 @@ export default class App extends Component {
   handleChangeLookupURL (event) {
     const { value } = event.target;
 
-    this.saveState({ lookupURL: value });
+    this.saveState({ lookupURL: withDomain(value, 'https://', 'http://') });
   }
-
 }

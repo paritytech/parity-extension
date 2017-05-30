@@ -75,7 +75,7 @@ export default class ScriptsLoader {
           port.postMessage({
             success: false,
             error: err.message,
-            ui: `http://${this.UI}`
+            ui: this.UI
           });
         }
 
@@ -96,7 +96,7 @@ export default class ScriptsLoader {
   }
 
   fetchFromJSON () {
-    return fetch(`http://${this.UI}/embed.json`)
+    return fetch(`${this.UI}/embed.json`)
       .then((response) => this.checkResponseOk(response))
       .then((response) => response.json())
       .then((embed) => {
@@ -110,7 +110,7 @@ export default class ScriptsLoader {
 
         const assetsPromises = filteredAssets
           .map((asset) => {
-            return fetch(`http://${this.UI}/${asset}`)
+            return fetch(`${this.UI}/${asset}`)
               .then((response) => response.blob())
               .then((blob) => {
                 if (/\.js$/.test(asset)) {
@@ -122,7 +122,7 @@ export default class ScriptsLoader {
               .then((url) => ({ path: asset, url }));
           });
 
-        const scriptPromise = fetch(`http://${this.UI}/${mainScript}`)
+        const scriptPromise = fetch(`${this.UI}/${mainScript}`)
           .then((response) => response.text());
 
         return Promise.all([ scriptPromise, Promise.all(assetsPromises) ]);
@@ -146,12 +146,12 @@ export default class ScriptsLoader {
   }
 
   fetchFromHTML () {
-    const vendor = fetch(`http://${this.UI}/vendor.js`)
+    const vendor = fetch(`${this.UI}/vendor.js`)
       .then((response) => this.checkResponseOk(response))
       .then(response => response.blob())
       .then((blob) => [ { blob, type: 'script' } ]);
 
-    const embed = fetch(`http://${this.UI}/embed.html`)
+    const embed = fetch(`${this.UI}/embed.html`)
       .then((response) => this.checkResponseOk(response))
       .then((response) => response.text())
       .then((page) => ({
@@ -162,7 +162,7 @@ export default class ScriptsLoader {
         const promises = [];
 
         if (res.styles) {
-          const promise = fetch(`http://${this.UI}/${res.styles[0]}`)
+          const promise = fetch(`${this.UI}/${res.styles[0]}`)
             .then((response) => this.checkResponseOk(response))
             .then((response) => response.blob())
             .then((blob) => ({ blob, type: 'style' }));
@@ -171,7 +171,7 @@ export default class ScriptsLoader {
         }
 
         if (res.scripts) {
-          const promise = fetch(`http://${this.UI}/${res.scripts[0]}`)
+          const promise = fetch(`${this.UI}/${res.scripts[0]}`)
             .then((response) => this.checkResponseOk(response))
             .then((response) => response.blob())
             .then((blob) => ({ blob, type: 'script' }));

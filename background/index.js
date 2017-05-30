@@ -34,7 +34,7 @@ function main () {
   store.lookup = new Lookup(store);
   store.processor = new Processor(store);
   store.scriptsLoader = new ScriptsLoader(store);
-  store.web3 = new Web3(store);
+  store.web3 = new Web3();
 
   chrome.runtime.onConnect.addListener(onConnectHandler);
   chrome.runtime.onMessage.addListener(onMessageHandler);

@@ -20,7 +20,7 @@ import { h, Component } from 'preact';
 import 'material-design-lite/material.css';
 import 'material-design-lite/material';
 
-import Config from '../../background/config';
+import Config, { DEFAULT_CONFIG } from '../../background/config';
 import Extractions from './extractions';
 import { getNodeStatus, getChainName } from '../../shared';
 
@@ -29,7 +29,7 @@ import styles from './app.css';
 export default class App extends Component {
 
   state = {
-    augmentationEnabled: true,
+    augmentationEnabled: DEFAULT_CONFIG.augmentationEnabled,
     chainName: 'an unkown chain',
     extractions: [],
     status: ''

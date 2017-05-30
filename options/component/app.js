@@ -33,8 +33,8 @@ const isProd = process.env.NODE_ENV === 'production';
 export default class App extends Component {
 
   state = {
-    augmentationEnabled: true,
-    integrationEnabled: true,
+    augmentationEnabled: DEFAULT_CONFIG.augmentationEnabled,
+    integrationEnabled: DEFAULT_CONFIG.integrationEnabled,
     isPristine: true,
     lookupURL: '',
     savedConf: {},

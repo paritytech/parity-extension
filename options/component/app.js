@@ -51,7 +51,7 @@ export default class App extends Component {
         const { augmentationEnabled, integrationEnabled, lookupURL, UI, DAPPS } = config;
         const conf = { augmentationEnabled, integrationEnabled, lookupURL, UI, DAPPS };
 
-        this.setState({ ...conf, savedConf: conf });
+        this.setState({ ...conf, savedConf: conf }, () => this.checkStatuses({}, conf));
       });
   }
 

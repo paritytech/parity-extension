@@ -16,16 +16,17 @@
 
 import { isEqual } from 'lodash';
 
-import { reload } from '../shared';
+import { reload, withDomain } from '../shared';
 
 const CONFIG_KEY = 'parity::config';
 
 export const DEFAULT_CONFIG = {
   augmentationEnabled: process.env.NODE_ENV !== 'production',
-  DAPPS: '127.0.0.1:8080',
+  // TODO [ToDr] Deprecate if 1.7 == stable
+  DAPPS: 'http://127.0.0.1:8080',
   integrationEnabled: true,
   lookupURL: 'https://id.parity.io',
-  UI: '127.0.0.1:8180'
+  UI: 'http://127.0.0.1:8180'
 };
 
 export default class Config {
@@ -65,11 +66,15 @@ export default class Config {
     return new Promise((resolve) => {
       chrome.storage.local.get(CONFIG_KEY, (data = {}) => {
         const config = data[CONFIG_KEY] || {};
-
-        resolve({
+        const mergedConfig = {
           ...DEFAULT_CONFIG,
           ...config
-        });
+        };
+        mergedConfig.UI = withDomain(mergedConfig.UI);
+        mergedConfig.DAPPS = withDomain(mergedConfig.DAPPS);
+        mergedConfig.lookupURL = withDomain(mergedConfig.lookupURL, 'https://', 'http://');
+
+        resolve(mergedConfig);
       });
     });
   }

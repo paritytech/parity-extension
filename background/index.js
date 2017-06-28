@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 
-import Config from './config';
+import Config, { DEFAULT_CONFIG } from './config';
 import Store from './store';
 
 import Images from './images';
@@ -34,7 +34,7 @@ function main () {
   store.lookup = new Lookup(store);
   store.processor = new Processor(store);
   store.scriptsLoader = new ScriptsLoader(store);
-  store.web3 = new Web3(store);
+  store.web3 = new Web3();
 
   chrome.runtime.onConnect.addListener(onConnectHandler);
   chrome.runtime.onMessage.addListener(onMessageHandler);
@@ -70,7 +70,7 @@ function main () {
       case 'isAugmentationEnabled':
         Config.get()
           .then((config) => {
-            const { augmentationEnabled = true } = config;
+            const { augmentationEnabled = DEFAULT_CONFIG.augmentationEnabled } = config;
 
             sendResponse(augmentationEnabled);
           });
@@ -80,7 +80,7 @@ function main () {
       case 'isIntegrationEnabled':
         Config.get()
           .then((config) => {
-            const { integrationEnabled = true } = config;
+            const { integrationEnabled = DEFAULT_CONFIG.integrationEnabled } = config;
 
             sendResponse(integrationEnabled);
           });

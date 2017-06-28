@@ -30,7 +30,7 @@ export default class App extends Component {
 
   state = {
     augmentationEnabled: DEFAULT_CONFIG.augmentationEnabled,
-    chainName: 'an unkown chain',
+    chainName: 'an unknown chain',
     extractions: [],
     status: ''
   };

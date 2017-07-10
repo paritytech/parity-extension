@@ -23,6 +23,13 @@ import Web3 from './web3';
 import { TRANSPORT_UNINITIALIZED, EV_WEB3_ACCOUNTS_REQUEST, EV_TOKEN, getRetryTimeout } from '../shared';
 import Config, { DEFAULT_CONFIG } from './config';
 
+const ACCOUNTS_METHODS = [
+  'parity_setDappAddresses',
+  'parity_setDappDefaultAddress',
+  'parity_setNewDappsAddresses',
+  'parity_setNewDappsDefaultAddress'
+];
+
 export default class Transport {
 
   accountsCache = {};
@@ -226,14 +233,7 @@ export default class Transport {
     secureTransport.on('open', () => {
       this.setIcon('connected');
 
-      const oldOrigins = Object.keys(this.accountsCache);
-
-      this.accountsCache = {};
-
-      // re-populate cache (for new network)
-      oldOrigins.forEach(origin => {
-        this.fetchAccountsForCache(origin);
-      });
+      this.refreshAccountsCache();
 
       // fetch version
       secureTransport.execute('web3_clientVersion')
@@ -306,8 +306,30 @@ export default class Transport {
       })
       .then(accounts => {
         this.accountsCache[origin] = accounts;
+
+        // Clear random entries if it's getting too large.
+        const origins = Object.keys(this.accountsCache);
+
+        while (origins.length > 512) {
+          const idx = Math.floor(Math.random() * origins.length);
+          const origin = origins.splice(idx, 1)[0];
+
+          delete this.accountsCache[origin];
+        }
+
         return accounts;
       });
+  }
+
+  refreshAccountsCache () {
+    const oldOrigins = Object.keys(this.accountsCache);
+
+    this.accountsCache = {};
+
+    // re-populate cache
+    oldOrigins.forEach(origin => {
+      this.fetchAccountsForCache(origin);
+    });
   }
 
   secureApiMessage (port) {
@@ -342,6 +364,11 @@ export default class Transport {
             payload: null
           });
         });
+
+      // Deep-inspect payload and invalidate accounts cache.
+      if (ACCOUNTS_METHODS.indexOf(payload.method) !== -1) {
+        this.refreshAccountsCache();
+      }
     };
   }
 
@@ -356,13 +383,20 @@ export default class Transport {
       }
 
       const { origin } = request;
-      if (this.accountsCache[origin]) {
+      const accounts = this.accountsCache[origin];
+
+      if (accounts) {
+        // Refresh accounts later
+        this.fetchAccountsForCache(origin);
+
+        // But return the result immediately.
         return callback({
           err: null,
-          payload: this.accountsCache[origin]
+          payload: accounts
         });
       }
 
+      // Fetch accounts.
       this.fetchAccountsForCache(origin)
         .then(accounts => callback({
           err: null,

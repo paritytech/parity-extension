@@ -37,6 +37,7 @@ Promise.all([isIntegrationEnabled(), getNodeStatus()])
 
     injectExtractor();
 
+    let attempts = 0;
     const checkStatus = (status = null) => {
       const promise = status ? Promise.resolve(status) : getNodeStatus();
       promise.then((status) => {
@@ -45,7 +46,14 @@ Promise.all([isIntegrationEnabled(), getNodeStatus()])
           return;
         }
 
-        setTimeout(() => checkStatus(), 1000);
+        attempts += 1;
+
+        // give up after some time.
+        if (attempts > 20) {
+          return;
+        }
+
+        setTimeout(() => checkStatus(), attempts * 1000);
       });
     };
 

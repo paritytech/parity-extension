@@ -25,34 +25,73 @@ import {
   TRANSPORT_UNINITIALIZED,
   EV_WEB3_REQUEST, EV_WEB3_RESPONSE,
   EV_WEB3_ACCOUNTS_REQUEST, EV_WEB3_ACCOUNTS_RESPONSE,
-  EV_TOKEN, EV_SIGNER_BAR, EV_NODE_URL,
-  getUI, isIntegrationEnabled
+  EV_TOKEN, EV_SIGNER_BAR,
+  getUI, isIntegrationEnabled, getNodeStatus
 } from '../shared';
 
-isIntegrationEnabled()
-  .then((enabled) => {
-    if (enabled) {
-      main();
+Promise.all([isIntegrationEnabled(), getNodeStatus()])
+  .then(([enabled, status]) => {
+    if (!enabled) {
+      return;
     }
+
+    injectExtractor();
+
+    let attempts = 0;
+    const checkStatus = (status = null) => {
+      const promise = status ? Promise.resolve(status) : getNodeStatus();
+      promise.then((status) => {
+        if (status === 'connected') {
+          injectWeb3();
+          return;
+        }
+
+        attempts += 1;
+
+        // give up after some time.
+        if (attempts > 20) {
+          return;
+        }
+
+        setTimeout(() => checkStatus(), attempts * 1000);
+      });
+    };
+
+    checkStatus(status);
   });
 
-function main () {
+function injectExtractor () {
+  getUI().then(UI => {
+    if (window.location.origin !== `${UI}`) {
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.src = chrome.extension.getURL('web3/inpage-extract.js');
+    document.documentElement.insertBefore(script, document.documentElement.childNodes[0]);
+
+    window.addEventListener('message', function (ev) {
+      if (ev.source !== window) {
+        return;
+      }
+
+      const { type } = ev.data;
+
+      if (type === EV_TOKEN) {
+        chrome.runtime.sendMessage({
+          type,
+          token: ev.data.token,
+          backgroundSeed: ev.data.backgroundSeed
+        });
+      }
+    });
+  });
+}
+
+function injectWeb3 () {
   const script = document.createElement('script');
   script.src = chrome.extension.getURL('web3/inpage.js');
   document.documentElement.insertBefore(script, document.documentElement.childNodes[0]);
-
-  // Fetch UI details, but dispatch when script is loaded
-  const scriptLoaded = new Promise((resolve, reject) => {
-    script.addEventListener('load', resolve);
-    script.addEventListener('error', reject);
-  });
-
-  Promise.all([getUI(), scriptLoaded]).then(([UI]) => {
-    window.postMessage({
-      type: EV_NODE_URL,
-      value: UI
-    }, '*');
-  });
 
   const initPort = () => {
     const port = chrome.runtime.connect({ name: 'web3' });
@@ -132,15 +171,6 @@ function main () {
         }, '*');
       });
       return;
-    }
-
-    if (type === EV_TOKEN) {
-      console.log('Sending token', ev.data.token);
-      chrome.runtime.sendMessage({
-        type,
-        token: ev.data.token,
-        backgroundSeed: ev.data.backgroundSeed
-      });
     }
   });
 

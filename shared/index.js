@@ -7,7 +7,6 @@ export const EV_WEB3_ACCOUNTS_RESPONSE = 'parity.web3.accounts.response';
 export const EV_TOKEN = 'parity.token';
 export const EV_SIGNER_BAR = 'parity.signer.bar';
 export const EV_BAR_CODE = 'parity.signer.bar.code';
-export const EV_NODE_URL = 'parity.inject.node.url';
 
 /**
  * Exponential Timeout for Retries

@@ -18,6 +18,7 @@
   ],
   "web_accessible_resources": [
     "web3/inpage.js",
+    "web3/inpage-extract.js",
     "web3/embed.html"
   ],
   "browser_action": {

@@ -14,26 +14,33 @@
 // You should have received a copy of the GNU General Public License
 // along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 
-import Web3 from 'web3/lib/web3';
-
-import Web3FrameProvider from './provider';
-
 /*
  * NOTE: This file is executed in context of the website:
  * It's not a content script!
  */
-import './embed.html';
+import {
+  EV_TOKEN
+} from '../shared';
 
-// Indicate that the extension is installed.
-window[Symbol.for('parity.extension')] = {
-  version: require('../package.json').version
-};
+console.log('Parity - Extracting token.');
 
-if (!window.chrome || !window.chrome.extension) {
-  console.log('Parity - Injecting Web3');
+// TODO [ToDr] Validate token?
+const token = fromJson(localStorage.getItem('sysuiToken'));
+const backgroundSeed = fromJson(localStorage.getItem('backgroundSeed'));
 
-  const provider = new Web3FrameProvider();
-
-  window.Web3 = Web3;
-  window.web3 = new Web3(provider);
+if (token) {
+  window.postMessage({
+    type: EV_TOKEN,
+    token,
+    backgroundSeed
+  }, '*');
 }
+
+function fromJson (val) {
+  try {
+    return JSON.parse(val);
+  } catch (e) {
+    return val;
+  }
+}
+

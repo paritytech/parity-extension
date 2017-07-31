@@ -1,0 +1,98 @@
+.App {
+  text-align: center;
+}
+
+#logo {
+  position: absolute;
+  top: 0.3rem;
+  left: 50%;
+  width: 15rem;
+  transform: translateX(-50%);
+}
+
+.app-switch {
+  position: absolute;
+  left: 2rem;
+  top: 2rem;
+  background-color: #C7C4BB;
+  border-radius: 6px;
+  width: 24rem;
+  height: 8rem;
+  overflow: hidden;
+}
+
+.currency-switch {
+  position: absolute;
+  right: 2rem;
+  top: 2rem;
+  background-color: #C7C4BB;
+  border-radius: 6px;
+  width: 24rem;
+  height: 8rem;
+  overflow: hidden;
+}
+
+.blue-selected {
+  position: absolute;
+  top: 0;
+  width: 8rem;
+  height: 8rem;
+  border-radius: 6px;
+  background-color: #7BC1BF;
+  transition: 400ms ease-in-out;
+}
+
+.option {
+  position: relative;
+  width: 8rem;
+  z-index: 1000;
+  margin: 0;
+  padding: 0.5rem;
+  display: inline-block;
+}
+.option:hover {
+  cursor: pointer;
+}
+
+/* CONTENT */
+
+.content {
+  margin-top: 14rem;
+  text-align: center;
+}
+
+.left-content {
+  margin-top: 20rem;
+  min-height: 100px;
+}
+
+.center-content {
+  min-height: 100px;
+}
+
+.right-content {
+  margin-top: 20rem;
+  min-height: 100px;
+}
+
+/* Animation */
+
+.component-switch-enter {
+  opacity: 0.01;
+  transition: 700ms ease;
+}
+
+.component-switch-enter.component-switch-enter-active {
+  opacity: 1;
+  transition: 700ms ease;
+}
+
+.component-switch-leave {
+  transition: 700ms ease;
+  opacity: 1;
+}
+
+.component-switch-leave.component-switch-leave-active {
+  opacity: 0.01;
+  transition: 700ms ease;
+}

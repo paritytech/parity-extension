@@ -1,0 +1,103 @@
+.Wallet {
+
+}
+
+
+.wallet-details {
+  text-align: center;
+  font-weight: lighter;
+  padding-top: 0.5rem;
+  color: #8c817b;
+  font-size: 30px;
+}
+
+.wallet-body {
+  padding-top: 2.5rem;
+}
+
+.w-amount {
+  color: #8c817b;
+  font-size: 35px;
+  padding-top: 0.7rem;
+  padding-right: 1rem;
+}
+
+.w-conv {
+  vertical-align: super;
+  text-transform: uppercase;
+}
+
+.w-upper {
+  font-size: 55px;
+}
+
+.w-period {
+  vertical-align: super;
+}
+
+.w-lower {
+  vertical-align: super;
+}
+
+.wallet-account-total {
+  color: #C7C4BB;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+
+
+
+/* accounts */
+
+.wallet-accounts {
+  position: relative;
+  color: #8c817b;
+}
+
+.wallet-accounts-container {
+  margin-top: 4rem;
+  max-height: 26rem;
+  overflow: scroll;
+  border:
+}
+
+.wallet-account {
+  display: flex;
+  justify-content: space-between;
+  margin: 0 1rem;
+  padding: 1.5rem 0rem;
+}
+
+.wallet-account-info {
+  display: flex;
+  align-items: center;
+}
+
+.wallet-account-svg {
+  position: relative;
+  width: 5.7rem;
+  display: inline-block;
+  padding-right: 0.5rem;
+}
+
+.wallet-account-name {
+  font-size: 26px;
+}
+
+.wallet-account-details {
+  text-align: right;
+  font-size: 20px;
+}
+
+.wallet-account-balance {
+
+}
+
+.wallet-account-value {
+  color: #C7C4BB;
+}
+
+.error {
+  margin-top: 10rem;
+}

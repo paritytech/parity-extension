@@ -16,6 +16,8 @@
 
 import { omitBy } from 'lodash';
 
+import { browser } from '../shared';
+
 const STORAGE_KEY = 'parity::images_cache';
 const TTL = 1000 * 3600 * 24;
 
@@ -48,7 +50,7 @@ export default class Images {
 
   load () {
     return new Promise((resolve) => {
-      chrome.storage.local.get(STORAGE_KEY, (storage = {}) => {
+      browser.storage.local.get(STORAGE_KEY, (storage = {}) => {
         const images = storage[STORAGE_KEY] || {};
 
         // Load the saved images, omitting the old data
@@ -62,7 +64,7 @@ export default class Images {
   save () {
     setTimeout(() => {
       const data = this.clean(this._images);
-      chrome.storage.local.set({ [ STORAGE_KEY ]: data }, () => {});
+      browser.storage.local.set({ [ STORAGE_KEY ]: data }, () => {});
     }, 50);
   }
 

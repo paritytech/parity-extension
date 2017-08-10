@@ -24,6 +24,8 @@ import Transport from './transport';
 import ScriptsLoader from './scriptsLoader';
 import Web3 from './web3';
 
+import { browser } from '../shared';
+
 main();
 
 function main () {
@@ -36,8 +38,8 @@ function main () {
   store.scriptsLoader = new ScriptsLoader(store);
   store.web3 = new Web3();
 
-  chrome.runtime.onConnect.addListener(onConnectHandler);
-  chrome.runtime.onMessage.addListener(onMessageHandler);
+  browser.runtime.onConnect.addListener(onConnectHandler);
+  browser.runtime.onMessage.addListener(onMessageHandler);
 
   function onConnectHandler (port) {
     if (port.name === 'secureApi') {
@@ -88,7 +90,7 @@ function main () {
         return true;
 
       case 'getExtractions':
-        chrome.tabs.query({ currentWindow: true, active: true }, (tabs) => {
+        browser.tabs.query({ currentWindow: true, active: true }, (tabs) => {
           const extractions = store.processor.getExtractions(tabs[0]);
           sendResponse(extractions);
         });
@@ -97,8 +99,8 @@ function main () {
 
       case 'reload':
         store.transport.close();
-        chrome.runtime.onConnect.removeListener(onConnectHandler);
-        chrome.runtime.onMessage.removeListener(onMessageHandler);
+        browser.runtime.onConnect.removeListener(onConnectHandler);
+        browser.runtime.onMessage.removeListener(onMessageHandler);
 
         setTimeout(() => {
           main();

@@ -17,7 +17,7 @@
 /*
  * NOTE: Executed in extension context
  */
-import { TRANSPORT_UNINITIALIZED, EV_WEB3_REQUEST, getUI } from '../shared';
+import { TRANSPORT_UNINITIALIZED, EV_WEB3_REQUEST, getUI, browser } from '../shared';
 
 /**
  * Creates a secureTransport, that can be used by injected ParityBar
@@ -28,7 +28,7 @@ export function createSecureTransport () {
   let uiUrl = null;
   const data = {};
   const listeners = {};
-  const port = chrome.runtime.connect({ name: 'secureApi' });
+  const port = browser.runtime.connect({ name: 'secureApi' });
 
   getUI().then(UI => {
     uiUrl = UI;

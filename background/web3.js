@@ -17,7 +17,7 @@
 import Config, { DEFAULT_CONFIG } from './config';
 import { TRANSPORT_UNINITIALIZED } from '../shared';
 
-const FAILURE = /Failed to fetch/i;
+const FAILURE = /(Failed to fetch)|(NetworkError)/i;
 
 export default class Web3 {
 

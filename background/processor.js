@@ -17,6 +17,7 @@
 import { uniq } from 'lodash';
 
 import Extractions from '../content/extractions';
+import { browser } from '../shared';
 
 export const FETCH_ADDRESS = 'FETCH_ADDRESS';
 export const PROCESS_EXTRACTIONS = 'PROCESS_EXTRACTIONS';
@@ -33,13 +34,13 @@ export default class Processor {
   constructor (store) {
     this.store = store;
 
-    chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+    browser.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
       if (changeInfo.status === 'loading') {
         delete this._extractions[tabId];
       }
     });
 
-    chrome.tabs.onRemoved.addListener((tabId) => {
+    browser.tabs.onRemoved.addListener((tabId) => {
       delete this._extractions[tabId];
     });
   }
@@ -64,8 +65,8 @@ export default class Processor {
               this._extractions[tab.id] = uniq(nextExtractions);
 
               // Set the number of extractions as a badge
-              if (chrome.browserAction) {
-                chrome.browserAction.setBadgeText({
+              if (browser.browserAction) {
+                browser.browserAction.setBadgeText({
                   text: this._extractions[tab.id].length.toString(),
                   tabId: tab.id
                 });

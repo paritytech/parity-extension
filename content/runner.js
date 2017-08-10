@@ -16,6 +16,8 @@
 
 let currentID = 0;
 
+import { browser } from '../shared';
+
 export default class Runner {
 
   message = {};
@@ -31,7 +33,7 @@ export default class Runner {
 
   setup () {
     // Setup a Promise-based communication with the background process
-    this.port = chrome.runtime.connect({ name: 'id' });
+    this.port = browser.runtime.connect({ name: 'id' });
     this.messages = {};
 
     // Listen for responses

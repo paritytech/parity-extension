@@ -8,6 +8,8 @@ export const EV_TOKEN = 'parity.token';
 export const EV_SIGNER_BAR = 'parity.signer.bar';
 export const EV_BAR_CODE = 'parity.signer.bar.code';
 
+export const browser = global.browser || global.chrome;
+
 /**
  * Exponential Timeout for Retries
  *
@@ -30,7 +32,7 @@ export function getRetryTimeout (retries) {
 
 export function isAugmentationEnabled () {
   return new Promise((resolve) => {
-    chrome.runtime.sendMessage({ action: 'isAugmentationEnabled' }, (enabled) => {
+    browser.runtime.sendMessage({ action: 'isAugmentationEnabled' }, (enabled) => {
       resolve(enabled);
     });
   });
@@ -38,7 +40,7 @@ export function isAugmentationEnabled () {
 
 export function isIntegrationEnabled () {
   return new Promise((resolve) => {
-    chrome.runtime.sendMessage({ action: 'isIntegrationEnabled' }, (enabled) => {
+    browser.runtime.sendMessage({ action: 'isIntegrationEnabled' }, (enabled) => {
       resolve(enabled);
     });
   });
@@ -46,7 +48,7 @@ export function isIntegrationEnabled () {
 
 export function getNodeStatus () {
   return new Promise((resolve) => {
-    chrome.runtime.sendMessage({ action: 'getNodeStatus' }, (status) => {
+    browser.runtime.sendMessage({ action: 'getNodeStatus' }, (status) => {
       resolve(status);
     });
   });
@@ -54,7 +56,7 @@ export function getNodeStatus () {
 
 export function getNodeURL () {
   return new Promise((resolve) => {
-    chrome.runtime.sendMessage({ action: 'getNodeURL' }, (url) => {
+    browser.runtime.sendMessage({ action: 'getNodeURL' }, (url) => {
       resolve(url);
     });
   });
@@ -62,7 +64,7 @@ export function getNodeURL () {
 
 export function getUI () {
   return new Promise((resolve) => {
-    chrome.runtime.sendMessage({ action: 'getUI' }, (url) => {
+    browser.runtime.sendMessage({ action: 'getUI' }, (url) => {
       resolve(url);
     });
   });
@@ -70,21 +72,21 @@ export function getUI () {
 
 export function reload () {
   return new Promise((resolve) => {
-    chrome.runtime.sendMessage({ action: 'reload' });
+    browser.runtime.sendMessage({ action: 'reload' });
     resolve();
   });
 }
 
 export function clearCache () {
   return new Promise((resolve) => {
-    chrome.runtime.sendMessage({ action: 'clearCache' });
+    browser.runtime.sendMessage({ action: 'clearCache' });
     resolve();
   });
 }
 
 export function getChainName () {
   return new Promise((resolve) => {
-    chrome.runtime.sendMessage({ action: 'getChainName' }, (chainName) => {
+    browser.runtime.sendMessage({ action: 'getChainName' }, (chainName) => {
       resolve(chainName);
     });
   });
@@ -96,4 +98,11 @@ export function withDomain (url, domain = 'http://', alt = 'https://') {
   }
 
   return `${domain}${url}`;
+}
+
+export function setInstalled () {
+  // Indicate that the extension is installed.
+  window[Symbol.for('parity.extension')] = {
+    version: require('../package.json').version
+  };
 }

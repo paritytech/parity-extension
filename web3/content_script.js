@@ -16,7 +16,7 @@
 
 /*
  * NOTE: This part is executed in the content script context.
- * So we have access to shared DOM and also to some chrome.* APIs.
+ * So we have access to shared DOM and also to some browser.* APIs.
  *
  * It relays messages from in-page to background script.
  */
@@ -26,7 +26,8 @@ import {
   EV_WEB3_REQUEST, EV_WEB3_RESPONSE,
   EV_WEB3_ACCOUNTS_REQUEST, EV_WEB3_ACCOUNTS_RESPONSE,
   EV_TOKEN, EV_SIGNER_BAR,
-  getUI, isIntegrationEnabled, getNodeStatus
+  getUI, isIntegrationEnabled, getNodeStatus,
+  browser
 } from '../shared';
 
 Promise.all([isIntegrationEnabled(), getNodeStatus()])
@@ -67,7 +68,7 @@ function injectExtractor () {
     }
 
     const script = document.createElement('script');
-    script.src = chrome.extension.getURL('web3/inpage-extract.js');
+    script.src = browser.extension.getURL('web3/inpage-extract.js');
     document.documentElement.insertBefore(script, document.documentElement.childNodes[0]);
 
     window.addEventListener('message', function (ev) {
@@ -78,7 +79,7 @@ function injectExtractor () {
       const { type } = ev.data;
 
       if (type === EV_TOKEN) {
-        chrome.runtime.sendMessage({
+        browser.runtime.sendMessage({
           type,
           token: ev.data.token,
           backgroundSeed: ev.data.backgroundSeed
@@ -90,11 +91,11 @@ function injectExtractor () {
 
 function injectWeb3 () {
   const script = document.createElement('script');
-  script.src = chrome.extension.getURL('web3/inpage.js');
+  script.src = browser.extension.getURL('web3/inpage.js');
   document.documentElement.insertBefore(script, document.documentElement.childNodes[0]);
 
   const initPort = () => {
-    const port = chrome.runtime.connect({ name: 'web3' });
+    const port = browser.runtime.connect({ name: 'web3' });
 
     if (!port) {
       return;
@@ -154,7 +155,7 @@ function injectWeb3 () {
 
     if (type === EV_WEB3_ACCOUNTS_REQUEST) {
       const origin = window.location.origin;
-      chrome.runtime.sendMessage({
+      browser.runtime.sendMessage({
         type,
         origin
       }, (result) => {
@@ -191,7 +192,7 @@ function injectWeb3 () {
     const styles = require('./styles.css');
     const iframe = document.createElement('iframe');
     iframe.className = [ styles.iframe__main, styles.iframe__open ].join(' ');
-    iframe.src = chrome.extension.getURL('web3/embed.html');
+    iframe.src = browser.extension.getURL('web3/embed.html');
     iframeInjected = iframe;
 
     window.addEventListener('message', (ev) => {

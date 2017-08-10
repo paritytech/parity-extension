@@ -17,6 +17,7 @@
 import Web3 from 'web3/lib/web3';
 
 import Web3FrameProvider from './provider';
+import { setInstalled } from '../shared';
 
 /*
  * NOTE: This file is executed in context of the website:
@@ -25,11 +26,9 @@ import Web3FrameProvider from './provider';
 import './embed.html';
 
 // Indicate that the extension is installed.
-window[Symbol.for('parity.extension')] = {
-  version: require('../package.json').version
-};
+setInstalled();
 
-if (!window.chrome || !window.chrome.extension) {
+if (!window.browse || !window.browse.extension) {
   console.log('Parity - Injecting Web3');
 
   const provider = new Web3FrameProvider();

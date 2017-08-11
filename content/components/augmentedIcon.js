@@ -35,7 +35,6 @@ const MARGIN = 5 / SCALE;
 const PADDING = 6;
 
 export default class AugmentedIcon extends Component {
-
   state = {
     badgesStyle: {},
     containerStyle: {},
@@ -323,11 +322,9 @@ export default class AugmentedIcon extends Component {
 
     this.setState({ containerStyle: nextStyle });
   }
-
 }
 
 class Badges extends Component {
-
   state = {
     show: this.props.show
   };
@@ -376,5 +373,4 @@ class Badges extends Component {
   handleToggleShow (show) {
     this.setState({ show });
   }
-
 }

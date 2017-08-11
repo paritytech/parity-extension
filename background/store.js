@@ -15,9 +15,7 @@
 // along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 
 export default class Store {
-
   images = null;
   lookup = null;
   processor = null;
-
 }

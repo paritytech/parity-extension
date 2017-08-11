@@ -25,7 +25,6 @@ const SVG_MATCH = /.svg(\?.+)?$/i;
 const UNKNOWN_TOKEN_URL = 'https://raw.githubusercontent.com/ethcore/parity/1e6a2cb3783e0d66cfa730f4cea109f60dc3a685/js/assets/images/contracts/unknown-64x64.png';
 
 export default class Images {
-
   _images = {};
 
   store = null;
@@ -118,10 +117,9 @@ export default class Images {
           this.load().then(() => this.fetchImage(url));
         }
 
-        return cached && cached.data || null;
+        return (cached && cached.data) || null;
       });
   }
-
 }
 
 export function blobToBase64 (blob) {

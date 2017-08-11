@@ -27,7 +27,6 @@ import { getNodeStatus, getChainName, browser } from '../../shared';
 import styles from './app.css';
 
 export default class App extends Component {
-
   state = {
     augmentationEnabled: DEFAULT_CONFIG.augmentationEnabled,
     chainName: 'an unknown chain',
@@ -144,5 +143,4 @@ export default class App extends Component {
       </div>
     );
   }
-
 }

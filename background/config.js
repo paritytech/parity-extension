@@ -30,7 +30,6 @@ export const DEFAULT_CONFIG = {
 };
 
 export default class Config {
-
   static set (data) {
     return Config.get()
       .then((config) => {
@@ -78,5 +77,4 @@ export default class Config {
       });
     });
   }
-
 }

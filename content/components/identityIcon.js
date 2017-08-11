@@ -21,7 +21,6 @@ import { h, Component } from 'preact';
 import Badge from './badge';
 
 export default class IdentityIcon extends Component {
-
   render () {
     const { address, className = '', size = 8, style = {} } = this.props;
 
@@ -51,5 +50,4 @@ export default class IdentityIcon extends Component {
 
     return src;
   }
-
 }

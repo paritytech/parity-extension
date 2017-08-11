@@ -20,7 +20,6 @@ import { TRANSPORT_UNINITIALIZED } from '../shared';
 const FAILURE = /(Failed to fetch)|(NetworkError)/i;
 
 export default class Web3 {
-
   _url = DEFAULT_CONFIG.DAPPS;
 
   constructor (url) {
@@ -97,5 +96,4 @@ export default class Web3 {
       })
       .then(response => response.json());
   }
-
 }

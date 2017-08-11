@@ -45,4 +45,3 @@ function fromJson (val) {
     return val;
   }
 }
-

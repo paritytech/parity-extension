@@ -14,12 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 
-let currentID = 0;
-
 import { browser } from '../shared';
 
-export default class Runner {
+let currentID = 0;
 
+export default class Runner {
   message = {};
   port = null;
 

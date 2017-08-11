@@ -24,7 +24,6 @@ export const PROCESS_EXTRACTIONS = 'PROCESS_EXTRACTIONS';
 export const FETCH_IMAGE = 'FETCH_IMAGE';
 
 export default class Processor {
-
   // Contains the extracted addresses
   // per tab
   _extractions = {};
@@ -83,7 +82,7 @@ export default class Processor {
         return this.fetchImage(data);
 
       default:
-        return Promise.reject(`no actions matching  ${type}`);
+        return Promise.reject(new Error(`no actions matching  ${type}`));
     }
   }
 

@@ -356,4 +356,3 @@ export default class Ws extends JsonRpcBase {
     return getRetryTimeout(this._retries - 1);
   }
 }
-

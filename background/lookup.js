@@ -31,7 +31,6 @@ const TTLs = {
 };
 
 export default class Lookup {
-
   _addresses = {};
   _githubs = {};
   _emails = {};
@@ -303,5 +302,4 @@ export default class Lookup {
         return lookup.byName(input);
     }
   }
-
 }

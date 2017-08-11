@@ -22,7 +22,6 @@ import Badge from './badge';
 import styles from './token.css';
 
 export default class Token extends Component {
-
   render () {
     const { badge, balance, name, title } = this.props;
     const { size, src } = badge;
@@ -67,7 +66,6 @@ export default class Token extends Component {
       </span>
     );
   }
-
 }
 
 /**

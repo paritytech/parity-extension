@@ -23,7 +23,6 @@ import { FETCH_IMAGE } from '../background/processor';
 export const AUGMENTED_NODE_ATTRIBUTE = 'data-parity-touched';
 
 export default class Augmentor {
-
   store = null;
 
   constructor (store) {
@@ -193,5 +192,4 @@ export default class Augmentor {
 
     return Promise.all([ Promise.all(badgesPromises), Promise.all(tokensPromises) ]);
   }
-
 }

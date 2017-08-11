@@ -171,7 +171,6 @@ function injectWeb3 () {
           payload
         }, '*');
       });
-      return;
     }
   });
 
@@ -218,8 +217,6 @@ function injectWeb3 () {
         } else {
           iframe.classList.remove(styles.iframe__open);
         }
-
-        return;
       }
     });
 

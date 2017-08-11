@@ -31,7 +31,6 @@ const ACCOUNTS_METHODS = [
 ];
 
 export default class Transport {
-
   accountsCache = {};
   extractTokenRetries = 0;
   imageCanvas = null;
@@ -377,9 +376,9 @@ export default class Transport {
 
     if (request.type === EV_WEB3_ACCOUNTS_REQUEST) {
       if (!isTransportReady) {
-        return callback({
+        return callback(error({
           err: TRANSPORT_UNINITIALIZED
-        });
+        }));
       }
 
       const { origin } = request;
@@ -390,22 +389,22 @@ export default class Transport {
         this.fetchAccountsForCache(origin);
 
         // But return the result immediately.
-        return callback({
+        return callback(error({
           err: null,
           payload: accounts
-        });
+        }));
       }
 
       // Fetch accounts.
       this.fetchAccountsForCache(origin)
-        .then(accounts => callback({
+        .then(accounts => callback(error({
           err: null,
           payload: accounts
-        }))
-        .catch(err => callback({
+        })))
+        .catch(err => callback(error({
           err,
           payload: null
-        }));
+        })));
 
       // The response will be provided asynchronously.
       return true;
@@ -434,8 +433,14 @@ export default class Transport {
       });
 
       this.initiate(request.token);
-      return;
     }
   }
+}
 
+function error (err) {
+  const e = new Error(err.err);
+  Object.keys(err).map(key => {
+    e[key] = err[key];
+  });
+  return e;
 }

@@ -22,6 +22,7 @@ import Web3 from './web3';
 
 import { TRANSPORT_UNINITIALIZED, EV_WEB3_ACCOUNTS_REQUEST, EV_TOKEN, getRetryTimeout } from '../shared';
 import Config, { DEFAULT_CONFIG } from './config';
+import analytics from './analytics';
 
 const ACCOUNTS_METHODS = [
   'parity_setDappAddresses',
@@ -236,9 +237,24 @@ export default class Transport {
       this.refreshAccountsCache();
 
       // fetch version
-      secureTransport.execute('web3_clientVersion')
-        .then(version => {
+      Promise.all([
+        secureTransport.execute('web3_clientVersion').then(version => {
           State.version = version;
+          return version;
+        }),
+        this.getChainName()
+      ])
+        .then(([version, chain]) => {
+          Config.set({
+            lastVersion: version,
+            lastChain: chain
+          });
+
+          analytics.ifEnabled(() => {
+            analytics.set('dimension1', version);
+            analytics.set('dimension2', chain);
+            analytics.event('connection', 'connected');
+          });
         });
 
       this.store.lookup.load();
@@ -246,6 +262,9 @@ export default class Transport {
 
     secureTransport.on('close', () => {
       this.setIcon('disconnected');
+      analytics.ifEnabled(() => {
+        analytics.event('connection', 'disconnected');
+      });
       State.version = null;
 
       this.store.lookup.load();

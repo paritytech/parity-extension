@@ -8,6 +8,8 @@ export const EV_TOKEN = 'parity.token';
 export const EV_SIGNER_BAR = 'parity.signer.bar';
 export const EV_BAR_CODE = 'parity.signer.bar.code';
 
+export const isProd = process.env.NODE_ENV === 'production';
+
 /**
  * Exponential Timeout for Retries
  *
@@ -28,66 +30,55 @@ export function getRetryTimeout (retries) {
   return Math.min(R * T * Math.pow(F, N), M);
 }
 
-export function isAugmentationEnabled () {
-  return new Promise((resolve) => {
-    chrome.runtime.sendMessage({ action: 'isAugmentationEnabled' }, (enabled) => {
-      resolve(enabled);
+function asPromise (action, data = {}) {
+  return new Promise((resolve, reject) => {
+    chrome.runtime.sendMessage({
+      action,
+      data
+    }, (data) => {
+      if (!data && chrome.lastError) {
+        reject(chrome.lastError);
+      } else {
+        resolve(data);
+      }
     });
   });
+}
+
+export function isAugmentationEnabled () {
+  return asPromise('isAugmentationEnabled');
 }
 
 export function isIntegrationEnabled () {
-  return new Promise((resolve) => {
-    chrome.runtime.sendMessage({ action: 'isIntegrationEnabled' }, (enabled) => {
-      resolve(enabled);
-    });
-  });
+  return asPromise('isIntegrationEnabled');
 }
 
 export function getNodeStatus () {
-  return new Promise((resolve) => {
-    chrome.runtime.sendMessage({ action: 'getNodeStatus' }, (status) => {
-      resolve(status);
-    });
-  });
+  return asPromise('getNodeStatus');
 }
 
 export function getNodeURL () {
-  return new Promise((resolve) => {
-    chrome.runtime.sendMessage({ action: 'getNodeURL' }, (url) => {
-      resolve(url);
-    });
-  });
+  return asPromise('getNodeURL');
 }
 
 export function getUI () {
-  return new Promise((resolve) => {
-    chrome.runtime.sendMessage({ action: 'getUI' }, (url) => {
-      resolve(url);
-    });
-  });
+  return asPromise('getUI');
 }
 
 export function reload () {
-  return new Promise((resolve) => {
-    chrome.runtime.sendMessage({ action: 'reload' });
-    resolve();
-  });
+  return asPromise('reload');
 }
 
 export function clearCache () {
-  return new Promise((resolve) => {
-    chrome.runtime.sendMessage({ action: 'clearCache' });
-    resolve();
-  });
+  return asPromise('clearCache');
 }
 
 export function getChainName () {
-  return new Promise((resolve) => {
-    chrome.runtime.sendMessage({ action: 'getChainName' }, (chainName) => {
-      resolve(chainName);
-    });
-  });
+  return asPromise('getChainName');
+}
+
+export function analytics (data) {
+  return asPromise('analytics', data);
 }
 
 export function withDomain (url, domain = 'http://', alt = 'https://') {

@@ -17,7 +17,7 @@
 import Web3 from 'web3/lib/web3';
 
 import Web3FrameProvider from './provider';
-import { setInstalled } from '../shared';
+import { setInstalled, browser } from '../shared';
 
 /*
  * NOTE: This file is executed in context of the website:
@@ -28,7 +28,7 @@ import './embed.html';
 // Indicate that the extension is installed.
 setInstalled();
 
-if (!window.browse || !window.browse.extension) {
+if (!browser || !browser.extension) {
   console.log('Parity - Injecting Web3');
 
   const provider = new Web3FrameProvider();

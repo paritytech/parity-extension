@@ -22,7 +22,7 @@ import Web3 from './web3';
 
 import { TRANSPORT_UNINITIALIZED, EV_WEB3_ACCOUNTS_REQUEST, EV_TOKEN, getRetryTimeout } from '../shared';
 import Config, { DEFAULT_CONFIG } from './config';
-import analytics from './analytics';
+import analytics, { VERSION, CHAIN } from './analytics';
 
 const ACCOUNTS_METHODS = [
   'parity_setDappAddresses',
@@ -251,8 +251,8 @@ export default class Transport {
           });
 
           analytics.ifEnabled(() => {
-            analytics.set('dimension1', version);
-            analytics.set('dimension2', chain);
+            analytics.set(VERSION, version);
+            analytics.set(CHAIN, chain);
             analytics.event('connection', 'connected');
           });
         });

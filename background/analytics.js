@@ -5,6 +5,9 @@ import { isProd } from '../shared';
 
 const trackingId = 'UA-77071647-4';
 
+export const VERSION = 'dimension1';
+export const CHAIN = 'dimension2';
+
 Config.get()
   .then(config => {
     if (!config.analyticsEnabled) {
@@ -18,8 +21,8 @@ Config.get()
     });
     // Disable protocol check
     analytics.set('checkProtocolTask', null);
-    analytics.set('dimension1', config.lastVersion);
-    analytics.set('dimension2', config.lastChain);
+    analytics.set(VERSION, config.lastVersion);
+    analytics.set(CHAIN, config.lastChain);
     analytics.pageview('/run');
   });
 

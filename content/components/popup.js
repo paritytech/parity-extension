@@ -25,7 +25,6 @@ import styles from './popup.css';
 const DEFAULT_SCALE = 0.05;
 
 export default class Popup extends Component {
-
   state = {
     open: this.props.open,
     position: {},
@@ -94,7 +93,6 @@ export default class Popup extends Component {
     const style = positionToStyle({ scale: 1, position: nextPosition });
     return this.setState({ open, position: nextPosition, style });
   }
-
 }
 
 /**

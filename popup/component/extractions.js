@@ -22,7 +22,6 @@ import AccountCard from '../../content/components/accountCard';
 import styles from './extractions.css';
 
 class Account extends Component {
-
   state = {
     badges: [],
     small: true,
@@ -70,11 +69,9 @@ class Account extends Component {
 
     this.setState({ small: !small });
   }
-
 }
 
 export default class Extractions extends Component {
-
   render () {
     const { extractions, store } = this.props;
 
@@ -116,5 +113,4 @@ export default class Extractions extends Component {
       );
     });
   }
-
 }

@@ -20,7 +20,7 @@ import Ws from './ws';
 import State from './state';
 import Web3 from './web3';
 
-import { TRANSPORT_UNINITIALIZED, EV_WEB3_ACCOUNTS_REQUEST, EV_TOKEN, getRetryTimeout } from '../shared';
+import { TRANSPORT_UNINITIALIZED, EV_WEB3_ACCOUNTS_REQUEST, EV_TOKEN, getRetryTimeout, browser } from '../shared';
 import Config, { DEFAULT_CONFIG } from './config';
 
 const ACCOUNTS_METHODS = [
@@ -31,7 +31,6 @@ const ACCOUNTS_METHODS = [
 ];
 
 export default class Transport {
-
   accountsCache = {};
   extractTokenRetries = 0;
   imageCanvas = null;
@@ -50,11 +49,11 @@ export default class Transport {
   }
 
   get status () {
-    if (this.secureTransport.isConnected) {
+    if (this.isConnected) {
       return 'connected';
     }
 
-    if (this.secureTransport.isConnecting) {
+    if (this.secureTransport && this.secureTransport.isConnecting) {
       return 'connecting';
     }
 
@@ -74,7 +73,7 @@ export default class Transport {
     // Pre-create the image canvas
     this.getImageCanvas(76);
 
-    chrome.runtime.onMessage.addListener((request, sender, callback) => {
+    browser.runtime.onMessage.addListener((request, sender, callback) => {
       return this.handleMessage(request, sender, callback);
     });
   }
@@ -109,7 +108,7 @@ export default class Transport {
         return resolve(this.cloneCanvas(canvas));
       };
 
-      image.src = chrome.extension.getURL(`$assets/icon-${size}.png`);
+      image.src = browser.extension.getURL(`$assets/icon-${size}.png`);
     });
   }
 
@@ -157,7 +156,7 @@ export default class Transport {
   }
 
   setIcon (status) {
-    if (!chrome.browserAction) {
+    if (!browser.browserAction) {
       return false;
     }
 
@@ -188,7 +187,7 @@ export default class Transport {
 
         const pixels = ctx.getImageData(0, 0, size, size);
 
-        chrome.browserAction.setIcon({ imageData: pixels });
+        browser.browserAction.setIcon({ imageData: pixels });
       });
   }
 
@@ -277,8 +276,8 @@ export default class Transport {
         return fetch(`${this.UI}`)
           .then(() => {
             // Open a UI to extract the token from it
-            chrome.tabs.create({
-              url: `${this.UI}/#/?from=` + chrome.runtime.id,
+            browser.tabs.create({
+              url: `${this.UI}/#/?from=` + browser.runtime.id,
               active: false
             }, (tab) => {
               this.openedTabId = tab.id;
@@ -336,7 +335,7 @@ export default class Transport {
     return (msg) => {
       const { id, payload } = msg;
 
-      if (!this.secureTransport || !this.secureTransport.isConnected) {
+      if (!this.isConnected) {
         console.error('Transport uninitialized!');
 
         port.postMessage({
@@ -373,13 +372,13 @@ export default class Transport {
   }
 
   handleMessage (request, sender, callback) {
-    const isTransportReady = this.secureTransport && this.secureTransport.isConnected;
+    const isTransportReady = this.isConnected;
 
     if (request.type === EV_WEB3_ACCOUNTS_REQUEST) {
       if (!isTransportReady) {
-        return callback({
+        return callback(error({
           err: TRANSPORT_UNINITIALIZED
-        });
+        }));
       }
 
       const { origin } = request;
@@ -390,22 +389,22 @@ export default class Transport {
         this.fetchAccountsForCache(origin);
 
         // But return the result immediately.
-        return callback({
+        return callback(error({
           err: null,
           payload: accounts
-        });
+        }));
       }
 
       // Fetch accounts.
       this.fetchAccountsForCache(origin)
-        .then(accounts => callback({
+        .then(accounts => callback(error({
           err: null,
           payload: accounts
-        }))
-        .catch(err => callback({
+        })))
+        .catch(err => callback(error({
           err,
           payload: null
-        }));
+        })));
 
       // The response will be provided asynchronously.
       return true;
@@ -421,7 +420,7 @@ export default class Transport {
       }
 
       if (this.openedTabId) {
-        chrome.tabs.remove(this.openedTabId);
+        browser.tabs.remove(this.openedTabId);
         this.openedTabId = null;
       }
 
@@ -434,8 +433,14 @@ export default class Transport {
       });
 
       this.initiate(request.token);
-      return;
     }
   }
+}
 
+function error (err) {
+  const e = new Error(err.err);
+  Object.keys(err).map(key => {
+    e[key] = err[key];
+  });
+  return e;
 }

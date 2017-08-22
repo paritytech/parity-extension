@@ -15,7 +15,6 @@
 // along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 
 export default class Socials {
-
   static extract (input) {
     const matches = [];
     let text = input;
@@ -134,5 +133,4 @@ export default class Socials {
       }
     };
   }
-
 }

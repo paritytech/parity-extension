@@ -25,7 +25,6 @@ import Token from './token';
 import styles from './accountCard.css';
 
 export default class AccountCard extends Component {
-
   clickTimeout = null;
 
   render () {
@@ -172,5 +171,4 @@ export default class AccountCard extends Component {
     this.clearClick();
     return event;
   }
-
 }

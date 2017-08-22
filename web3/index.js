@@ -17,14 +17,14 @@
 /**
  * NOTE: This part is executed on embedded Parity Bar
  *
- * Since we are executing in context of chrome extension
- * we have access to chrome.* APIs
+ * Since we are executing in context of browser extension
+ * we have access to browser.* APIs
  */
 
 import { isEqual, pick } from 'lodash';
 
 import { createSecureTransport } from './secureTransport';
-import { EV_SIGNER_BAR, EV_BAR_CODE, isIntegrationEnabled } from '../shared';
+import { EV_SIGNER_BAR, EV_BAR_CODE, isIntegrationEnabled, browser } from '../shared';
 import Config from '../background/config';
 
 const IFRAME_BORDER_SIZE = 4;
@@ -33,9 +33,14 @@ const BAR_MIN_HEIGHT = 60;
 
 let parityBarBoundingRect;
 
+function isWebExtensionPage () {
+  const { protocol } = window.location;
+  return protocol === 'chrome-extension:' || protocol === 'moz-extension:';
+}
+
 isIntegrationEnabled()
   .then((enabled) => {
-    if (enabled && window.location.protocol === 'chrome-extension:') {
+    if (enabled && isWebExtensionPage()) {
       window.secureTransport = createSecureTransport();
 
       Config.get().then((config) => {
@@ -189,7 +194,7 @@ function resizeAndClose () {
  */
 function loadScripts (config) {
   // We need to use `port` here cause the response is asynchronous.
-  const port = chrome.runtime.connect({ name: 'barScripts' });
+  const port = browser.runtime.connect({ name: 'barScripts' });
   port.onMessage.addListener((code) => {
     if (!code.success) {
       const $loading = document.querySelector('#container .loading');

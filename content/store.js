@@ -15,10 +15,8 @@
 // along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 
 export default class Store {
-
   accounts = null;
   augmentor = null;
   extractor = null;
   runner = null;
-
 }

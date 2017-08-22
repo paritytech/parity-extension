@@ -4,6 +4,7 @@
   "manifest_version": 2,
   "homepage_url": "https://github.com/ethcore/parity-extension/",
   "description": "Integrate the Parity Ethereum client with the Chrome browser",
+  "content_security_policy": "script-src 'self' blob: 'sha256-wod2pU8z0nyNucf0rFAMhaiMH33A452rZdtx+s92y38=' 'sha256-sAE0PLLfShc/WxEWSijka+ySSSnl4BlQOVZ7fqetAxI=' 'sha256-bDrs/E4hOoUY3cBgqAg0JhEBqP1KfOSQQ0uBrPctZjY=' 'sha256-I6Er8a0mW22rZ3YkWtBHNc/1knxL8esK2jZOK8UFUds=' 'sha256-oG7SJySbVCWyOenOTaM68JZ6Qj+V9suM8/sTT5jStsY=' 'sha256-nNAB7wzHoZ2H2aPXc92gTFy5PUJbI0DgcTKKke1IAME=' 'sha256-xpW2dY/GqbZnML3siEJea/AgBUP6yldydbIUWGv9TRg=' 'sha256-a3jrMYVXEEA6OiADmrxAYVqEyCuvciqKxYphw6Z0AiY=';connect-src 'self' ws: wss: http: https:;style-src 'self' blob: 'unsafe-inline';img-src 'self' data: blob:;default-src 'self'",
   "content_scripts": [
     {
       "matches": ["<all_urls>"],

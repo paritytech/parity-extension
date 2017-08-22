@@ -93,7 +93,7 @@ describe('content/socials', () => {
     const wrongInput = 'https://facebooksad.com/foobar';
 
     it('exists', () => {
-      expect(all.facebook).toBeDefined;
+      expect(all.facebook).toBeDefined();
     });
 
     it('extracts the correct handle', () => {
@@ -110,7 +110,7 @@ describe('content/socials', () => {
     const wrongInput = 'https://twitterasfdasd.com/foobar';
 
     it('exists', () => {
-      expect(all.twitter).toBeDefined;
+      expect(all.twitter).toBeDefined();
     });
 
     it('extracts the correct handle', () => {
@@ -127,7 +127,7 @@ describe('content/socials', () => {
     const wrongInput = 'https://asdasdasd.com/foobar';
 
     it('exists', () => {
-      expect(all.reddit).toBeDefined;
+      expect(all.reddit).toBeDefined();
     });
 
     it('extracts the correct handle', () => {

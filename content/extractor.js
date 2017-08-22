@@ -20,7 +20,6 @@ import { AUGMENTED_NODE_ATTRIBUTE } from './augmentor';
 import Extractions, { TAGS_BLACKLIST } from './extractions';
 
 export default class Extractor {
-
   store = null;
 
   constructor (store) {
@@ -118,5 +117,4 @@ export default class Extractor {
 
     return Promise.all(promises);
   }
-
 }

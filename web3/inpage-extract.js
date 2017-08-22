@@ -19,8 +19,10 @@
  * It's not a content script!
  */
 import {
-  EV_TOKEN
+  EV_TOKEN, setInstalled
 } from '../shared';
+
+setInstalled();
 
 console.log('Parity - Extracting token.');
 
@@ -43,4 +45,3 @@ function fromJson (val) {
     return val;
   }
 }
-

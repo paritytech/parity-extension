@@ -16,7 +16,7 @@
 
 import './index.html';
 
-import '!style-loader!css-loader!./main.css';
+import './welcome.css';
 import '../assets/fonts/Roboto/font.css';
 
 import { browser } from '../shared';

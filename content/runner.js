@@ -14,10 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 
+import { browser } from '../shared';
+
 let currentID = 0;
 
 export default class Runner {
-
   message = {};
   port = null;
 
@@ -31,7 +32,7 @@ export default class Runner {
 
   setup () {
     // Setup a Promise-based communication with the background process
-    this.port = chrome.runtime.connect({ name: 'id' });
+    this.port = browser.runtime.connect({ name: 'id' });
     this.messages = {};
 
     // Listen for responses

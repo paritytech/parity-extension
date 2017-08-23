@@ -19,12 +19,6 @@ const webpack = require('webpack');
 const CaseSensitivePathsPlugin = require('case-sensitive-paths-webpack-plugin');
 const ProgressBarPlugin = require('progress-bar-webpack-plugin');
 
-const postcssImport = require('postcss-import');
-const postcssNested = require('postcss-nested');
-const postcssAutoreset = require('postcss-autoreset');
-const postcssVariables = require('postcss-css-variables');
-const rucksack = require('rucksack-css');
-
 const Shared = require('./scripts/shared');
 
 const ENV = process.env.NODE_ENV || 'development';
@@ -34,31 +28,6 @@ const isProd = ENV === 'production';
 // the Manifest file and write it
 const manifest = Shared.getManifest(isProd);
 manifest.run();
-
-const contentDir = path.resolve(__dirname, './content');
-const postcss = [
-  postcssImport({
-    addDependencyTo: webpack
-  }),
-  postcssNested({}),
-  postcssAutoreset({
-    rulesMatcher: (rule, data) => {
-      const { file } = rule.source.input;
-
-      // Only use Autoreset for content folder
-      // stylesheets
-      if (!file.includes(contentDir)) {
-        return false;
-      }
-
-      return !rule.selector.match(/(hover|open|icon|root|\*)/);
-    }
-  }),
-  postcssVariables({}),
-  rucksack({
-    autoprefixer: true
-  })
-];
 
 module.exports = {
   cache: !isProd,
@@ -148,8 +117,7 @@ module.exports = {
       minimize: isProd,
       debug: !isProd,
       options: {
-        context: path.join(__dirname, './'),
-        postcss: postcss
+        context: path.join(__dirname, './')
       }
     }),
 

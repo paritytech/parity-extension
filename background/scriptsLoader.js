@@ -28,7 +28,6 @@ let codeCache = null;
 let codeCacheVersion = null;
 
 export default class ScriptsLoader {
-
   retries = 0;
   UI = DEFAULT_CONFIG.UI;
 
@@ -200,5 +199,4 @@ export default class ScriptsLoader {
         };
       });
   }
-
 }

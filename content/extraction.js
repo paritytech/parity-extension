@@ -25,7 +25,6 @@ export const TYPES = [
 ];
 
 export default class Extraction {
-
   match = '';
   priority = 0;
   text = null;
@@ -118,5 +117,4 @@ export default class Extraction {
 
     return extraction;
   }
-
 }

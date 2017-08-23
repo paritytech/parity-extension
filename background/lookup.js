@@ -14,13 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 
-/* global chrome */
-
 import { keccak_256 as sha3 } from 'js-sha3';
 import { omitBy } from 'lodash';
 import ParityLookup from 'lookup';
 
 import Config, { DEFAULT_CONFIG } from './config';
+import { browser } from '../shared';
 
 const LOOKUP_STORAGE_KEY = 'parity::lookup_cache';
 
@@ -32,7 +31,6 @@ const TTLs = {
 };
 
 export default class Lookup {
-
   _addresses = {};
   _githubs = {};
   _emails = {};
@@ -59,7 +57,7 @@ export default class Lookup {
     this.clean();
 
     setTimeout(() => {
-      chrome.storage.local.remove(LOOKUP_STORAGE_KEY, () => {});
+      browser.storage.local.remove(LOOKUP_STORAGE_KEY, () => {});
     }, 50);
   }
 
@@ -118,11 +116,11 @@ export default class Lookup {
     setTimeout(() => {
       const cleanData = this.clean(data);
 
-      chrome.storage.local.get(LOOKUP_STORAGE_KEY, (storage = {}) => {
+      browser.storage.local.get(LOOKUP_STORAGE_KEY, (storage = {}) => {
         const cache = storage[LOOKUP_STORAGE_KEY] || {};
 
         cache[cacheKey] = cleanData;
-        chrome.storage.local.set({ [ LOOKUP_STORAGE_KEY ]: cache }, () => {});
+        browser.storage.local.set({ [ LOOKUP_STORAGE_KEY ]: cache }, () => {});
       });
     }, 50);
   }
@@ -133,7 +131,7 @@ export default class Lookup {
         this.currentCacheKey = cacheKey;
 
         return new Promise((resolve) => {
-          chrome.storage.local.get(LOOKUP_STORAGE_KEY, (storage = {}) => {
+          browser.storage.local.get(LOOKUP_STORAGE_KEY, (storage = {}) => {
             const cache = storage[LOOKUP_STORAGE_KEY] || {};
             const data = cache[cacheKey];
 
@@ -304,5 +302,4 @@ export default class Lookup {
         return lookup.byName(input);
     }
   }
-
 }

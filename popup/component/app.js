@@ -22,12 +22,11 @@ import 'material-design-lite/material';
 
 import Config, { DEFAULT_CONFIG } from '../../background/config';
 import Extractions from './extractions';
-import { getNodeStatus, getChainName, analytics } from '../../shared';
+import { getNodeStatus, getChainName, analytics, browser } from '../../shared';
 
 import styles from './app.css';
 
 export default class App extends Component {
-
   state = {
     augmentationEnabled: DEFAULT_CONFIG.augmentationEnabled,
     chainName: 'an unknown chain',
@@ -71,7 +70,7 @@ export default class App extends Component {
   }
 
   getExtractions () {
-    chrome.runtime.sendMessage({ action: 'getExtractions' }, (extractions) => {
+    browser.runtime.sendMessage({ action: 'getExtractions' }, (extractions) => {
       this.setState({ extractions });
     });
   }
@@ -151,5 +150,4 @@ export default class App extends Component {
       </div>
     );
   }
-
 }

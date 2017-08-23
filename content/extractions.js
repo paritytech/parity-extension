@@ -30,7 +30,6 @@ const EMAIL_PATTERN = /([^\s@]+@[^\s@]+\.[a-z]+)/i;
 const MAILTO_PATTERN = new RegExp(`mailto:${EMAIL_PATTERN.source}`, 'i');
 
 export default class Extractions {
-
   extractions = [];
 
   get addresses () {
@@ -184,7 +183,6 @@ export default class Extractions {
     self.extractions = extractions;
     return self;
   }
-
 }
 
 function findMailto (val) {

@@ -9,6 +9,7 @@ export const EV_SIGNER_BAR = 'parity.signer.bar';
 export const EV_BAR_CODE = 'parity.signer.bar.code';
 
 export const isProd = process.env.NODE_ENV === 'production';
+export const browser = global.browser || global.chrome;
 
 /**
  * Exponential Timeout for Retries
@@ -32,12 +33,12 @@ export function getRetryTimeout (retries) {
 
 function asPromise (action, data = {}) {
   return new Promise((resolve, reject) => {
-    chrome.runtime.sendMessage({
+    browser.runtime.sendMessage({
       action,
       data
     }, (data) => {
-      if (!data && chrome.lastError) {
-        reject(chrome.lastError);
+      if (!data && browser.runtime.lastError) {
+        reject(browser.runtime.lastError);
       } else {
         resolve(data);
       }
@@ -87,4 +88,11 @@ export function withDomain (url, domain = 'http://', alt = 'https://') {
   }
 
   return `${domain}${url}`;
+}
+
+export function setInstalled () {
+  // Indicate that the extension is installed.
+  window[Symbol.for('parity.extension')] = {
+    version: require('../package.json').version
+  };
 }

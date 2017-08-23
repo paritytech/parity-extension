@@ -16,6 +16,8 @@
 
 import { omitBy } from 'lodash';
 
+import { browser } from '../shared';
+
 const STORAGE_KEY = 'parity::images_cache';
 const TTL = 1000 * 3600 * 24;
 
@@ -23,7 +25,6 @@ const SVG_MATCH = /.svg(\?.+)?$/i;
 const UNKNOWN_TOKEN_URL = 'https://raw.githubusercontent.com/ethcore/parity/1e6a2cb3783e0d66cfa730f4cea109f60dc3a685/js/assets/images/contracts/unknown-64x64.png';
 
 export default class Images {
-
   _images = {};
 
   store = null;
@@ -48,7 +49,7 @@ export default class Images {
 
   load () {
     return new Promise((resolve) => {
-      chrome.storage.local.get(STORAGE_KEY, (storage = {}) => {
+      browser.storage.local.get(STORAGE_KEY, (storage = {}) => {
         const images = storage[STORAGE_KEY] || {};
 
         // Load the saved images, omitting the old data
@@ -62,7 +63,7 @@ export default class Images {
   save () {
     setTimeout(() => {
       const data = this.clean(this._images);
-      chrome.storage.local.set({ [ STORAGE_KEY ]: data }, () => {});
+      browser.storage.local.set({ [ STORAGE_KEY ]: data }, () => {});
     }, 50);
   }
 
@@ -116,10 +117,9 @@ export default class Images {
           this.load().then(() => this.fetchImage(url));
         }
 
-        return cached && cached.data || null;
+        return (cached && cached.data) || null;
       });
   }
-
 }
 
 export function blobToBase64 (blob) {

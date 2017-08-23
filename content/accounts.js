@@ -18,7 +18,6 @@ import { PROCESS_EXTRACTIONS, FETCH_ADDRESS } from '../background/processor';
 import Extractions from './extractions';
 
 export default class Accounts {
-
   accounts = {};
 
   store = null;
@@ -66,5 +65,4 @@ export default class Accounts {
 
     return Promise.resolve(this.accounts[address]);
   }
-
 }

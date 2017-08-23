@@ -17,7 +17,7 @@
 import { isEqual } from 'lodash';
 import uuid from 'uuid/v1';
 
-import { reload, withDomain, isProd } from '../shared';
+import { reload, withDomain, isProd, browser } from '../shared';
 
 const CONFIG_KEY = 'parity::config';
 
@@ -57,7 +57,7 @@ export default class Config {
         }
 
         return new Promise((resolve) => {
-          chrome.storage.local.set({
+          browser.storage.local.set({
             [ CONFIG_KEY ]: nextConfig
           }, () => {
             resolve();
@@ -68,7 +68,7 @@ export default class Config {
 
   static get () {
     return new Promise((resolve) => {
-      chrome.storage.local.get(CONFIG_KEY, (data = {}) => {
+      browser.storage.local.get(CONFIG_KEY, (data = {}) => {
         const config = data[CONFIG_KEY] || {};
         const mergedConfig = {
           ...DEFAULT_CONFIG,
@@ -89,4 +89,3 @@ Config.get()
     // make sure to save the clientId (if using default one)
     Config.set({ clientId: config.clientId });
   });
-

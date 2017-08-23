@@ -31,7 +31,6 @@ import styles from './app.css';
 const isProd = process.env.NODE_ENV === 'production';
 
 export default class App extends Component {
-
   state = {
     analyticsEnabled: DEFAULT_CONFIG.analyticsEnabled,
     augmentationEnabled: DEFAULT_CONFIG.augmentationEnabled,
@@ -98,20 +97,20 @@ export default class App extends Component {
 
         {
           isProd
-          ? null
-          : (
-            <div className={ styles.option }>
-              <div className={ styles.switch }>
-                <Switch
-                  checked={ augmentationEnabled }
-                  className={ styles.check }
-                  onChange={ this.handleToggleAugmentation }
-                >
+            ? null
+            : (
+              <div className={ styles.option }>
+                <div className={ styles.switch }>
+                  <Switch
+                    checked={ augmentationEnabled }
+                    className={ styles.check }
+                    onChange={ this.handleToggleAugmentation }
+                  >
                   Identity Augmentation
-                </Switch>
+                  </Switch>
+                </div>
               </div>
-            </div>
-          )
+            )
         }
 
         { this.renderAnalytics() }
@@ -193,12 +192,12 @@ export default class App extends Component {
 
         {
           isProd
-          ? null
-          : (
-            <Button accent onClick={ this.handleClearCache }>
+            ? null
+            : (
+              <Button accent onClick={ this.handleClearCache }>
               CLEAR CACHE
-            </Button>
-          )
+              </Button>
+            )
         }
       </div>
     );
@@ -229,23 +228,23 @@ export default class App extends Component {
 
         {
           isProd
-          ? null
-          : (
-            <div className={ [ styles.option, styles.optionInput ].join(' ') }>
-              <div
-                className={ lookupClassName }
-                title={ statuses.lookup }
-              />
-              <div className={ styles.input }>
-                <TextField
-                  floating-label
-                  label='Lookup service URL (fallback)'
-                  onChange={ this.handleChangeLookupURL }
-                  value={ lookupURL }
+            ? null
+            : (
+              <div className={ [ styles.option, styles.optionInput ].join(' ') }>
+                <div
+                  className={ lookupClassName }
+                  title={ statuses.lookup }
                 />
+                <div className={ styles.input }>
+                  <TextField
+                    floating-label
+                    label='Lookup service URL (fallback)'
+                    onChange={ this.handleChangeLookupURL }
+                    value={ lookupURL }
+                  />
+                </div>
               </div>
-            </div>
-          )
+            )
         }
       </div>
     );
@@ -265,7 +264,7 @@ export default class App extends Component {
     const statuses = {};
     const updateStatus = (prev, next, key) => {
       if (prev === next) {
-        return Promise.reject('Not changed');
+        return Promise.reject(new Error('Not changed'));
       }
 
       statuses[key] = 'connecting';

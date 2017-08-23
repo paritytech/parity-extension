@@ -25,11 +25,13 @@ import ScriptsLoader from './scriptsLoader';
 import Web3 from './web3';
 
 import { browser } from '../shared';
+import analytics from './analytics';
 
 main();
 
 function main () {
   const store = new Store();
+  const config = Config.get();
 
   store.transport = new Transport(store);
   store.images = new Images(store);
@@ -70,22 +72,20 @@ function main () {
 
     switch (action) {
       case 'isAugmentationEnabled':
-        Config.get()
-          .then((config) => {
-            const { augmentationEnabled = DEFAULT_CONFIG.augmentationEnabled } = config;
+        config.then((config) => {
+          const { augmentationEnabled = DEFAULT_CONFIG.augmentationEnabled } = config;
 
-            sendResponse(augmentationEnabled);
-          });
+          sendResponse(augmentationEnabled);
+        });
 
         return true;
 
       case 'isIntegrationEnabled':
-        Config.get()
-          .then((config) => {
-            const { integrationEnabled = DEFAULT_CONFIG.integrationEnabled } = config;
+        config.then((config) => {
+          const { integrationEnabled = DEFAULT_CONFIG.integrationEnabled } = config;
 
-            sendResponse(integrationEnabled);
-          });
+          sendResponse(integrationEnabled);
+        });
 
         return true;
 
@@ -133,10 +133,25 @@ function main () {
         return true;
 
       case 'getUI':
-        Config.get()
-          .then((config) => {
-            sendResponse(config.UI);
-          });
+        config.then((config) => {
+          sendResponse(config.UI);
+        });
+        return true;
+
+      case 'analytics':
+        analytics.ifEnabled(() => {
+          const payload = message.data || {};
+          const { type, category, data, page } = payload;
+
+          if (type === 'event') {
+            // NOTE [ToDr] Don't destructure action since it breaks scoping!
+            analytics.event(category, payload.action, data);
+          } else if (type === 'pageview') {
+            analytics.pageview(page, data);
+          } else {
+            console.error(`Unknown analytics type: ${type}`);
+          }
+        }, config);
 
         return true;
     }

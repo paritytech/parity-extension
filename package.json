@@ -76,6 +76,8 @@
     "preact": "8.2.1",
     "preact-mdl": "2.2.1",
     "preact-portal": "1.1.2",
+    "universal-ga": "1.1.0",
+    "uuid": "3.1.0",
     "web3": "0.18.2"
   }
 }

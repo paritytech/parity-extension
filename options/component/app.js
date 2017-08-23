@@ -32,6 +32,7 @@ const isProd = process.env.NODE_ENV === 'production';
 
 export default class App extends Component {
   state = {
+    analyticsEnabled: DEFAULT_CONFIG.analyticsEnabled,
     augmentationEnabled: DEFAULT_CONFIG.augmentationEnabled,
     integrationEnabled: DEFAULT_CONFIG.integrationEnabled,
     isPristine: true,
@@ -44,12 +45,30 @@ export default class App extends Component {
     UI: ''
   };
 
+  filterConfig (config) {
+    const {
+      analyticsEnabled,
+      augmentationEnabled,
+      integrationEnabled,
+      lookupURL,
+      DAPPS,
+      UI
+    } = config;
+
+    return {
+      analyticsEnabled,
+      augmentationEnabled,
+      integrationEnabled,
+      lookupURL,
+      DAPPS,
+      UI
+    };
+  }
+
   componentWillMount () {
     Config.get()
       .then((config) => {
-        const { augmentationEnabled, integrationEnabled, lookupURL, UI, DAPPS } = config;
-        const conf = { augmentationEnabled, integrationEnabled, lookupURL, UI, DAPPS };
-
+        const conf = this.filterConfig(config);
         this.setState({ ...conf, savedConf: conf }, () => this.checkStatuses({}, conf));
       });
   }
@@ -93,6 +112,8 @@ export default class App extends Component {
               </div>
             )
         }
+
+        { this.renderAnalytics() }
 
         <div className={ [ styles.option, styles.optionInput ].join(' ') }>
           <div
@@ -138,6 +159,28 @@ export default class App extends Component {
         </div>
       </div>
     );
+  }
+
+  renderAnalytics () {
+    const { analyticsEnabled } = this.state;
+    const warning = analyticsEnabled ? null : (
+      <p>Tracking your activity helps us improve Parity and Parity Extension. Consider enabling the reporting.</p>
+    );
+
+    return [
+      <div className={ styles.option }>
+        <div className={ styles.switch }>
+          <Switch
+            checked={ analyticsEnabled }
+            className={ styles.check }
+            onChange={ this.handleToggleAnalytics }
+          >
+            Allow Analytics Reporting
+          </Switch>
+        </div>
+      </div>,
+      warning
+    ];
   }
 
   renderAdvancedButtons () {
@@ -263,8 +306,8 @@ export default class App extends Component {
   }
 
   saveState (partialNextConf) {
-    const { augmentationEnabled, integrationEnabled, lookupURL, savedConf, UI, DAPPS } = this.state;
-    const prevConf = { augmentationEnabled, integrationEnabled, lookupURL, UI, DAPPS };
+    const { savedConf } = this.state;
+    const prevConf = this.filterConfig(this.state);
     const nextConf = {
       ...prevConf,
       ...partialNextConf
@@ -286,8 +329,7 @@ export default class App extends Component {
 
   @bind
   handleSave () {
-    const { augmentationEnabled, integrationEnabled, lookupURL, UI, DAPPS } = this.state;
-    const conf = { augmentationEnabled, integrationEnabled, lookupURL, UI, DAPPS };
+    const conf = this.filterConfig(this.state);
 
     Config.set(conf);
     this.setState({ isPristine: true, savedConf: conf });
@@ -295,15 +337,9 @@ export default class App extends Component {
 
   @bind
   handleReset () {
-    const { augmentationEnabled, integrationEnabled, lookupURL, UI, DAPPS } = DEFAULT_CONFIG;
+    const conf = this.filterConfig(DEFAULT_CONFIG);
 
-    this.saveState({
-      augmentationEnabled,
-      integrationEnabled,
-      UI,
-      DAPPS,
-      lookupURL
-    });
+    this.saveState(conf);
   }
 
   @bind
@@ -316,6 +352,13 @@ export default class App extends Component {
     const { checked } = event.target;
 
     this.saveState({ augmentationEnabled: checked });
+  }
+
+  @bind
+  handleToggleAnalytics (event) {
+    const { checked } = event.target;
+
+    this.saveState({ analyticsEnabled: checked });
   }
 
   @bind

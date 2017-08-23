@@ -127,6 +127,7 @@ export default class App extends Component {
     });
 
     let phrase;
+    let displayDownload = false;
 
     switch (status) {
       case 'connected':
@@ -140,13 +141,24 @@ export default class App extends Component {
       case 'disconnected':
       default:
         phrase = 'Not connected to a local node';
+        displayDownload = true;
         break;
     }
 
     return (
-      <div className={ styles.status }>
-        <span className={ iconClassName } />
-        <span>{ phrase }</span>
+      <div>
+        { !displayDownload ? null : (
+          <div className={ styles.getClient }>
+            If you don't have an Ethereum Client yet <a
+              href='https://parity.io/parity.html'
+              target='_blank'
+            >download Parity Ethereum</a>.
+          </div>
+        )}
+        <div className={ styles.status }>
+          <span className={ iconClassName } />
+          <span>{ phrase }</span>
+        </div>
       </div>
     );
   }

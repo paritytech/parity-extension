@@ -45,6 +45,16 @@
   }
 }
 
+.getClient {
+  margin-top: 0.5em;
+  margin-bottom: -0.5em;
+  font-size: 0.8em;
+  text-align: center;
+  a {
+    color: #444;
+  }
+}
+
 .status {
   border-top: 1px dashed #ddd;
   margin-top: 0.75rem;

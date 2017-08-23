@@ -37,6 +37,7 @@ module.exports = {
     manifest.entries,
     {
       'options/index': './options/index.js',
+      'welcome/index': './welcome/index.js',
       'web3.lib': 'web3/lib.js'
     }
   ),

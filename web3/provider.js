@@ -34,7 +34,7 @@ export default class Web3FrameProvider {
         return;
       }
 
-      if (!ev.data.type) {
+      if (!ev.data || !ev.data.type) {
         return;
       }
 

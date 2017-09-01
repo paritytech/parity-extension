@@ -27,6 +27,7 @@ import Web3 from './web3';
 import { browser } from '../shared';
 import analytics from './analytics';
 
+displayWelcomePageOnInstall();
 main();
 
 function main () {
@@ -156,4 +157,19 @@ function main () {
         return true;
     }
   }
+}
+
+function displayWelcomePageOnInstall () {
+  browser.runtime.onInstalled.addListener(({ reason }) => {
+    if (reason !== browser.runtime.OnInstalledReason.INSTALL) {
+      // Ignore updates, etc.
+      return;
+    }
+
+    analytics.pageview('welcome.html');
+
+    browser.tabs.create({
+      url: browser.extension.getURL('welcome/index.html')
+    });
+  });
 }

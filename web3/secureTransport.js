@@ -27,6 +27,7 @@ export function createSecureTransport () {
   let isConnected = true;
   let uiUrl = null;
   const data = {};
+  const subscriptionData = {};
   const listeners = {};
   const port = browser.runtime.connect({ name: 'secureApi' });
 
@@ -35,19 +36,35 @@ export function createSecureTransport () {
   });
 
   port.onMessage.addListener((msg) => {
-    const { id, err, payload } = msg;
-    if (!data[id]) {
+    const { id, subscription, err, payload } = msg;
+    if (!data[id] && !subscriptionData[subscription]) {
       console.warn('Unexpected response received: ', id, msg);
       return;
     }
-    const { resolve, reject } = data[id];
-    delete data[id];
+
+    let resolve = null;
+    let reject = null;
+
+    if (data[id]) {
+      resolve = data[id].resolve;
+      reject = data[id].reject;
+      delete data[id];
+    }
+
+    if (subscriptionData[subscription]) {
+      resolve = subscriptionData[subscription].resolve;
+      reject = subscriptionData[subscription].reject;
+    }
 
     if (err || payload.error) {
       let wasConnected = isConnected;
       isConnected = err !== TRANSPORT_UNINITIALIZED;
       if (wasConnected && !isConnected) {
         listeners['close'].forEach(listener => listener());
+        // remove all subscriptions
+        Object.keys(subscriptionData).forEach(key => {
+          delete subscriptionData[key];
+        });
       }
       reject(err || payload.error);
     } else {
@@ -57,6 +74,38 @@ export function createSecureTransport () {
   });
 
   return {
+    subscribe (api, callback, params) {
+      const { subscribe, unsubscribe, subscription } = methodsFromApi(api);
+      const sub = {
+        id: null,
+        subscribe,
+        unsubscribe,
+        subscription,
+        resolve: (data) => callback(null, data),
+        reject: (err) => callback(err, null)
+      };
+
+      return this.execute(subscribe, ...params)
+        .then(subscriptionId => {
+          sub.id = subscriptionId;
+          subscriptionData[subscriptionId] = sub;
+          return subscriptionId;
+        });
+    },
+    unsubscribe (subscriptionId) {
+      const subscription = subscriptionData[subscriptionId];
+
+      if (!subscription) {
+        return Promise.resolve(false);
+      }
+
+      const { unsubscribe } = subscription;
+      return this.execute(unsubscribe, [subscriptionId])
+        .then(done => {
+          delete subscriptionData[subscriptionId];
+          return done;
+        });
+    },
     execute (method, ...params) {
       return new Promise((resolve, reject) => {
         id++;
@@ -92,4 +141,18 @@ export function createSecureTransport () {
       uiUrl = url;
     }
   };
+}
+
+function methodsFromApi (api) {
+  if (api.subscription) {
+    const { subscribe, unsubscribe, subscription } = api;
+
+    return { subscribe, unsubscribe, subscription };
+  }
+
+  const subscribe = `${api}_subscribe`;
+  const unsubscribe = `${api}_unsubscribe`;
+  const subscription = `${api}_subscription`;
+
+  return { subscribe, unsubscribe, subscription };
 }

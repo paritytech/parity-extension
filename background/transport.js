@@ -114,6 +114,19 @@ export default class Transport {
   }
 
   attachListener (port) {
+    const subscriptionForwarder = ({ subscription, result, error }) => {
+      port.postMessage({
+        subscription,
+        err: null,
+        payload: { result, error },
+        connected: true
+      });
+    };
+    this.secureTransport.on('subscription', subscriptionForwarder);
+    port.onDisconnect.addListener(() => {
+      this.secureTransport.off('subscription', subscriptionForwarder);
+    });
+
     return this.secureApiMessage(port);
   }
 
@@ -267,6 +280,10 @@ export default class Transport {
       State.version = null;
 
       this.store.lookup.load();
+    });
+
+    secureTransport.on('subscription', ({ subscription, error, result }) => {
+
     });
 
     this.secureTransport = secureTransport;

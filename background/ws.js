@@ -259,35 +259,38 @@ export default class Ws extends JsonRpcBase {
     }
 
     try {
-      const result = JSON.parse(event.data);
-      const resultId = result.id || result[0].id;
-      const messageId = this._rawRequests[resultId] || resultId;
-      const isRaw = !!this._rawRequests[resultId];
-      const { method, params, resolve, reject } = this._messages[messageId];
+      const response = JSON.parse(event.data);
+      const responseId = response.id || (response[0] && response[0].id);
+      const messageId = this._rawRequests[responseId] || responseId;
+      const isRaw = !!this._rawRequests[responseId];
 
-      delete this._messages[messageId];
-      delete this._rawRequests[resultId];
+      if (responseId) {
+        const { method, params, resolve, reject } = this._messages[messageId];
 
-      if (isRaw) {
-        resolve(result);
-        return;
-      }
+        delete this._messages[messageId];
+        delete this._rawRequests[responseId];
 
-      if (result.error) {
-        this.error(event.data);
-
-        // Don't print error if request rejected or not is not yet up...
-        if (!/(rejected|not yet up)/.test(result.error.message)) {
-          console.error(`${method}(${JSON.stringify(params)}): ${result.error.code}: ${result.error.message}`);
+        if (isRaw) {
+          return resolve(response);
         }
 
-        const error = new Error(`${method}: ${result.error.code}: ${result.error.message}`);
-        reject(error);
+        if (response.error) {
+          this.error(event.data);
 
-        return;
+          // Don't print error if request rejected or not is not yet up...
+          if (!/(rejected|not yet up)/.test(response.error.message)) {
+            console.error(`${method}(${JSON.stringify(params)}): ${response.error.code}: ${response.error.message}`);
+          }
+
+          const error = new Error(`${method}: ${response.error.code}: ${response.error.message}`);
+          return reject(error);
+        }
+
+        return resolve(response.result);
       }
 
-      resolve(result.result);
+      const { subscription, result, error } = response.params;
+      this.emit('subscription', { subscription, result, error });
     } catch (e) {
       console.error('ws::_onMessage', event.data, e);
     }

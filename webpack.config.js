@@ -65,7 +65,7 @@ module.exports = {
       },
       {
         test: /\.css$/,
-        exclude: [ /node_modules/, /welcome.welcome\.css/ ],
+        exclude: [ /node_modules/ ],
         use: [
           'style-loader',
           'css-loader?modules&sourceMap&importLoaders=1&localIdentName=[name]_[local]_[hash:base64:5]',
@@ -75,7 +75,7 @@ module.exports = {
 
       {
         test: /\.css$/,
-        include: [ /node_modules/, /welcome.welcome\.css/ ],
+        include: [ /node_modules/ ],
         use: [
           'style-loader',
           'css-loader'

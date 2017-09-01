@@ -54,18 +54,21 @@ module.exports = {
         exclude: /(node_modules)/,
         use: 'babel-loader'
       },
-
+      {
+        test: /welcome\.css/,
+        loader: 'file-loader?name=[path][name].[ext]'
+      },
       {
         test: /\.html$/,
         use: [
           'file-loader?name=[path][name].[ext]',
-          'extract-loader?publicPath=./',
-          'html-loader'
+          'extract-loader?publicPath=../',
+          'html-loader?attrs[]=img:src&attrs[]=link:href'
         ]
       },
       {
         test: /\.css$/,
-        exclude: [ /node_modules/ ],
+        exclude: [ /node_modules/, /welcome\.css/ ],
         use: [
           'style-loader',
           'css-loader?modules&sourceMap&importLoaders=1&localIdentName=[name]_[local]_[hash:base64:5]',

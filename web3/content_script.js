@@ -102,7 +102,7 @@ function injectWeb3 () {
     }
 
     port.onMessage.addListener((msg) => {
-      const { id, err, payload } = msg;
+      const { id, subscription, err, payload } = msg;
 
       // Inject iframe only if the page is using Web3
       if (!err) {
@@ -114,6 +114,7 @@ function injectWeb3 () {
       window.postMessage({
         type: EV_WEB3_RESPONSE,
         id,
+        subscription,
         err,
         payload
       }, '*');

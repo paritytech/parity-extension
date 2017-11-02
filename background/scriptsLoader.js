@@ -60,7 +60,9 @@ export default class ScriptsLoader {
 
     if (!codeCache) {
       codeCacheVersion = State.version;
-      codeCache = this.fetchFromJSON().catch(() => this.fetchFromHTML());
+      codeCache = this.fetchFromJSON().catch(() => {
+        return this.fetchFromHTML();
+      });
     }
 
     return codeCache
@@ -76,6 +78,17 @@ export default class ScriptsLoader {
             error: err.message,
             ui: this.UI
           });
+          return;
+        }
+
+        if (this.retries === 5) {
+          this.retries = 0;
+          port.postMessage({
+            success: false,
+            error: err.message,
+            ui: this.UI
+          });
+          return;
         }
 
         codeCache = null;
@@ -133,6 +146,8 @@ export default class ScriptsLoader {
 
           script = script.replace(regex, url);
         });
+
+        console.log('Script: ', script);
 
         return new Blob([ script ], { type: 'application/javascript' });
       })

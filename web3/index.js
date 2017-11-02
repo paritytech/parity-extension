@@ -131,7 +131,12 @@ function intializeBar (wait = 5000) {
       intializeBar(nextWait);
     }, timeout);
   } else if (!parityBarElement) {
-    return console.error('the parity bar could not be found after 2s');
+    console.error('the parity bar could not be found after 2s');
+    closeIframe({
+      bottom: 0,
+      right: 0
+    });
+    return;
   }
 
   window.setTimeout(() => {
@@ -182,6 +187,10 @@ function resizeAndClose () {
   // Save closing position
   parityBarBoundingRect = parityBarElement.getBoundingClientRect();
 
+  closeIframe(iframeStyle);
+}
+
+function closeIframe (iframeStyle) {
   window.parent.postMessage({
     type: EV_SIGNER_BAR,
     opened: false,
@@ -238,8 +247,12 @@ function configureApi (config) {
   const dappsInterface = DAPPS.split(':')[0];
   const dappsPort = DAPPS.split(':')[1];
 
+  if (!window.secureApi) {
+    return;
+  }
+
   // Use the Secure API configure method if available
-  if (window.secureApi && typeof window.secureApi.configure === 'function') {
+  if (typeof window.secureApi.configure === 'function') {
     return window.secureApi.configure({
       dappsInterface, dappsPort
     });

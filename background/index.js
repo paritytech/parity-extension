@@ -152,7 +152,7 @@ function main () {
           } else {
             console.error(`Unknown analytics type: ${type}`);
           }
-        }, config);
+        }, sendResponse, config);
 
         return true;
     }

@@ -26,11 +26,13 @@ Config.get()
     analytics.pageview('/run');
   });
 
-analytics.ifEnabled = (fn, config = null) => {
+analytics.ifEnabled = (fn, respond = () => {}, config = null) => {
   const cfg = config || Config.get();
   cfg.then(config => {
     if (config.analyticsEnabled) {
-      fn();
+      respond(fn());
+    } else {
+      respond(true);
     }
   });
 };

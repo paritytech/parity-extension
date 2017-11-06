@@ -122,10 +122,19 @@ export default class Transport {
         connected: true
       });
     };
-    this.secureTransport.on('subscription', subscriptionForwarder);
-    port.onDisconnect.addListener(() => {
-      this.secureTransport.off('subscription', subscriptionForwarder);
-    });
+
+    const attach = () => {
+      this.secureTransport.on('subscription', subscriptionForwarder);
+      port.onDisconnect.addListener(() => {
+        this.secureTransport.off('subscription', subscriptionForwarder);
+      });
+    };
+
+    if (this.secureTransport) {
+      attach();
+    } else {
+      this._attachOnConnect = attach;
+    }
 
     return this.secureApiMessage(port);
   }
@@ -170,6 +179,10 @@ export default class Transport {
   }
 
   setIcon (status) {
+    // TODO [ToDr] Extract icon setting to a transport listener.
+    if (!this.isPrimary) {
+      return;
+    }
     if (!browser.browserAction) {
       return false;
     }
@@ -282,11 +295,11 @@ export default class Transport {
       this.store.lookup.load();
     });
 
-    secureTransport.on('subscription', ({ subscription, error, result }) => {
-
-    });
-
     this.secureTransport = secureTransport;
+    if (this._attachOnConnect) {
+      this._attachOnConnect();
+      this._attachOnConnect = null;
+    }
   }
 
   close () {
@@ -359,10 +372,9 @@ export default class Transport {
   refreshAccountsCache () {
     const oldOrigins = Object.keys(this.accountsCache);
 
-    this.accountsCache = {};
-
     // re-populate cache
     oldOrigins.forEach(origin => {
+      delete this.accountsCache[origin];
       this.fetchAccountsForCache(origin);
     });
   }

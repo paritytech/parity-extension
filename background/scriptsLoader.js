@@ -119,7 +119,6 @@ export default class ScriptsLoader {
           .filter((asset) => !/^embed(.+)js$/.test(asset));
 
         const mainScript = assets.find((asset) => /^embed(.+)js$/.test(asset));
-
         const assetsPromises = filteredAssets
           .map((asset) => {
             return fetch(`${this.UI}/${asset}`)
@@ -127,6 +126,10 @@ export default class ScriptsLoader {
               .then((blob) => {
                 if (/\.js$/.test(asset)) {
                   return URL.createObjectURL(blob, { type: 'application/javascript' });
+                }
+
+                if (/\.css$/.test(asset)) {
+                  return URL.createObjectURL(blob, { type: 'text/css' });
                 }
 
                 return URL.createObjectURL(blob);
@@ -140,6 +143,8 @@ export default class ScriptsLoader {
         return Promise.all([ scriptPromise, Promise.all(assetsPromises) ]);
       })
       .then(([ script, assets ]) => {
+        const styles = assets.find((asset) => /^embed(.+)css$/.test(asset.path));
+
         assets.forEach((asset) => {
           const { path, url } = asset;
           const regex = new RegExp(path, 'g');
@@ -147,14 +152,16 @@ export default class ScriptsLoader {
           script = script.replace(regex, url);
         });
 
-        console.log('Script: ', script);
-
-        return new Blob([ script ], { type: 'application/javascript' });
+        return {
+          script: new Blob([ script ], { type: 'application/javascript' }),
+          styles: styles ? styles.url : null
+        };
       })
       .then((blob) => {
         return {
           success: true,
-          scripts: URL.createObjectURL(blob)
+          styles: blob.styles,
+          scripts: URL.createObjectURL(blob.script)
         };
       });
   }
@@ -205,7 +212,7 @@ export default class ScriptsLoader {
 
         // Concat blobs
         const scriptBlob = new Blob(scriptBlobs, { type: 'application/javascript' });
-        const styleBlob = new Blob(styleBlobs);
+        const styleBlob = new Blob(styleBlobs, { type: 'text/css' });
 
         return {
           success: true,

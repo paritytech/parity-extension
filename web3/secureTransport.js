@@ -74,6 +74,7 @@ export function createSecureTransport () {
   });
 
   return {
+    ready: Promise.resolve(null),
     subscribe (api, callback, params) {
       const { subscribe, unsubscribe, subscription } = methodsFromApi(api);
       const sub = {
@@ -105,6 +106,9 @@ export function createSecureTransport () {
           delete subscriptionData[subscriptionId];
           return done;
         });
+    },
+    send (method, params) {
+      return this.execute(method, ...params);
     },
     execute (method, ...params) {
       return new Promise((resolve, reject) => {

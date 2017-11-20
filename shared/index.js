@@ -36,11 +36,12 @@ function asPromise (action, data = {}) {
     browser.runtime.sendMessage({
       action,
       data
-    }, (data) => {
-      if (!data && browser.runtime.lastError) {
+    }, (response) => {
+      if (!response && browser.runtime.lastError) {
+        console.warn('Rejected response: ', action, data);
         reject(browser.runtime.lastError);
       } else {
-        resolve(data);
+        resolve(response);
       }
     });
   });

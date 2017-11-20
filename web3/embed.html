@@ -6,65 +6,28 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>Parity Bar</title>
     <style>
-      :root,
-      :root body {
-        margin: 0;
-        padding: 0;
-        border: 0;
-        font-size: 100%;
-        font: inherit;
-        vertical-align: baseline;
-        color: rgba(255, 255, 255, 0.75);
-        font-size: 16px;
-        font-family: 'Roboto', sans-serif;
-        font-weight: 300 !important;
-      }
-
-      :root * {
-        font-weight: 300 !important;
-      }
-
-      :root a,
-      :root a:visited {
-        text-decoration: none;
-        cursor: pointer;
-        color: rgb(0, 151, 167); /* #f80 */
-      }
-
-      :root a:hover {
-        color: rgb(0, 174, 193);
-      }
-
       html, body, #container {
+        background: none !important;
         width: 100%;
         height: 100%;
         margin: 0;
         padding: 0;
-        font-family: 'Roboto', sans-serif;
-        font-size: 16px;
-        font-weight: 300;
-        color: hsla(0,0%,100%,.75);
+        font-family: Sans-Serif;
       }
-
-      #container > div {
-        background: none;
-      }
-
       .loading {
         position: absolute;
         bottom: 0;
         right: 1em;
         text-align: right;
         font-size: 1.2em;
-        color: #fff;
-        background: rgba(40, 40, 40, 0.75) !important;
+        color: #999;
+        background: rgba(255, 255, 255, 0.75) !important;
         padding: 0 1em;
         height: calc(1em + 36px);
         display: flex;
         align-items: center;
         text-align: center;
       }
-
       .loading.version {
         font-size: 0.9em;
         padding: 0.5em 1.5em;

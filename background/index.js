@@ -35,6 +35,7 @@ function main () {
   const config = Config.get();
 
   store.transport = new Transport(store);
+  store.transport.isPrimary = true;
   store.images = new Images(store);
   store.lookup = new Lookup(store);
   store.processor = new Processor(store);
@@ -46,7 +47,14 @@ function main () {
 
   function onConnectHandler (port) {
     if (port.name === 'secureApi') {
-      port.onMessage.addListener(store.transport.attachListener(port));
+      const tabApi = new Transport(store);
+      tabApi.accountsCache = store.transport.accountsCache;
+      console.warn('Starting new ws connection.');
+      port.onMessage.addListener(tabApi.attachListener(port));
+      port.onDisconnect.addListener(() => {
+        console.warn('Closing ws connection.');
+        tabApi.close();
+      });
       return;
     }
 
@@ -152,7 +160,7 @@ function main () {
           } else {
             console.error(`Unknown analytics type: ${type}`);
           }
-        }, config);
+        }, sendResponse, config);
 
         return true;
     }

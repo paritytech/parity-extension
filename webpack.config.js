@@ -31,7 +31,7 @@ manifest.run();
 
 module.exports = {
   cache: !isProd,
-  devtool: isProd ? '#hidden-source-map' : '#source-map',
+  devtool: isProd ? false : '#source-map',
 
   entry: Object.assign({},
     manifest.entries,

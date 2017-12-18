@@ -6,8 +6,8 @@ Parity Chrome Extension
 To start developing the extension do:
 
 ```
-$ npm install
-$ npm start
+$ yarn install
+$ yarn start
 ```
 
 Then head off to `chrome://extensions`, click "Load unpacked extension" and point to `build` directory.
@@ -21,7 +21,7 @@ the extension to see the changes.
 To prepare a release version of the extension run:
 
 ```bash
-$ npm run release
+$ yarn release
 ```
 
 This will create `release` directory with a `zip` file required for upload.

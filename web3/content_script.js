@@ -63,7 +63,9 @@ Promise.all([isIntegrationEnabled(), getNodeStatus()])
 
 function injectExtractor () {
   getUI().then(UI => {
-    if (window.location.origin !== `${UI}`) {
+    const origin = `${window.location.origin}`.replace('localhost', '127.0.0.1');
+    const ui = `${UI}`.replace('localhost', '127.0.0.1');
+    if (origin !== ui) {
       return;
     }
 

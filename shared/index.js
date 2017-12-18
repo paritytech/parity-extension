@@ -9,6 +9,7 @@ export const EV_SIGNER_BAR = 'parity.signer.bar';
 export const EV_BAR_CODE = 'parity.signer.bar.code';
 
 export const isProd = process.env.NODE_ENV === 'production';
+export const isEmbedDev = process.env.EMBED === '1';
 export const browser = global.browser || global.chrome;
 
 /**

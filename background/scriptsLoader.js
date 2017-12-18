@@ -18,7 +18,7 @@ import { flatten } from 'lodash';
 
 import Config, { DEFAULT_CONFIG } from './config';
 import State from './state';
-import { EV_BAR_CODE, getRetryTimeout } from '../shared';
+import { EV_BAR_CODE, getRetryTimeout, isEmbedDev } from '../shared';
 
 class VersionMismatch extends Error {
   isVersionMismatch = true;
@@ -137,7 +137,8 @@ export default class ScriptsLoader {
               .then((url) => ({ path: asset, url }));
           });
 
-        const scriptPromise = fetch(`${this.UI}/${mainScript}`)
+        const ui = isEmbedDev ? 'http://127.0.0.1:3000' : this.UI;
+        const scriptPromise = fetch(`${ui}/${mainScript}`)
           .then((response) => response.text());
 
         return Promise.all([ scriptPromise, Promise.all(assetsPromises) ]);

@@ -107,8 +107,10 @@ export function createSecureTransport () {
           return done;
         });
     },
-    send (method, params) {
-      return this.execute(method, ...params);
+    send (method, params, callback) {
+      return this.execute(method, ...params)
+        .then(res => callback(null, res))
+        .catch(err => callback(err, null));
     },
     execute (method, ...params) {
       return new Promise((resolve, reject) => {

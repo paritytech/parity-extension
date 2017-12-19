@@ -33,11 +33,6 @@ const BAR_MIN_HEIGHT = 60;
 
 let parityBarBoundingRect;
 
-function isWebExtensionPage () {
-  const { protocol } = window.location;
-  return protocol === 'chrome-extension:' || protocol === 'moz-extension:';
-}
-
 isIntegrationEnabled()
   .then((enabled) => {
     if (enabled && isWebExtensionPage()) {
@@ -52,6 +47,11 @@ isIntegrationEnabled()
       handleResizeEvents();
     }
   });
+
+function isWebExtensionPage () {
+  const { protocol } = window.location;
+  return protocol === 'chrome-extension:' || protocol === 'moz-extension:';
+}
 
 function isRoughlyEqual (a, b, diff = 0.1) {
   const keys = Object.keys(a);

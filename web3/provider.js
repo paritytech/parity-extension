@@ -72,6 +72,10 @@ export default class Web3FrameProvider {
     });
 
     this.initializeMainAccount();
+    // NOTE [ToDr] Don't use lambdas, we need
+    // the functions both in prototype and instance.
+    this.send = this.send.bind(this);
+    this.sendAsync = this.sendAsync.bind(this);
   }
 
   initializeMainAccount () {
@@ -104,7 +108,7 @@ export default class Web3FrameProvider {
     }, cb);
   }
 
-  sendAsync = (payload, cb) => {
+  sendAsync (payload, cb) {
     this.id += 1;
     this.callbacks[this.id] = cb;
     window.postMessage({
@@ -112,9 +116,9 @@ export default class Web3FrameProvider {
       id: this.id,
       payload: payload
     }, '*');
-  };
+  }
 
-  send = (payload) => {
+  send (payload) {
     const { id, method, jsonrpc } = payload;
     if (method === 'eth_accounts') {
       // Make a accounts request to refresh them
@@ -138,7 +142,7 @@ export default class Web3FrameProvider {
     }
 
     throw new Error('Synchronous methods are not supported.');
-  };
+  }
 
   isConnected () {
     return this._isConnected;

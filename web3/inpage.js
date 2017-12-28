@@ -35,4 +35,5 @@ if (!browser || !browser.extension) {
 
   window.Web3 = Web3;
   window.web3 = new Web3(provider);
+  window.ethereumProvider = provider;
 }

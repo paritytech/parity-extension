@@ -116,9 +116,12 @@ export default class ScriptsLoader {
 
         const filteredAssets = assets
           .filter((asset) => !/html$/.test(asset))
-          .filter((asset) => !/^embed(.+)js$/.test(asset));
+          .filter((asset) => !/^embed(.+)js$/.test(asset))
+          .filter((asset) => !/^common(.+).js$/.test(asset));
 
         const mainScript = assets.find((asset) => /^embed(.+)js$/.test(asset));
+        const commonScript = assets.find((asset) => /^common(.+)js$/.test(asset));
+
         const assetsPromises = filteredAssets
           .map((asset) => {
             return fetch(`${this.UI}/${asset}`)
@@ -140,11 +143,17 @@ export default class ScriptsLoader {
         const ui = isEmbedDev ? 'http://127.0.0.1:3000' : this.UI;
         const scriptPromise = fetch(`${ui}/${mainScript}`)
           .then((response) => response.text());
+        const commonScriptPromise = commonScript
+          ? fetch(`${ui}/${commonScript}`).then((response) => response.text())
+          : null;
 
-        return Promise.all([ scriptPromise, Promise.all(assetsPromises) ]);
+        return Promise.all([ commonScriptPromise, scriptPromise, Promise.all(assetsPromises) ]);
       })
-      .then(([ script, assets ]) => {
+      .then(([ common, mainScript, assets ]) => {
+        const commonStyles = assets.find((asset) => /^common(.+)css$/.test(asset.path));
         const styles = assets.find((asset) => /^embed(.+)css$/.test(asset.path));
+
+        let script = common ? common + mainScript : mainScript;
 
         assets.forEach((asset) => {
           const { path, url } = asset;
@@ -154,15 +163,15 @@ export default class ScriptsLoader {
         });
 
         return {
-          script: new Blob([ script ], { type: 'application/javascript' }),
-          styles: styles ? styles.url : null
+          script: [URL.createObjectURL(new Blob([ script ]), { type: 'application/javascript' })],
+          styles: [commonStyles, styles].filter(x => x).map(x => x.url)
         };
       })
       .then((blob) => {
         return {
           success: true,
           styles: blob.styles,
-          scripts: URL.createObjectURL(blob.script)
+          scripts: blob.script
         };
       });
   }
@@ -217,8 +226,8 @@ export default class ScriptsLoader {
 
         return {
           success: true,
-          styles: URL.createObjectURL(styleBlob),
-          scripts: URL.createObjectURL(scriptBlob)
+          styles: [URL.createObjectURL(styleBlob)],
+          scripts: [URL.createObjectURL(scriptBlob)]
         };
       });
   }

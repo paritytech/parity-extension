@@ -218,19 +218,24 @@ function loadScripts (config) {
       return;
     }
 
-    const $script = document.createElement('script');
-    $script.src = code.scripts;
-    document.body.appendChild($script);
+    const $allScripts = code.scripts.map(script => {
+      const $script = document.createElement('script');
+      $script.src = script;
+      document.body.appendChild($script);
+      return $script;
+    });
 
-    $script.addEventListener('load', () => {
+    $allScripts[$allScripts.length - 1].addEventListener('load', () => {
       configureApi(config);
     });
 
-    if (code.styles) {
-      const $styles = document.createElement('link');
-      $styles.rel = 'stylesheet';
-      $styles.href = code.styles;
-      document.head.appendChild($styles);
+    if (code.styles && code.styles.length) {
+      code.styles.forEach(style => {
+        const $styles = document.createElement('link');
+        $styles.rel = 'stylesheet';
+        $styles.href = style;
+        document.head.appendChild($styles);
+      });
     }
 
     port.disconnect();

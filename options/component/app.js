@@ -32,7 +32,6 @@ const isProd = process.env.NODE_ENV === 'production';
 
 export default class App extends Component {
   state = {
-    analyticsEnabled: DEFAULT_CONFIG.analyticsEnabled,
     augmentationEnabled: DEFAULT_CONFIG.augmentationEnabled,
     integrationEnabled: DEFAULT_CONFIG.integrationEnabled,
     isPristine: true,
@@ -47,7 +46,6 @@ export default class App extends Component {
 
   filterConfig (config) {
     const {
-      analyticsEnabled,
       augmentationEnabled,
       integrationEnabled,
       lookupURL,
@@ -56,7 +54,6 @@ export default class App extends Component {
     } = config;
 
     return {
-      analyticsEnabled,
       augmentationEnabled,
       integrationEnabled,
       lookupURL,
@@ -113,8 +110,6 @@ export default class App extends Component {
             )
         }
 
-        { this.renderAnalytics() }
-
         <div className={ [ styles.option, styles.optionInput ].join(' ') }>
           <div
             className={ nodeClassName }
@@ -159,28 +154,6 @@ export default class App extends Component {
         </div>
       </div>
     );
-  }
-
-  renderAnalytics () {
-    const { analyticsEnabled } = this.state;
-    const warning = analyticsEnabled ? null : (
-      <p>Tracking your activity helps us improve Parity and Parity Extension. Consider enabling the reporting.</p>
-    );
-
-    return [
-      <div className={ styles.option }>
-        <div className={ styles.switch }>
-          <Switch
-            checked={ analyticsEnabled }
-            className={ styles.check }
-            onChange={ this.handleToggleAnalytics }
-          >
-            Allow Analytics Reporting
-          </Switch>
-        </div>
-      </div>,
-      warning
-    ];
   }
 
   renderAdvancedButtons () {
@@ -352,13 +325,6 @@ export default class App extends Component {
     const { checked } = event.target;
 
     this.saveState({ augmentationEnabled: checked });
-  }
-
-  @bind
-  handleToggleAnalytics (event) {
-    const { checked } = event.target;
-
-    this.saveState({ analyticsEnabled: checked });
   }
 
   @bind

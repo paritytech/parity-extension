@@ -22,7 +22,6 @@ import { reload, withDomain, isProd, browser } from '../shared';
 const CONFIG_KEY = 'parity::config';
 
 export const DEFAULT_CONFIG = {
-  analyticsEnabled: true,
   augmentationEnabled: !isProd,
   // TODO [ToDr] Deprecate if 1.7 == stable
   DAPPS: 'http://127.0.0.1:8080',

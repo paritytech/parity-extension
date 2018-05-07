@@ -25,7 +25,6 @@ import ScriptsLoader from './scriptsLoader';
 import Web3 from './web3';
 
 import { browser } from '../shared';
-import analytics from './analytics';
 
 displayWelcomePageOnInstall();
 main();
@@ -146,23 +145,6 @@ function main () {
           sendResponse(config.UI);
         });
         return true;
-
-      case 'analytics':
-        analytics.ifEnabled(() => {
-          const payload = message.data || {};
-          const { type, category, data, page } = payload;
-
-          if (type === 'event') {
-            // NOTE [ToDr] Don't destructure action since it breaks scoping!
-            analytics.event(category, payload.action, data);
-          } else if (type === 'pageview') {
-            analytics.pageview(page, data);
-          } else {
-            console.error(`Unknown analytics type: ${type}`);
-          }
-        }, sendResponse, config);
-
-        return true;
     }
   }
 }
@@ -173,8 +155,6 @@ function displayWelcomePageOnInstall () {
       // Ignore updates, etc.
       return;
     }
-
-    analytics.pageview('welcome.html');
 
     browser.tabs.create({
       url: browser.extension.getURL('welcome/index.html')

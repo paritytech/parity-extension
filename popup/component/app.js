@@ -22,7 +22,7 @@ import 'material-design-lite/material';
 
 import Config, { DEFAULT_CONFIG } from '../../background/config';
 import Extractions from './extractions';
-import { getNodeStatus, getChainName, analytics, browser } from '../../shared';
+import { getNodeStatus, getChainName, browser } from '../../shared';
 
 import styles from './app.css';
 
@@ -60,13 +60,6 @@ export default class App extends Component {
 
         this.setState({ chainName });
       });
-  }
-
-  componentDidMount () {
-    analytics({
-      type: 'pageview',
-      page: '/popup'
-    });
   }
 
   getExtractions () {

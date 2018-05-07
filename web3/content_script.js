@@ -27,7 +27,7 @@ import {
   EV_WEB3_ACCOUNTS_REQUEST, EV_WEB3_ACCOUNTS_RESPONSE,
   EV_TOKEN, EV_SIGNER_BAR,
   getUI, isIntegrationEnabled, getNodeStatus,
-  analytics, browser
+  browser
 } from '../shared';
 
 Promise.all([isIntegrationEnabled(), getNodeStatus()])
@@ -189,11 +189,6 @@ function injectWeb3 () {
     if (iframeInjected) {
       return;
     }
-
-    analytics({
-      type: 'pageview',
-      page: window.location.href
-    });
 
     // lazy load styles
     const styles = require('./styles.css');

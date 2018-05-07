@@ -80,10 +80,6 @@ export function getChainName () {
   return asPromise('getChainName');
 }
 
-export function analytics (data) {
-  return asPromise('analytics', data);
-}
-
 export function withDomain (url, domain = 'http://', alt = 'https://') {
   if (url.startsWith(domain) || url.startsWith(alt)) {
     return url;
